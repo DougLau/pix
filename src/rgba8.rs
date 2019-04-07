@@ -93,7 +93,6 @@ impl PixFmt for Rgba8 {
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
     fn mask_over(pix: &mut [Self], mask: &[u8], clr: Self) {
-        debug_assert_eq!(pix.len(), mask.len());
         #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"),
               feature = "use-simd"))]
         {
@@ -117,8 +116,7 @@ impl PixFmt for Rgba8 {
           feature = "use-simd"))]
 #[target_feature(enable = "ssse3")]
 unsafe fn over_x86(pix: &mut [Rgba8], mask: &[u8], clr: Rgba8) {
-    debug_assert_eq!(pix.len(), mask.len());
-    let len = pix.len();
+    let len = pix.len().min(mask.len());
     let clr = _mm_set1_epi32(clr.into());
     let src = mask.as_ptr();
     let dst = pix.as_mut_ptr();

@@ -12,8 +12,7 @@ fn gray_over(c: &mut Criterion, sz: u32) {
         let mut m = Raster::<Alpha8>::new(sz, sz);
         m.set_pixel(0, 0, Alpha8::new(255));
         m.set_pixel(sz - 1, sz - 1, Alpha8::new(128));
-        let mask = m.as_u8_slice();
-        b.iter(|| r.mask_over(mask, Gray8::new(100)))
+        b.iter(|| r.mask_over(&m, 0, 0, Gray8::new(100)))
     });
 }
 
@@ -36,8 +35,7 @@ fn rgba_over(c: &mut Criterion, sz: u32) {
         let mut m = Raster::<Alpha8>::new(sz, sz);
         m.set_pixel(0, 0, Alpha8::new(255));
         m.set_pixel(sz - 1, sz - 1, Alpha8::new(128));
-        let mask = m.as_u8_slice();
-        b.iter(|| r.mask_over(mask, Rgba8::new(100, 50, 150, 255)))
+        b.iter(|| r.mask_over(&m, 0, 0, Rgba8::new(100, 50, 150, 255)))
     });
 }
 

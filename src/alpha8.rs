@@ -36,7 +36,6 @@ impl PixFmt for Alpha8 {
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
     fn mask_over(pix: &mut [Self], mask: &[u8], clr: Self) {
-        debug_assert_eq!(pix.len(), mask.len());
         over_fallback(pix, mask, clr);
     }
 }

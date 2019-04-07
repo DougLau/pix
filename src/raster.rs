@@ -3,6 +3,7 @@
 // Copyright (c) 2017-2019  Douglas P Lau
 //
 use std::marker::PhantomData;
+use alpha8::Alpha8;
 use pixel::PixFmt;
 
 /// A raster image with owned pixel data.
@@ -64,6 +65,20 @@ impl<F: PixFmt> Raster<F> {
     pub fn as_slice_mut(&mut self) -> &mut [F] {
         &mut self.pixels
     }
+    /// Get a row of pixels as a mutable slice.
+    fn row_slice_mut(&mut self, x: u32, y: u32) -> &mut [F] {
+        debug_assert!(x < self.width && y < self.height);
+        let s = (y * self.width + x) as usize;
+        let t = s + (self.width - x) as usize;
+        &mut self.pixels[s..t]
+    }
+    /// Get a row of pixels as a u8 slice.
+    fn row_slice_u8(&self, x: u32, y: u32) -> &[u8] {
+        debug_assert!(x < self.width && y < self.height);
+        let s = (y * self.width + x) as usize;
+        let t = s + (self.width - x) as usize;
+        F::as_u8_slice(&self.pixels[s..t])
+    }
     /// Get the pixels as a u8 slice.
     pub fn as_u8_slice(&self) -> &[u8] {
         F::as_u8_slice(&self.pixels)
@@ -82,10 +97,33 @@ impl<F: PixFmt> Raster<F> {
     /// Blend pixels with an alpha mask.
     ///
     /// * `mask` Alpha mask for compositing.
+    /// * `x` Left position of alpha mask.
+    /// * `y` Top position of alpha mask.
     /// * `clr` Color to composite.
-    pub fn mask_over(&mut self, mask: &[u8], clr: F) {
-        debug_assert_eq!(self.len(), self.pixels.len());
-        F::mask_over(&mut self.pixels, mask, clr);
+    pub fn mask_over(&mut self, mask: &Raster<Alpha8>, x: i32, y: i32, clr: F) {
+        if x >= self.width() as i32 || y >= self.height() as i32 {
+            return; // positioned off right or bottom edge
+        }
+        let w = x + mask.width() as i32;
+        let h = y + mask.height() as i32;
+        if w <= 0 || h <= 0 {
+            return; // positioned off left or top edge
+        }
+        let w = self.width().min(w as u32);
+        let h = self.height().min(h as u32);
+        if self.width() == w && self.height() == h {
+            F::mask_over(&mut self.pixels, mask.as_u8_slice(), clr);
+        } else {
+            let (dx, mx) = if x >= 0 { (x as u32, 0) }
+                           else { (0, x.abs() as u32) };
+            let (dy, my) = if y >= 0 { (y as u32, 0) }
+                           else { (0, y.abs() as u32) };
+            for yi in 0..h {
+                let mut row = self.row_slice_mut(dx, dy + yi);
+                let m = mask.row_slice_u8(mx, my);
+                F::mask_over(&mut row, m, clr);
+            }
+        }
     }
 }
 
