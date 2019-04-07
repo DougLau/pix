@@ -47,6 +47,16 @@ impl<F: PixFmt> Raster<F> {
     fn len(&self) -> usize {
         (self.width * self.height) as usize
     }
+    /// Get one pixel value.
+    pub fn pixel(&self, x: u32, y: u32) -> F {
+        let i = (self.width * y + x) as usize;
+        self.pixels[i]
+    }
+    /// Set one pixel value.
+    pub fn set_pixel(&mut self, x: u32, y: u32, p: F) {
+        let i = (self.width * y + x) as usize;
+        self.pixels[i] = p;
+    }
     /// Get the pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
         &self.pixels

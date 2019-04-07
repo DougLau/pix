@@ -11,7 +11,7 @@
 /// * [Gray8](struct.Gray8.html)
 /// * [Rgb8](struct.Rgb8.html)
 /// * [Rgba8](struct.Rgba8.html)
-pub trait PixFmt: Clone + Default {
+pub trait PixFmt: Clone + Copy + Default {
 
     /// Blend pixels with an alpha mask.
     ///
