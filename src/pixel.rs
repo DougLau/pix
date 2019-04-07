@@ -8,6 +8,7 @@
 /// This determines color components and bit depth,
 /// as well as the layout of pixels in memory.
 ///
+/// * [Alpha8](struct.Alpha8.html)
 /// * [Gray8](struct.Gray8.html)
 /// * [Rgb8](struct.Rgb8.html)
 /// * [Rgba8](struct.Rgba8.html)
@@ -23,7 +24,7 @@ pub trait PixFmt: Clone + Copy + Default {
     /// Divide alpha (remove premultiplied alpha)
     ///
     /// * `pix` Slice of pixels.
-    fn divide_alpha(pix: &mut [Self]);
+    fn divide_alpha(_pix: &mut [Self]) { }
 
     /// Convert a pixel slice into a u8 slice.
     ///

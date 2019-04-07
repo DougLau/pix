@@ -3,7 +3,6 @@
 // Copyright (c) 2017-2019  Douglas P Lau
 //
 use std::marker::PhantomData;
-use mask::Mask;
 use pixel::PixFmt;
 
 /// A raster image with owned pixel data.
@@ -82,13 +81,11 @@ impl<F: PixFmt> Raster<F> {
     }
     /// Blend pixels with an alpha mask.
     ///
-    /// * `mask` Alpha mask for compositing.  It is cleared before returning.
+    /// * `mask` Alpha mask for compositing.
     /// * `clr` Color to composite.
-    /// * `pixels` Borrowed pixel data.
-    pub fn over(&mut self, mask: &mut Mask, clr: F) {
+    pub fn over(&mut self, mask: &[u8], clr: F) {
         debug_assert_eq!(self.len(), self.pixels.len());
-        F::over(&mut self.pixels, mask.pixels(), clr);
-        mask.clear();
+        F::over(&mut self.pixels, mask, clr);
     }
 }
 
@@ -148,12 +145,25 @@ impl<F: PixFmt> RasterB<F> {
     }
     /// Blend pixels with an alpha mask.
     ///
-    /// * `mask` Alpha mask for compositing.  It is cleared before returning.
+    /// * `mask` Alpha mask for compositing.
     /// * `clr` Color to composite.
     /// * `pixels` Borrowed pixel data.
-    pub fn over(&self, mask: &mut Mask, clr: F, mut pixels: &mut [F]) {
+    pub fn over(&self, mask: &[u8], clr: F, mut pixels: &mut [F]) {
         assert_eq!(self.len(), pixels.len());
-        F::over(&mut pixels, mask.pixels(), clr);
-        mask.clear();
+        F::over(&mut pixels, mask, clr);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use super::super::alpha8::*;
+    #[test]
+    fn test_alpha() {
+        let mut m = Raster::<Alpha8>::new(10, 10);
+        m.clear();
+        assert!(m.width == 10);
+        assert!(m.height == 10);
+        assert!(m.pixels.len() == 100);
     }
 }

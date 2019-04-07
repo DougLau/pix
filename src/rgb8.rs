@@ -61,8 +61,6 @@ impl PixFmt for Rgb8 {
         debug_assert_eq!(pix.len(), mask.len());
         over_fallback(pix, mask, clr);
     }
-    /// Divide alpha (remove premultiplied alpha)
-    fn divide_alpha(_pix: &mut [Self]) { }
 }
 
 /// Composite a color with a mask (slow fallback).
