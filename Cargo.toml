@@ -1,0 +1,19 @@
+[package]
+name = "pix"
+version = "0.1.0"
+authors = ["Douglas Lau <doug.p.lau@gmail.com>"]
+description = "Pixel / raster image library"
+license = "MIT/Apache-2.0"
+documentation = "https://docs.rs/pix"
+homepage = "https://github.com/DougLau/pix"
+repository = "https://github.com/DougLau/pix"
+readme = "README.md"
+
+[dependencies]
+
+[dev-dependencies]
+criterion = "0.2"
+
+[features]
+default = ["use-simd"]
+use-simd = []
