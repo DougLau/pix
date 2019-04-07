@@ -57,7 +57,7 @@ impl PixFmt for Rgb8 {
     /// * `pix` Slice of pixels.
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
-    fn over(pix: &mut [Self], mask: &[u8], clr: Self) {
+    fn mask_over(pix: &mut [Self], mask: &[u8], clr: Self) {
         debug_assert_eq!(pix.len(), mask.len());
         over_fallback(pix, mask, clr);
     }

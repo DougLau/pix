@@ -19,7 +19,7 @@ pub trait PixFmt: Clone + Copy + Default {
     /// * `pix` Slice of pixels.
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
-    fn over(pix: &mut [Self], mask: &[u8], src: Self);
+    fn mask_over(pix: &mut [Self], mask: &[u8], src: Self);
 
     /// Divide alpha (remove premultiplied alpha)
     ///

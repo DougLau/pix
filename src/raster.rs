@@ -83,9 +83,9 @@ impl<F: PixFmt> Raster<F> {
     ///
     /// * `mask` Alpha mask for compositing.
     /// * `clr` Color to composite.
-    pub fn over(&mut self, mask: &[u8], clr: F) {
+    pub fn mask_over(&mut self, mask: &[u8], clr: F) {
         debug_assert_eq!(self.len(), self.pixels.len());
-        F::over(&mut self.pixels, mask, clr);
+        F::mask_over(&mut self.pixels, mask, clr);
     }
 }
 
@@ -148,9 +148,9 @@ impl<F: PixFmt> RasterB<F> {
     /// * `mask` Alpha mask for compositing.
     /// * `clr` Color to composite.
     /// * `pixels` Borrowed pixel data.
-    pub fn over(&self, mask: &[u8], clr: F, mut pixels: &mut [F]) {
+    pub fn mask_over(&self, mask: &[u8], clr: F, mut pixels: &mut [F]) {
         assert_eq!(self.len(), pixels.len());
-        F::over(&mut pixels, mask, clr);
+        F::mask_over(&mut pixels, mask, clr);
     }
 }
 
