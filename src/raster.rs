@@ -107,21 +107,16 @@ impl<F: PixFmt> Raster<F> {
             F::mask_over(&mut self.pixels, mask.as_u8_slice(), clr);
             return;
         }
-        if x >= self.width() as i32 || y >= self.height() as i32 {
-            return; // positioned off right or bottom edge
+        if x + (mask.width() as i32) < 0 || x >= self.width() as i32 {
+            return; // positioned off left or right edge
         }
-        let mw = mask.width() as i32;
-        let mh = mask.height() as i32;
-        let r = mw - x;
-        let b = mh - y;
-        if r < 0 || b < 0 {
-            return; // positioned off left or top edge
+        if y + (mask.height() as i32) < 0 || y >= self.height() as i32 {
+            return; // positioned off top or bottom edge
         }
-        let mx = 0.max(r - mw) as u32;
-        let my = 0.max(b - mh) as u32;
+        let mx = 0.max(-x) as u32;
+        let my = 0.max(-y) as u32;
         let dx = 0.max(x) as u32;
         let dy = 0.max(y) as u32;
-        let w = (self.width() - dx).min(mask.width() - mx);
         let h = (self.height() - dy).min(mask.height() - my);
         for yi in 0..h {
             let mut row = self.row_slice_mut(dx, dy + yi);
