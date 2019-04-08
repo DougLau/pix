@@ -101,28 +101,32 @@ impl<F: PixFmt> Raster<F> {
     /// * `y` Top position of alpha mask.
     /// * `clr` Color to composite.
     pub fn mask_over(&mut self, mask: &Raster<Alpha8>, x: i32, y: i32, clr: F) {
+        if x == 0 && self.width() == mask.width() &&
+           y == 0 && self.height() == mask.height()
+        {
+            F::mask_over(&mut self.pixels, mask.as_u8_slice(), clr);
+            return;
+        }
         if x >= self.width() as i32 || y >= self.height() as i32 {
             return; // positioned off right or bottom edge
         }
-        let w = x + mask.width() as i32;
-        let h = y + mask.height() as i32;
-        if w <= 0 || h <= 0 {
+        let mw = mask.width() as i32;
+        let mh = mask.height() as i32;
+        let r = mw - x;
+        let b = mh - y;
+        if r < 0 || b < 0 {
             return; // positioned off left or top edge
         }
-        let w = self.width().min(w as u32);
-        let h = self.height().min(h as u32);
-        if self.width() == w && self.height() == h {
-            F::mask_over(&mut self.pixels, mask.as_u8_slice(), clr);
-        } else {
-            let (dx, mx) = if x >= 0 { (x as u32, 0) }
-                           else { (0, x.abs() as u32) };
-            let (dy, my) = if y >= 0 { (y as u32, 0) }
-                           else { (0, y.abs() as u32) };
-            for yi in 0..h {
-                let mut row = self.row_slice_mut(dx, dy + yi);
-                let m = mask.row_slice_u8(mx, my);
-                F::mask_over(&mut row, m, clr);
-            }
+        let mx = 0.max(r - mw) as u32;
+        let my = 0.max(b - mh) as u32;
+        let dx = 0.max(x) as u32;
+        let dy = 0.max(y) as u32;
+        let w = (self.width() - dx).min(mask.width() - mx);
+        let h = (self.height() - dy).min(mask.height() - my);
+        for yi in 0..h {
+            let mut row = self.row_slice_mut(dx, dy + yi);
+            let m = mask.row_slice_u8(mx, my + yi);
+            F::mask_over(&mut row, m, clr);
         }
     }
 }
@@ -196,12 +200,75 @@ impl<F: PixFmt> RasterB<F> {
 mod test {
     use super::*;
     use super::super::alpha8::*;
+    use super::super::rgba8::*;
     #[test]
-    fn test_alpha() {
-        let mut m = Raster::<Alpha8>::new(10, 10);
-        m.clear();
+    fn raster_alpha() {
+        let m = Raster::<Alpha8>::new(10, 10);
         assert!(m.width == 10);
         assert!(m.height == 10);
         assert!(m.pixels.len() == 100);
+    }
+    #[test]
+    fn raster_mask() {
+        let mut r = Raster::<Rgba8>::new(3, 3);
+        let mut m = Raster::<Alpha8>::new(3, 3);
+        m.set_pixel(0, 0, Alpha8::new(0xFF));
+        m.set_pixel(1, 1, Alpha8::new(0x80));
+        m.set_pixel(2, 2, Alpha8::new(0x40));
+        r.mask_over(&m, 0, 0, Rgba8::new(0xFF,0x80,0x40,0xFF));
+        let v = vec![
+            0xFF,0x80,0x40,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x80,0x40,0x20,0x80, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x40,0x20,0x10,0x40,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn smaller_mask() {
+        let mut r = Raster::<Rgba8>::new(3, 3);
+        let mut m = Raster::<Alpha8>::new(2, 2);
+        m.set_pixel(0, 0, Alpha8::new(0xFF));
+        m.set_pixel(1, 0, Alpha8::new(0x80));
+        m.set_pixel(0, 1, Alpha8::new(0x40));
+        m.set_pixel(1, 1, Alpha8::new(0x20));
+        r.mask_over(&m, 1, 1, Rgba8::new(0x40,0xFF,0x80,0x80));
+        let v = vec![
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x40,0xFF,0x80,0x80, 0x20,0x80,0x40,0x40,
+            0x00,0x00,0x00,0x00, 0x10,0x40,0x20,0x20, 0x08,0x20,0x10,0x10,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn top_left() {
+        let mut r = Raster::<Rgba8>::new(3, 3);
+        let mut m = Raster::<Alpha8>::new(2, 2);
+        m.set_pixel(0, 0, Alpha8::new(0xFF));
+        m.set_pixel(1, 0, Alpha8::new(0xFF));
+        m.set_pixel(0, 1, Alpha8::new(0xFF));
+        m.set_pixel(1, 1, Alpha8::new(0xFF));
+        r.mask_over(&m, -1, -1, Rgba8::new(0x20,0x40,0x80,0xFF));
+        let v = vec![
+            0x20,0x40,0x80,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn bottom_right() {
+        let mut r = Raster::<Rgba8>::new(3, 3);
+        let mut m = Raster::<Alpha8>::new(2, 2);
+        m.set_pixel(0, 0, Alpha8::new(0xFF));
+        m.set_pixel(1, 0, Alpha8::new(0xFF));
+        m.set_pixel(0, 1, Alpha8::new(0xFF));
+        m.set_pixel(1, 1, Alpha8::new(0xFF));
+        r.mask_over(&m, 2, 2, Rgba8::new(0x20,0x40,0x80,0xFF));
+        let v = vec![
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x20,0x40,0x80,0xFF,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
     }
 }
