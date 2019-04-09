@@ -12,8 +12,9 @@ use pixel::PixFmt;
 ///
 /// # Example
 /// ```
-/// use pix::{Raster, Rgba8};
-/// let mut r: Raster<Rgba8> = Raster::new(100, 100);
+/// use pix::{Raster, Alpha8};
+/// let mut r: Raster<Alpha8> = Raster::new(10, 10);
+/// r.set_pixel(2, 4, Alpha8::new(255));
 /// ```
 pub struct Raster<F: PixFmt> {
     width  : u32,
@@ -139,7 +140,7 @@ fn capacity(len: u32) -> usize {
 /// # Example
 /// ```
 /// use pix::{PixFmt, RasterB, Rgba8};
-/// let mut r = RasterB::<Rgba8>::new(100, 100);
+/// let mut r = RasterB::<Rgba8>::new(10, 10);
 /// let len = (r.width() * r.height()) as usize;
 /// // NOTE: typically the pixels would be borrowed from some other source
 /// let mut pixels = vec!(0; len * std::mem::size_of::<Rgba8>());
