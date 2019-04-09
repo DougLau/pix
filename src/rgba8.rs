@@ -97,7 +97,14 @@ impl PixFmt for Rgba8 {
               feature = "use-simd"))]
         {
             if is_x86_feature_detected!("ssse3") {
-                unsafe { over_x86(pix, mask, clr) }
+                let len = pix.len().min(mask.len());
+                if len >= 4 {
+                    unsafe { over_x86(pix, mask, clr) }
+                }
+                let ln = (len >> 2) << 2;
+                if len > ln {
+                    over_fallback(&mut pix[ln..], &mask[ln..], clr);
+                }
                 return;
             }
         }
@@ -117,6 +124,8 @@ impl PixFmt for Rgba8 {
 #[target_feature(enable = "ssse3")]
 unsafe fn over_x86(pix: &mut [Rgba8], mask: &[u8], clr: Rgba8) {
     let len = pix.len().min(mask.len());
+    // Truncate len to multiple of 4
+    let len = (len >> 2) << 2;
     let clr = _mm_set1_epi32(clr.into());
     let src = mask.as_ptr();
     let dst = pix.as_mut_ptr();
