@@ -3,8 +3,8 @@
 // Copyright (c) 2017-2019  Douglas P Lau
 //
 use std::marker::PhantomData;
-use alpha8::Alpha8;
-use pixel::PixFmt;
+use crate::alpha8::Alpha8;
+use crate::pixel::PixFmt;
 
 /// A raster image with owned pixel data.
 /// If the pixel data must be owned elsewhere, consider using

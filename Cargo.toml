@@ -8,6 +8,8 @@ documentation = "https://docs.rs/pix"
 homepage = "https://github.com/DougLau/pix"
 repository = "https://github.com/DougLau/pix"
 readme = "README.md"
+keywords = ["image", "pixel", "compositing", "blend"]
+edition = "2018"
 
 [dependencies]
 

@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use pixel::{PixFmt, lerp_u8};
+use crate::pixel::{PixFmt, lerp_u8};
 
 /// 8-bit alpha [pixel format](trait.PixFmt.html).
 ///

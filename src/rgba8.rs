@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use pixel::{PixFmt, lerp_u8};
+use crate::pixel::{PixFmt, lerp_u8};
 
 #[cfg(all(target_arch = "x86", feature = "use-simd"))]
 use std::arch::x86::*;
@@ -204,7 +204,7 @@ unsafe fn scale_i16_to_u8_x86(v: __m128i) -> __m128i {
 /// Composite a color with a mask (slow fallback).
 fn over_fallback(pix: &mut [Rgba8], mask: &[u8], clr: Rgba8) {
     for (bot, m) in pix.iter_mut().zip(mask) {
-        let mut out = clr.over_alpha(*bot, *m);
+        let out = clr.over_alpha(*bot, *m);
         *bot = out;
     }
 }

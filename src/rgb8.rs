@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use pixel::{PixFmt, lerp_u8};
+use crate::pixel::{PixFmt, lerp_u8};
 
 /// 8-bit per channel RGB [pixel format](trait.PixFmt.html).
 ///
@@ -65,7 +65,7 @@ impl PixFmt for Rgb8 {
 /// Composite a color with a mask (slow fallback).
 fn over_fallback(pix: &mut [Rgb8], mask: &[u8], clr: Rgb8) {
     for (bot, m) in pix.iter_mut().zip(mask) {
-        let mut out = clr.over_alpha(*bot, *m);
+        let out = clr.over_alpha(*bot, *m);
         *bot = out;
     }
 }

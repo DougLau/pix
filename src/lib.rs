@@ -11,9 +11,9 @@ mod raster;
 mod rgb8;
 mod rgba8;
 
-pub use alpha8::Alpha8;
-pub use gray8::Gray8;
-pub use pixel::PixFmt;
-pub use raster::{Raster, RasterB};
-pub use rgb8::Rgb8;
-pub use rgba8::Rgba8;
+pub use crate::alpha8::Alpha8;
+pub use crate::gray8::Gray8;
+pub use crate::pixel::PixFmt;
+pub use crate::raster::{Raster, RasterB};
+pub use crate::rgb8::Rgb8;
+pub use crate::rgba8::Rgba8;
