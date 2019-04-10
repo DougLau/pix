@@ -12,9 +12,14 @@ use crate::pixel::PixFmt;
 ///
 /// # Example
 /// ```
-/// use pix::{Raster, Alpha8};
-/// let mut r: Raster<Alpha8> = Raster::new(10, 10);
-/// r.set_pixel(2, 4, Alpha8::new(255));
+/// use pix::{Raster, Alpha8, Rgba8};
+/// let mut raster: Raster<Rgba8> = Raster::new(10, 10);
+/// let mut matte: Raster<Alpha8> = Raster::new(10, 10);
+/// matte.set_pixel(2, 4, Alpha8::new(255));
+/// matte.set_pixel(2, 5, Alpha8::new(128));
+/// raster.mask_over(&matte, 0, 0, Rgba8::new(128, 208, 208, 200));
+/// let p = raster.as_u8_slice();
+/// // work with pixel data...
 /// ```
 pub struct Raster<F: PixFmt> {
     width  : u32,
