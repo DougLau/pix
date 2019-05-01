@@ -7,7 +7,7 @@ use crate::pixel::{PixFmt, lerp_u8};
 /// 8-bit alpha [pixel format](trait.PixFmt.html).
 ///
 /// This pixel format is for 8-bit alpha channel only.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Alpha8 {
     value: u8,

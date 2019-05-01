@@ -12,7 +12,7 @@ use std::arch::x86_64::*;
 /// 8-bit per channel RGBA [pixel format](trait.PixFmt.html).
 ///
 /// This format has four 8-bit channels: red, green, blue and alpha.
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Rgba8 {
     red: u8,

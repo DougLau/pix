@@ -7,7 +7,7 @@ use crate::pixel::{PixFmt, lerp_u8};
 /// 8-bit per channel RGB [pixel format](trait.PixFmt.html).
 ///
 /// This format has three 8-bit channels: red, green and blue.
-#[derive(Clone,Copy,Debug,Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Rgb8 {
     red: u8,
