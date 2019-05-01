@@ -55,13 +55,13 @@ impl<F: PixFmt> Raster<F> {
     }
     /// Get one pixel value.
     pub fn pixel(&self, x: u32, y: u32) -> F {
-        let i = (self.width * y + x) as usize;
-        self.pixels[i]
+        let row = &self.row_slice(y);
+        row[x as usize]
     }
     /// Set one pixel value.
     pub fn set_pixel(&mut self, x: u32, y: u32, p: F) {
-        let i = (self.width * y + x) as usize;
-        self.pixels[i] = p;
+        let row = &mut self.row_slice_mut(y);
+        row[x as usize] = p;
     }
     /// Get the pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
@@ -71,18 +71,25 @@ impl<F: PixFmt> Raster<F> {
     pub fn as_slice_mut(&mut self) -> &mut [F] {
         &mut self.pixels
     }
+    /// Get a row of pixels as a slice.
+    fn row_slice(&self, y: u32) -> &[F] {
+        debug_assert!(y < self.height);
+        let s = (y * self.width) as usize;
+        let t = s + self.width as usize;
+        &self.pixels[s..t]
+    }
     /// Get a row of pixels as a mutable slice.
-    fn row_slice_mut(&mut self, x: u32, y: u32) -> &mut [F] {
-        debug_assert!(x < self.width && y < self.height);
-        let s = (y * self.width + x) as usize;
-        let t = s + (self.width - x) as usize;
+    fn row_slice_mut(&mut self, y: u32) -> &mut [F] {
+        debug_assert!(y < self.height);
+        let s = (y * self.width) as usize;
+        let t = s + self.width as usize;
         &mut self.pixels[s..t]
     }
     /// Get a row of pixels as a u8 slice.
-    fn row_slice_u8(&self, x: u32, y: u32) -> &[u8] {
-        debug_assert!(x < self.width && y < self.height);
-        let s = (y * self.width + x) as usize;
-        let t = s + (self.width - x) as usize;
+    fn row_slice_u8(&self, y: u32) -> &[u8] {
+        debug_assert!(y < self.height);
+        let s = (y * self.width) as usize;
+        let t = s + self.width as usize;
         F::as_u8_slice(&self.pixels[s..t])
     }
     /// Get the pixels as a u8 slice.
@@ -119,14 +126,16 @@ impl<F: PixFmt> Raster<F> {
         if y + (mask.height() as i32) < 0 || y >= self.height() as i32 {
             return; // positioned off top or bottom edge
         }
-        let mx = 0.max(-x) as u32;
+        let mx = 0.max(-x) as usize;
         let my = 0.max(-y) as u32;
-        let dx = 0.max(x) as u32;
+        let mw = mask.width as usize;
+        let dx = 0.max(x) as usize;
         let dy = 0.max(y) as u32;
-        let h = (self.height() - dy).min(mask.height() - my);
+        let dw = self.width as usize;
+        let h = (self.height - dy).min(mask.height - my);
         for yi in 0..h {
-            let mut row = self.row_slice_mut(dx, dy + yi);
-            let m = mask.row_slice_u8(mx, my + yi);
+            let mut row = &mut self.row_slice_mut(dy + yi)[dx..dw];
+            let m = &mask.row_slice_u8(my + yi)[mx..mw];
             F::mask_over(&mut row, m, clr);
         }
     }
