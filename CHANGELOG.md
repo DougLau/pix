@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.2.0] - 2019-05-01
 ### Added
 * Raster implements Clone and Debug
 * Raster::set_rect
