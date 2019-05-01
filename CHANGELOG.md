@@ -1,4 +1,7 @@
 ## [Unreleased]
+
+### Added
+* Raster implements Clone and Debug
 ### Changed
 * Updated to rust 2018 edition
 

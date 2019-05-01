@@ -21,6 +21,7 @@ use crate::pixel::PixFmt;
 /// let p = raster.as_u8_slice();
 /// // work with pixel data...
 /// ```
+#[derive(Clone, Debug)]
 pub struct Raster<F: PixFmt> {
     width  : u32,
     height : u32,
