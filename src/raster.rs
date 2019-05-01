@@ -108,6 +108,25 @@ impl<F: PixFmt> Raster<F> {
             *p = F::default();
         }
     }
+    /// Set a rectangle to specified color.
+    ///
+    /// * `x` Left position of rectangle.
+    /// * `y` Top position of rectangle.
+    /// * `w` Width of rectangle.
+    /// * `h` Height of rectangle.
+    /// * `clr` Color to set.
+    pub fn set_rect(&mut self, x: u32, y: u32, w: u32, h: u32, clr: F) {
+        if y < self.height() && x < self.width() {
+            let xm = self.width.min(x + w);
+            let ym = self.height.min(y + h);
+            let xrange = (x as usize)..(xm as usize);
+            for yi in y..ym {
+                self.row_slice_mut(yi)[xrange.clone()]
+                    .iter_mut()
+                    .for_each(|p| *p = clr);
+            }
+        }
+    }
     /// Blend pixels with an alpha mask.
     ///
     /// * `mask` Alpha mask for compositing.
@@ -211,6 +230,8 @@ impl<F: PixFmt> RasterB<F> {
 mod test {
     use super::*;
     use super::super::alpha8::*;
+    use super::super::gray8::*;
+    use super::super::rgb8::*;
     use super::super::rgba8::*;
     #[test]
     fn raster_alpha() {
@@ -218,6 +239,32 @@ mod test {
         assert!(m.width == 10);
         assert!(m.height == 10);
         assert!(m.pixels.len() == 100);
+    }
+    #[test]
+    fn rectangle_rgb() {
+        let mut r = Raster::<Rgb8>::new(4, 4);
+        r.set_rect(1, 1, 2, 2, Rgb8::new(0xCC, 0xAA, 0xBB));
+        let v = vec![
+            0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
+            0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
+            0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
+            0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn rectangle_gray() {
+        let mut r = Raster::<Gray8>::new(4, 4);
+        r.set_rect(0, 0, 1, 1, Gray8::new(0x23));
+        r.set_rect(10, 10, 1, 1, Gray8::new(0x45));
+        r.set_rect(2, 2, 10, 10, Gray8::new(0xBB));
+        let v = vec![
+            0x23,0x00,0x00,0x00,
+            0x00,0x00,0x00,0x00,
+            0x00,0x00,0xBB,0xBB,
+            0x00,0x00,0xBB,0xBB,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
     fn raster_mask() {
