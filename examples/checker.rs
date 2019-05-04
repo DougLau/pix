@@ -8,8 +8,8 @@ use pix::{Gray8, Raster};
 fn main() -> Result<(), io::Error> {
     let v = Gray8::new(255);
     let mut r: Raster<Gray8> = Raster::new(16, 16);
-    for y in 0..15 {
-        for x in 0..15 {
+    for y in 0..16 {
+        for x in 0..16 {
             if x + y & 1 != 0 {
                 r.set_pixel(x, y, v);
             }
