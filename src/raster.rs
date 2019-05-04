@@ -2,19 +2,21 @@
 //
 // Copyright (c) 2017-2019  Douglas P Lau
 //
-use crate::alpha8::Alpha8;
+use crate::alpha::Alpha;
+use crate::channel::Cu8;
 use crate::pixel::PixFmt;
 
-/// A raster image with owned pixel data.
+/// A 2D raster image.
 ///
 /// # Example
 /// ```
-/// use pix::{Raster, Alpha8, Rgba8};
-/// let mut raster: Raster<Rgba8> = Raster::new(10, 10);
-/// let mut matte: Raster<Alpha8> = Raster::new(10, 10);
-/// matte.set_pixel(2, 4, Alpha8::new(255));
-/// matte.set_pixel(2, 5, Alpha8::new(128));
-/// raster.mask_over(&matte, 0, 0, Rgba8::new(128, 208, 208, 200));
+/// use pix::{Alpha, Cu8, Raster, Rgba};
+/// let mut raster: Raster<Rgba<Cu8>> = Raster::new(10, 10);
+/// let mut matte: Raster<Alpha<Cu8>> = Raster::new(10, 10);
+/// let rgba = Rgba::<Cu8>::new(128.into(), 208.into(), 208.into(), 200.into());
+/// matte.set_pixel(2, 4, Alpha::<Cu8>::new(255.into()));
+/// matte.set_pixel(2, 5, Alpha::<Cu8>::new(128.into()));
+/// raster.mask_over(&matte, 0, 0, rgba);
 /// let p = raster.as_u8_slice();
 /// // work with pixel data...
 /// ```
@@ -130,7 +132,9 @@ impl<F: PixFmt> Raster<F> {
     /// * `x` Left position of alpha mask.
     /// * `y` Top position of alpha mask.
     /// * `clr` Color to composite.
-    pub fn mask_over(&mut self, mask: &Raster<Alpha8>, x: i32, y: i32, clr: F) {
+    pub fn mask_over(&mut self, mask: &Raster<Alpha<Cu8>>, x: i32, y: i32,
+        clr: F)
+    {
         if x == 0 && self.width() == mask.width() &&
            y == 0 && self.height() == mask.height()
         {
@@ -167,21 +171,23 @@ fn capacity(len: u32) -> usize {
 #[cfg(test)]
 mod test {
     use super::*;
-    use super::super::alpha8::*;
-    use super::super::gray8::*;
-    use super::super::rgb8::*;
-    use super::super::rgba8::*;
+    use super::super::alpha::*;
+    use super::super::channel::*;
+    use super::super::gray::*;
+    use super::super::rgb::*;
+    use super::super::rgba::*;
     #[test]
     fn raster_alpha() {
-        let m = Raster::<Alpha8>::new(10, 10);
+        let m = Raster::<Alpha<Cu8>>::new(10, 10);
         assert!(m.width == 10);
         assert!(m.height == 10);
         assert!(m.pixels.len() == 100);
     }
     #[test]
     fn rectangle_rgb() {
-        let mut r = Raster::<Rgb8>::new(4, 4);
-        r.set_rect(1, 1, 2, 2, Rgb8::new(0xCC, 0xAA, 0xBB));
+        let mut r = Raster::<Rgb<Cu8>>::new(4, 4);
+        let rgb = Rgb::<Cu8>::new(0xCC.into(), 0xAA.into(), 0xBB.into());
+        r.set_rect(1, 1, 2, 2, rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
             0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
@@ -192,10 +198,10 @@ mod test {
     }
     #[test]
     fn rectangle_gray() {
-        let mut r = Raster::<Gray8>::new(4, 4);
-        r.set_rect(0, 0, 1, 1, Gray8::new(0x23));
-        r.set_rect(10, 10, 1, 1, Gray8::new(0x45));
-        r.set_rect(2, 2, 10, 10, Gray8::new(0xBB));
+        let mut r = Raster::<Gray<Cu8>>::new(4, 4);
+        r.set_rect(0, 0, 1, 1, Gray::<Cu8>::new(0x23.into()));
+        r.set_rect(10, 10, 1, 1, Gray::<Cu8>::new(0x45.into()));
+        r.set_rect(2, 2, 10, 10, Gray::<Cu8>::new(0xBB.into()));
         let v = vec![
             0x23,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00,
@@ -206,12 +212,14 @@ mod test {
     }
     #[test]
     fn raster_mask() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Alpha8>::new(3, 3);
-        m.set_pixel(0, 0, Alpha8::new(0xFF));
-        m.set_pixel(1, 1, Alpha8::new(0x80));
-        m.set_pixel(2, 2, Alpha8::new(0x40));
-        r.mask_over(&m, 0, 0, Rgba8::new(0xFF,0x80,0x40,0xFF));
+        let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
+        let mut m = Raster::<Alpha<Cu8>>::new(3, 3);
+        let rgba = Rgba::<Cu8>::new(0xFF.into(), 0x80.into(), 0x40.into(),
+            0xFF.into());
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x80.into()));
+        m.set_pixel(2, 2, Alpha::<Cu8>::new(0x40.into()));
+        r.mask_over(&m, 0, 0, rgba);
         let v = vec![
             0xFF,0x80,0x40,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00, 0x80,0x40,0x20,0x80, 0x00,0x00,0x00,0x00,
@@ -227,13 +235,15 @@ mod test {
     }
     #[test]
     fn smaller_mask() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Alpha8>::new(2, 2);
-        m.set_pixel(0, 0, Alpha8::new(0xFF));
-        m.set_pixel(1, 0, Alpha8::new(0x80));
-        m.set_pixel(0, 1, Alpha8::new(0x40));
-        m.set_pixel(1, 1, Alpha8::new(0x20));
-        r.mask_over(&m, 1, 1, Rgba8::new(0x40,0xFF,0x80,0x80));
+        let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
+        let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
+        let rgba = Rgba::<Cu8>::new(0x40.into(), 0xFF.into(), 0x80.into(),
+            0x80.into());
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 0, Alpha::<Cu8>::new(0x80.into()));
+        m.set_pixel(0, 1, Alpha::<Cu8>::new(0x40.into()));
+        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x20.into()));
+        r.mask_over(&m, 1, 1, rgba);
         let v = vec![
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00, 0x40,0xFF,0x80,0x80, 0x20,0x80,0x40,0x40,
@@ -243,13 +253,15 @@ mod test {
     }
     #[test]
     fn top_left() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Alpha8>::new(2, 2);
-        m.set_pixel(0, 0, Alpha8::new(0xFF));
-        m.set_pixel(1, 0, Alpha8::new(0xFF));
-        m.set_pixel(0, 1, Alpha8::new(0xFF));
-        m.set_pixel(1, 1, Alpha8::new(0xFF));
-        r.mask_over(&m, -1, -1, Rgba8::new(0x20,0x40,0x80,0xFF));
+        let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
+        let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
+        let rgba = Rgba::<Cu8>::new(0x20.into(), 0x40.into(), 0x80.into(),
+            0xFF.into());
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(0, 1, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 1, Alpha::<Cu8>::new(0xFF.into()));
+        r.mask_over(&m, -1, -1, rgba);
         let v = vec![
             0x20,0x40,0x80,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
@@ -259,13 +271,15 @@ mod test {
     }
     #[test]
     fn bottom_right() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Alpha8>::new(2, 2);
-        m.set_pixel(0, 0, Alpha8::new(0xFF));
-        m.set_pixel(1, 0, Alpha8::new(0xFF));
-        m.set_pixel(0, 1, Alpha8::new(0xFF));
-        m.set_pixel(1, 1, Alpha8::new(0xFF));
-        r.mask_over(&m, 2, 2, Rgba8::new(0x20,0x40,0x80,0xFF));
+        let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
+        let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
+        let rgba = Rgba::<Cu8>::new(0x20.into(), 0x40.into(), 0x80.into(),
+            0xFF.into());
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 0, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(0, 1, Alpha::<Cu8>::new(0xFF.into()));
+        m.set_pixel(1, 1, Alpha::<Cu8>::new(0xFF.into()));
+        r.mask_over(&m, 2, 2, rgba);
         let v = vec![
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,

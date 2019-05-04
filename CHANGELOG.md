@@ -1,5 +1,14 @@
 ## [Unreleased]
 
+### Added
+* Channel trait with Cu8 implementation
+* Gamma encoding/decoding module
+* Alpha, Gray, Rgb, Rgba pixel formats
+* New Srgb pixel format
+### Removed
+* Alpha8, Gray8, Rgb8, Rgba8 pixel formats
+* RasterB -- use Raster::with_pixels instead
+
 ## [0.2.0] - 2019-05-01
 ### Added
 * Raster implements Clone and Debug

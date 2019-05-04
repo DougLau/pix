@@ -3,28 +3,36 @@
 // Copyright (c) 2018-2019  Douglas P Lau
 //
 
-/// Pixel format.
+/// Pixel format determines attributes of pixels:
+/// * Color channels
+/// * Bit depth
+/// * Linear or gamma encoded
+/// * Premultiplied alpha
 ///
-/// This determines color components and bit depth,
-/// as well as the layout of pixels in memory.
+/// These are existing formats:
+/// * [Alpha](struct.Alpha.html)
+/// * [Gray](struct.Gray.html)
+/// * [Rgb](struct.Rgb.html)
+/// * [Rgba](struct.Rgba.html)
+/// * [Srgb](struct.Srgb.html)
 ///
-/// * [Alpha8](struct.Alpha8.html)
-/// * [Gray8](struct.Gray8.html)
-/// * [Rgb8](struct.Rgb8.html)
-/// * [Rgba8](struct.Rgba8.html)
 pub trait PixFmt: Clone + Copy + Default {
 
     /// Blend pixels with an alpha mask.
     ///
-    /// * `pix` Slice of pixels.
+    /// * `dst` Destination pixels.
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
-    fn mask_over(pix: &mut [Self], mask: &[u8], src: Self);
+    fn mask_over(dst: &mut [Self], mask: &[u8], src: Self) {
+        PixFmt::mask_over_fallback(dst, mask, src);
+    }
 
-    /// Divide alpha (remove premultiplied alpha)
+    /// Blend pixels with an alpha mask (slow fallback).
     ///
-    /// * `pix` Slice of pixels.
-    fn divide_alpha(_pix: &mut [Self]) { }
+    /// * `dst` Destination pixels.
+    /// * `mask` Alpha mask for compositing.
+    /// * `src` Source color.
+    fn mask_over_fallback(dst: &mut [Self], mask: &[u8], src: Self);
 
     /// Convert a pixel slice into a u8 slice.
     ///
@@ -53,20 +61,4 @@ pub trait PixFmt: Clone + Copy + Default {
     fn as_slice_mut(pix: &mut [u8]) -> &mut [Self] {
         unsafe { pix.align_to_mut::<Self>().1 }
     }
-}
-
-/// Linear interpolation of u8 values (for alpha blending)
-pub fn lerp_u8(src: u8, dst: u8, alpha: u8) -> u8 {
-    // NOTE: Alpha blending euqation is: `alpha * top + (1 - alpha) * bot`
-    //       This is equivalent to lerp: `bot + alpha * (top - bot)`
-    let src = src as i32;
-    let dst = dst as i32;
-    (dst + scale_i32(alpha, src - dst)) as u8
-}
-
-/// Scale an i32 value by a u8 (for alpha blending)
-fn scale_i32(a: u8, v: i32) -> i32 {
-    let c = v * a as i32;
-    // cheap alternative to divide by 255
-    (((c + 1) + (c >> 8)) >> 8) as i32
 }

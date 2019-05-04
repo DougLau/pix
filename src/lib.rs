@@ -4,16 +4,24 @@
 //
 //! Pix is a library for 2D image manipulation.
 //!
-mod alpha8;
-mod gray8;
+#[macro_use]
+extern crate log;
+
+mod alpha;
+mod channel;
+mod gamma;
+mod gray;
 mod pixel;
 mod raster;
-mod rgb8;
-mod rgba8;
+mod rgb;
+mod rgba;
+mod srgb;
 
-pub use crate::alpha8::Alpha8;
-pub use crate::gray8::Gray8;
+pub use crate::alpha::Alpha;
+pub use crate::channel::{Channel, Cu8};
+pub use crate::gray::Gray;
 pub use crate::pixel::PixFmt;
 pub use crate::raster::Raster;
-pub use crate::rgb8::Rgb8;
-pub use crate::rgba8::Rgba8;
+pub use crate::rgb::Rgb;
+pub use crate::rgba::Rgba;
+pub use crate::srgb::Srgb;

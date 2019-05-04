@@ -1,119 +1,126 @@
-// rgba8.rs     8-bit per channel RGBA pixel format.
+// rgba.rs      Linear RGBA pixel format.
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::pixel::{PixFmt, lerp_u8};
+use crate::channel::{Channel, Cu8};
+use crate::pixel::PixFmt;
+use crate::rgb::Rgb;
 
 #[cfg(all(target_arch = "x86", feature = "use-simd"))]
 use std::arch::x86::*;
 #[cfg(all(target_arch = "x86_64", feature = "use-simd"))]
 use std::arch::x86_64::*;
 
-/// 8-bit per channel RGBA [pixel format](trait.PixFmt.html).
+/// Linear RGBA [pixel format](trait.PixFmt.html).
 ///
-/// This format has four 8-bit channels: red, green, blue and alpha.
+/// The channels are *red*, *green*, *blue* and *alpha*.  They are encoded in
+/// linear intensity, with premultiplied alpha.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Rgba8 {
-    red: u8,
-    green: u8,
-    blue: u8,
-    alpha: u8,
+pub struct Rgba<C: Channel> {
+    red: C,
+    green: C,
+    blue: C,
+    alpha: C,
 }
 
-impl From<Rgba8> for i32 {
-    /// Get an i32 from a Rgba8 (alpha in high byte)
-    fn from(c: Rgba8) -> i32 {
-        let red   = (c.red()   as i32) << 0;
-        let green = (c.green() as i32) << 8;
-        let blue  = (c.blue()  as i32) << 16;
-        let alpha = (c.alpha() as i32) << 24;
+impl<C: Channel> From<Rgba<C>> for i32 {
+    /// Get an i32 from a Rgba
+    fn from(rgba: Rgba<C>) -> i32 {
+        let red = Into::<u8>::into(rgba.red());
+        let red = Into::<i32>::into(red) << 0;
+        let green = Into::<u8>::into(rgba.green());
+        let green = Into::<i32>::into(green) << 8;
+        let blue = Into::<u8>::into(rgba.blue());
+        let blue = Into::<i32>::into(blue) << 16;
+        let alpha = Into::<u8>::into(rgba.alpha());
+        let alpha = Into::<i32>::into(alpha) << 24;
         red | green | blue | alpha
     }
 }
 
-impl Rgba8 {
+impl<C: Channel, H: Channel> From<Rgb<H>> for Rgba<C>
+    where C: From<H>
+{
+    /// Get an Rgba from an Rgb
+    fn from(rgb: Rgb<H>) -> Self {
+        let r = Into::<C>::into(rgb.red());
+        let g = Into::<C>::into(rgb.green());
+        let b = Into::<C>::into(rgb.blue());
+        let a = C::full();
+        Rgba::new(r, g, b, a)
+    }
+}
+
+impl<C: Channel> Rgba<C> {
     /// Build a color by specifying red, green, blue and alpha values.
-    pub fn new(red: u8, green: u8, blue: u8, alpha: u8) -> Self {
-        Rgba8 { red, green, blue, alpha }
+    pub fn new(red: C, green: C, blue: C, alpha: C) -> Self {
+        Rgba { red, green, blue, alpha }
     }
-    /// Build an opaque color by specifying red, green and blue values.
-    pub fn rgb(red: u8, green: u8, blue: u8) -> Self {
-        Rgba8::new(red, green, blue, 0xFF)
-    }
-    /// Divide alpha out of red, green and blue components.
-    fn divide_alpha(self) -> Self {
-        let alpha = self.alpha();
-        let red   = unscale_u8(self.red(), alpha);
-        let green = unscale_u8(self.green(), alpha);
-        let blue  = unscale_u8(self.blue(), alpha);
-        Rgba8::new(red, green, blue, alpha)
-    }
-    /// Get the red component value.
-    pub fn red(self) -> u8 {
+    /// Get the red channel.
+    pub fn red(self) -> C {
         self.red
     }
-    /// Get the green component value.
-    pub fn green(self) -> u8 {
+    /// Get the green channel.
+    pub fn green(self) -> C {
         self.green
     }
-    /// Get the blue component value.
-    pub fn blue(self) -> u8 {
+    /// Get the blue channel.
+    pub fn blue(self) -> C {
         self.blue
     }
-    /// Get the alpha component value.
-    pub fn alpha(self) -> u8 {
+    /// Get the alpha channel.
+    pub fn alpha(self) -> C {
         self.alpha
     }
-    /// Composite the color with another, using "over".
-    fn over_alpha(self, bot: Rgba8, alpha: u8) -> Self {
-        let red   = lerp_u8(self.red(),   bot.red(),   alpha);
-        let green = lerp_u8(self.green(), bot.green(), alpha);
-        let blue  = lerp_u8(self.blue(),  bot.blue(),  alpha);
-        let alpha = lerp_u8(self.alpha(), bot.alpha(), alpha);
-        Rgba8::new(red, green, blue, alpha)
+    /// Blend pixel on top of another, using "over".
+    fn with_alpha_over(self, dst: Rgba<C>, alpha: u8) -> Self {
+        let r = Into::<C>::into(dst.red());
+        let g = Into::<C>::into(dst.green());
+        let b = Into::<C>::into(dst.blue());
+        let da = Into::<C>::into(dst.alpha());
+        let a = Into::<C>::into(alpha);
+        let red = self.red().lerp_alpha(r, a);
+        let green = self.green().lerp_alpha(g, a);
+        let blue = self.blue().lerp_alpha(b, a);
+        let alpha = self.alpha().lerp_alpha(da, a);
+        Rgba::new(red, green, blue, alpha)
     }
 }
 
-/// Unscale a u8
-fn unscale_u8(a: u8, b: u8) -> u8 {
-    if b > 0 {
-        let aa = (a as u32) << 8;
-        let bb = b as u32;
-        (aa / bb).min(255) as u8
-    } else {
-        0
-    }
-}
-
-impl PixFmt for Rgba8 {
+impl PixFmt for Rgba<Cu8> {
     /// Blend pixels with an alpha mask.
     ///
-    /// * `pix` Slice of pixels.
+    /// * `dst` Destination pixels.
     /// * `mask` Alpha mask for compositing.
     /// * `src` Source color.
-    fn mask_over(pix: &mut [Self], mask: &[u8], clr: Self) {
+    fn mask_over(dst: &mut [Self], mask: &[u8], clr: Self) {
         #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"),
               feature = "use-simd"))]
         {
             if is_x86_feature_detected!("ssse3") {
-                let len = pix.len().min(mask.len());
+                let len = dst.len().min(mask.len());
                 if len >= 4 {
-                    unsafe { over_x86(pix, mask, clr) }
+                    unsafe { over_x86(dst, mask, clr) }
                 }
                 let ln = (len >> 2) << 2;
                 if len > ln {
-                    over_fallback(&mut pix[ln..], &mask[ln..], clr);
+                    Self::mask_over_fallback(&mut dst[ln..], &mask[ln..], clr);
                 }
                 return;
             }
         }
-        over_fallback(pix, mask, clr);
+        PixFmt::mask_over_fallback(dst, mask, clr);
     }
-    /// Divide alpha (remove premultiplied alpha)
-    fn divide_alpha(pix: &mut [Self]) {
-        for p in pix.iter_mut() {
-            *p = p.divide_alpha();
+
+    /// Blend pixels with an alpha mask (slow fallback).
+    ///
+    /// * `dst` Destination pixels.
+    /// * `mask` Alpha mask for compositing.
+    /// * `src` Source color.
+    fn mask_over_fallback(dst: &mut [Self], mask: &[u8], src: Self) {
+        for (bot, m) in dst.iter_mut().zip(mask) {
+            *bot = src.with_alpha_over(*bot, *m);
         }
     }
 }
@@ -122,7 +129,7 @@ impl PixFmt for Rgba8 {
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"),
           feature = "use-simd"))]
 #[target_feature(enable = "ssse3")]
-unsafe fn over_x86(pix: &mut [Rgba8], mask: &[u8], clr: Rgba8) {
+unsafe fn over_x86(pix: &mut [Rgba<Cu8>], mask: &[u8], clr: Rgba<Cu8>) {
     let len = pix.len().min(mask.len());
     // Truncate len to multiple of 4
     let len = (len >> 2) << 2;
@@ -199,12 +206,4 @@ unsafe fn scale_i16_to_u8_x86(v: __m128i) -> __m128i {
                                                _mm_set1_epi16(1)),
                                  _mm_srai_epi16(v, 8)),
                    7)
-}
-
-/// Composite a color with a mask (slow fallback).
-fn over_fallback(pix: &mut [Rgba8], mask: &[u8], clr: Rgba8) {
-    for (bot, m) in pix.iter_mut().zip(mask) {
-        let out = clr.over_alpha(*bot, *m);
-        *bot = out;
-    }
 }
