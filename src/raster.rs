@@ -2,13 +2,10 @@
 //
 // Copyright (c) 2017-2019  Douglas P Lau
 //
-use std::marker::PhantomData;
 use crate::alpha8::Alpha8;
 use crate::pixel::PixFmt;
 
 /// A raster image with owned pixel data.
-/// If the pixel data must be owned elsewhere, consider using
-/// [RasterB](struct.RasterB.html).
 ///
 /// # Example
 /// ```
@@ -165,65 +162,6 @@ impl<F: PixFmt> Raster<F> {
 fn capacity(len: u32) -> usize {
     // Capacity must be 8-element multiple (for SIMD)
     (((len + 7) >> 3) << 3) as usize
-}
-
-/// A raster image with borrowed pixel data.
-/// This is more tricky to use than [Raster](struct.Raster.html),
-/// so it should only be used when pixel data must be owned elsewhere.
-///
-/// # Example
-/// ```
-/// use pix::{PixFmt, RasterB, Rgba8};
-/// let mut r = RasterB::<Rgba8>::new(10, 10);
-/// let len = (r.width() * r.height()) as usize;
-/// // NOTE: typically the pixels would be borrowed from some other source
-/// let mut pixels = vec!(0; len * std::mem::size_of::<Rgba8>());
-/// let mut pix = Rgba8::as_slice_mut(&mut pixels);
-/// ```
-pub struct RasterB<F: PixFmt> {
-    width  : u32,
-    height : u32,
-    pixels : PhantomData<F>,
-}
-
-impl<F: PixFmt> RasterB<F> {
-    /// Create a new raster image for borrowed pixel data.
-    ///
-    /// * `F` [Pixel format](trait.PixFmt.html).
-    /// * `width` Width in pixels.
-    /// * `height` Height in pixels.
-    pub fn new(width: u32, height: u32) -> RasterB<F> {
-        let pixels = PhantomData;
-        RasterB { width, height, pixels }
-    }
-    /// Get raster width.
-    pub fn width(&self) -> u32 {
-        self.width
-    }
-    /// Get raster height.
-    pub fn height(&self) -> u32 {
-        self.height
-    }
-    /// Get the length.
-    fn len(&self) -> usize {
-        (self.width * self.height) as usize
-    }
-    /// Clear all pixels.
-    pub fn clear(&self, pixels: &mut [F]) {
-        assert_eq!(self.len(), pixels.len());
-        for p in pixels.iter_mut() {
-            *p = F::default();
-        }
-    }
-    /// Blend pixels with an alpha mask.
-    ///
-    /// * `mask` Alpha mask for compositing.
-    /// * `clr` Color to composite.
-    /// * `pixels` Borrowed pixel data.
-    pub fn mask_over(&self, mask: &[u8], clr: F, mut pixels: &mut [F]) {
-        assert_eq!(self.len(), pixels.len());
-        F::mask_over(&mut pixels, mask, clr);
-    }
 }
 
 #[cfg(test)]

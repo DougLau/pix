@@ -14,6 +14,6 @@ mod rgba8;
 pub use crate::alpha8::Alpha8;
 pub use crate::gray8::Gray8;
 pub use crate::pixel::PixFmt;
-pub use crate::raster::{Raster, RasterB};
+pub use crate::raster::Raster;
 pub use crate::rgb8::Rgb8;
 pub use crate::rgba8::Rgba8;
