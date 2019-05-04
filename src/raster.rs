@@ -24,7 +24,21 @@ use crate::pixel::PixFmt;
 pub struct Raster<F: PixFmt> {
     width  : u32,
     height : u32,
-    pixels : Vec<F>,
+    pixels : Box<[F]>,
+}
+
+impl<F: PixFmt> Into<Box<[F]>> for Raster<F> {
+    /// Get internal pixel data as boxed slice.
+    fn into(self) -> Box<[F]> {
+        self.pixels
+    }
+}
+
+impl<F: PixFmt> Into<Vec<F>> for Raster<F> {
+    /// Get internal pixel data as `Vec` of pixels.
+    fn into(self) -> Vec<F> {
+        self.pixels.into()
+    }
 }
 
 impl<F: PixFmt> Raster<F> {
@@ -39,6 +53,27 @@ impl<F: PixFmt> Raster<F> {
         for _ in 0..len {
             pixels.push(F::default());
         }
+        let pixels = pixels.into_boxed_slice();
+        Raster { width, height, pixels }
+    }
+    /// Create a new raster image with owned pixel data.  You can get ownership
+    /// of the pixel data back from the `Raster` as either a `Vec<F>` or a
+    /// `Box<[F]>` by calling `into()`.
+    ///
+    /// * `F` [Pixel format](trait.PixFmt.html).
+    /// * `width` Width in pixels.
+    /// * `height` Height in pixels.
+    /// * `pixels` Pixel data.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `pixels` length is not equal to `width` * `height`.
+    pub fn with_pixels<T: Into<Box<[F]>>>(width: u32, height: u32, pixels: T)
+        -> Raster<F>
+    {
+        let len = width * height;
+        let pixels = pixels.into();
+        assert_eq!(len, capacity(pixels.len() as u32) as u32);
         Raster { width, height, pixels }
     }
     /// Get raster width.

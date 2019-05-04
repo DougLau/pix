@@ -5,6 +5,7 @@
 * Gamma encoding/decoding module
 * Alpha, Gray, Rgb, Rgba pixel formats
 * New Srgb pixel format
+* Raster::with_pixels and Raster::into to transfer pixel ownership
 ### Removed
 * Alpha8, Gray8, Rgb8, Rgba8 pixel formats
 * RasterB -- use Raster::with_pixels instead
