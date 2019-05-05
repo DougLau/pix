@@ -221,7 +221,7 @@ mod test {
     #[test]
     fn rectangle_rgb() {
         let mut r = Raster::<Rgb<Cu8>>::new(4, 4);
-        let rgb = Rgb::<Cu8>::new(0xCC.into(), 0xAA.into(), 0xBB.into());
+        let rgb = Rgb::new(0xCC, 0xAA, 0xBB);
         r.set_rect(1, 1, 2, 2, rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
@@ -234,9 +234,9 @@ mod test {
     #[test]
     fn rectangle_gray() {
         let mut r = Raster::<Gray<Cu8>>::new(4, 4);
-        r.set_rect(0, 0, 1, 1, Gray::<Cu8>::new(0x23.into()));
-        r.set_rect(10, 10, 1, 1, Gray::<Cu8>::new(0x45.into()));
-        r.set_rect(2, 2, 10, 10, Gray::<Cu8>::new(0xBB.into()));
+        r.set_rect(0, 0, 1, 1, Gray::new(0x23));
+        r.set_rect(10, 10, 1, 1, Gray::new(0x45));
+        r.set_rect(2, 2, 10, 10, Gray::new(0xBB));
         let v = vec![
             0x23,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00,
@@ -272,10 +272,10 @@ mod test {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
         let rgba = Rgba::new(0x40, 0xFF, 0x80, 0x80);
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF));
-        m.set_pixel(1, 0, Alpha::<Cu8>::new(0x80));
-        m.set_pixel(0, 1, Alpha::<Cu8>::new(0x40));
-        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x20));
+        m.set_pixel(0, 0, Alpha::new(0xFF));
+        m.set_pixel(1, 0, Alpha::new(0x80));
+        m.set_pixel(0, 1, Alpha::new(0x40));
+        m.set_pixel(1, 1, Alpha::new(0x20));
         r.mask_over(&m, 1, 1, rgba);
         let v = vec![
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,

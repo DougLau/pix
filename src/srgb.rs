@@ -55,10 +55,12 @@ impl<C: Channel, H: Channel> From<Rgba<H>> for Srgb<C>
 
 impl<C: Channel> Srgb<C> {
     /// Build a color by specifying red, green and blue values.
-    pub fn new(red: u8, green: u8, blue: u8) -> Self {
-        let red = red.into();
-        let green = green.into();
-        let blue = blue.into();
+    pub fn new<V>(red: V, green: V, blue: V) -> Self
+        where C: From<V>
+    {
+        let red = C::from(red);
+        let green = C::from(green);
+        let blue = C::from(blue);
         Srgb { red, green, blue }
     }
     /// Get the red channel value.

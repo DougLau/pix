@@ -6,7 +6,7 @@ use std::io::Write;
 use pix::{Cu8, Gray, Raster};
 
 fn main() -> Result<(), io::Error> {
-    let v = Gray::new(255.into());
+    let v = Gray::new(255);
     let mut r: Raster<Gray<Cu8>> = Raster::new(16, 16);
     for y in 0..16 {
         for x in 0..16 {

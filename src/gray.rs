@@ -31,7 +31,10 @@ impl<C: Channel, H: Channel> From<Rgb<H>> for Gray<C>
 
 impl<C: Channel> Gray<C> {
     /// Build a gray value.
-    pub fn new(value: C) -> Self {
+    pub fn new<V>(value: V) -> Self
+        where C: From<V>
+    {
+        let value = C::from(value);
         Gray { value }
     }
     /// Get the component value.
