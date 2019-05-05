@@ -124,36 +124,36 @@ mod test {
     use super::*;
     #[test]
     fn cu8_into() {
-        assert_eq!(Cu8::new(255), Into::<Cu8>::into(1.0));
-        assert_eq!(Cu8::new(128), Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(64), Into::<Cu8>::into(0.25));
-        assert_eq!(Cu8::new(32), Into::<Cu8>::into(0.125));
+        assert_eq!(Cu8::new(255), 1.0.into());
+        assert_eq!(Cu8::new(128), 0.5.into());
+        assert_eq!(Cu8::new(64), 0.25.into());
+        assert_eq!(Cu8::new(32), 0.125.into());
     }
     #[test]
     fn cu8_mul() {
-        assert_eq!(Cu8::new(255), Cu8::new(255) * Into::<Cu8>::into(1.0));
-        assert_eq!(Cu8::new(128), Cu8::new(255) * Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(64), Cu8::new(255) * Into::<Cu8>::into(0.25));
-        assert_eq!(Cu8::new(32), Cu8::new(255) * Into::<Cu8>::into(0.125));
-        assert_eq!(Cu8::new(16), Cu8::new(255) * Into::<Cu8>::into(0.0625));
-        assert_eq!(Cu8::new(64), Cu8::new(128) * Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(32), Cu8::new(128) * Into::<Cu8>::into(0.25));
-        assert_eq!(Cu8::new(16), Cu8::new(128) * Into::<Cu8>::into(0.125));
-        assert_eq!(Cu8::new(8), Cu8::new(128) * Into::<Cu8>::into(0.0625));
+        assert_eq!(Cu8::new(255), Cu8::new(255) * 1.0.into());
+        assert_eq!(Cu8::new(128), Cu8::new(255) * 0.5.into());
+        assert_eq!(Cu8::new(64), Cu8::new(255) * 0.25.into());
+        assert_eq!(Cu8::new(32), Cu8::new(255) * 0.125.into());
+        assert_eq!(Cu8::new(16), Cu8::new(255) * 0.0625.into());
+        assert_eq!(Cu8::new(64), Cu8::new(128) * 0.5.into());
+        assert_eq!(Cu8::new(32), Cu8::new(128) * 0.25.into());
+        assert_eq!(Cu8::new(16), Cu8::new(128) * 0.125.into());
+        assert_eq!(Cu8::new(8), Cu8::new(128) * 0.0625.into());
     }
     #[test]
     fn cu8_div() {
-        assert_eq!(Cu8::new(255), Cu8::new(255) / Into::<Cu8>::into(1.0));
-        assert_eq!(Cu8::new(255), Cu8::new(128) / Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(255), Cu8::new(64) / Into::<Cu8>::into(0.25));
-        assert_eq!(Cu8::new(255), Cu8::new(32) / Into::<Cu8>::into(0.125));
-        assert_eq!(Cu8::new(255), Cu8::new(16) / Into::<Cu8>::into(0.0625));
-        assert_eq!(Cu8::new(128), Cu8::new(128) / Into::<Cu8>::into(1.0));
-        assert_eq!(Cu8::new(128), Cu8::new(64) / Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(128), Cu8::new(32) / Into::<Cu8>::into(0.25));
-        assert_eq!(Cu8::new(128), Cu8::new(16) / Into::<Cu8>::into(0.125));
-        assert_eq!(Cu8::new(64), Cu8::new(64) / Into::<Cu8>::into(1.0));
-        assert_eq!(Cu8::new(64), Cu8::new(32) / Into::<Cu8>::into(0.5));
-        assert_eq!(Cu8::new(64), Cu8::new(16) / Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(255), Cu8::new(255) / 1.0.into());
+        assert_eq!(Cu8::new(255), Cu8::new(128) / 0.5.into());
+        assert_eq!(Cu8::new(255), Cu8::new(64) / 0.25.into());
+        assert_eq!(Cu8::new(255), Cu8::new(32) / 0.125.into());
+        assert_eq!(Cu8::new(255), Cu8::new(16) / 0.0625.into());
+        assert_eq!(Cu8::new(128), Cu8::new(128) / 1.0.into());
+        assert_eq!(Cu8::new(128), Cu8::new(64) / 0.5.into());
+        assert_eq!(Cu8::new(128), Cu8::new(32) / 0.25.into());
+        assert_eq!(Cu8::new(128), Cu8::new(16) / 0.125.into());
+        assert_eq!(Cu8::new(64), Cu8::new(64) / 1.0.into());
+        assert_eq!(Cu8::new(64), Cu8::new(32) / 0.5.into());
+        assert_eq!(Cu8::new(64), Cu8::new(16) / 0.25.into());
     }
 }

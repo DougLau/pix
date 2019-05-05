@@ -250,7 +250,7 @@ mod test {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(3, 3);
         let rgba = Rgba::new(0xFF, 0x80, 0x40, 0xFF);
-        m.set_pixel(0, 0, Alpha::new(0xFFu8));
+        m.set_pixel(0, 0, Alpha::new(0xFF));
         m.set_pixel(1, 1, Alpha::new(0x80));
         m.set_pixel(2, 2, Alpha::new(0x40));
         r.mask_over(&m, 0, 0, rgba);
