@@ -5,8 +5,8 @@ extern crate pix;
 use pix::*;
 use criterion::Criterion;
 
-fn gray_over(c: &mut Criterion, sz: u32) {
-    let s = format!("gray_over_{}", sz);
+fn mask_over_gray(c: &mut Criterion, sz: u32) {
+    let s = format!("mask_over_gray_{}", sz);
     c.bench_function(&s, move |b| {
         let mut r = Raster::<Gray<Cu8>>::new(sz, sz);
         let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
@@ -16,20 +16,20 @@ fn gray_over(c: &mut Criterion, sz: u32) {
     });
 }
 
-fn gray_over_16(c: &mut Criterion) {
-    gray_over(c, 16);
+fn mask_over_gray_16(c: &mut Criterion) {
+    mask_over_gray(c, 16);
 }
 
-fn gray_over_256(c: &mut Criterion) {
-    gray_over(c, 256);
+fn mask_over_gray_256(c: &mut Criterion) {
+    mask_over_gray(c, 256);
 }
 
-fn gray_over_512(c: &mut Criterion) {
-    gray_over(c, 512);
+fn mask_over_gray_512(c: &mut Criterion) {
+    mask_over_gray(c, 512);
 }
 
-fn rgba_over(c: &mut Criterion, sz: u32) {
-    let s = format!("rgba_over_{}", sz);
+fn mask_over_rgba(c: &mut Criterion, sz: u32) {
+    let s = format!("mask_over_rgba_{}", sz);
     c.bench_function(&s, move |b| {
         let mut r = Raster::<Rgba<Cu8>>::new(sz, sz);
         let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
@@ -40,19 +40,20 @@ fn rgba_over(c: &mut Criterion, sz: u32) {
     });
 }
 
-fn rgba_over_16(c: &mut Criterion) {
-    rgba_over(c, 16);
+fn mask_over_rgba_16(c: &mut Criterion) {
+    mask_over_rgba(c, 16);
 }
 
-fn rgba_over_256(c: &mut Criterion) {
-    rgba_over(c, 256);
+fn mask_over_rgba_256(c: &mut Criterion) {
+    mask_over_rgba(c, 256);
 }
 
-fn rgba_over_512(c: &mut Criterion) {
-    rgba_over(c, 512);
+fn mask_over_rgba_512(c: &mut Criterion) {
+    mask_over_rgba(c, 512);
 }
 
-criterion_group!(benches, gray_over_16, gray_over_256, gray_over_512,
-                          rgba_over_16, rgba_over_256, rgba_over_512);
+criterion_group!(benches, mask_over_gray_16, mask_over_gray_256,
+    mask_over_gray_512, mask_over_rgba_16, mask_over_rgba_256,
+    mask_over_rgba_512);
 
 criterion_main!(benches);
