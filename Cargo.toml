@@ -21,6 +21,10 @@ criterion = "0.2"
 name = "mask_over"
 harness = false
 
+[[bench]]
+name = "cu8"
+harness = false
+
 [features]
 default = ["use-simd"]
 use-simd = []

@@ -56,8 +56,12 @@ impl From<Cu8> for u8 {
 impl Mul for Cu8 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
-        // FIXME
-        Cu8 { value: self.value * rhs.value }
+        let l = self.value as u32;
+        let l = (l << 4) | (l >> 4);
+        let r = rhs.value as u32;
+        let r = (r << 4) | (r >> 4);
+        let value = ((l * r) >> 16) as u8;
+        Cu8 { value }
     }
 }
 
@@ -120,10 +124,25 @@ mod test {
     use super::*;
     #[test]
     fn cu8_into() {
+        assert_eq!(Cu8::new(255), Into::<Cu8>::into(1.0));
         assert_eq!(Cu8::new(128), Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(64), Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(32), Into::<Cu8>::into(0.125));
     }
     #[test]
-    fn cu8_divide() {
+    fn cu8_mul() {
+        assert_eq!(Cu8::new(255), Cu8::new(255) * Into::<Cu8>::into(1.0));
+        assert_eq!(Cu8::new(128), Cu8::new(255) * Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(64), Cu8::new(255) * Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(32), Cu8::new(255) * Into::<Cu8>::into(0.125));
+        assert_eq!(Cu8::new(16), Cu8::new(255) * Into::<Cu8>::into(0.0625));
+        assert_eq!(Cu8::new(64), Cu8::new(128) * Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(32), Cu8::new(128) * Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(16), Cu8::new(128) * Into::<Cu8>::into(0.125));
+        assert_eq!(Cu8::new(8), Cu8::new(128) * Into::<Cu8>::into(0.0625));
+    }
+    #[test]
+    fn cu8_div() {
         assert_eq!(Cu8::new(255), Cu8::new(255) / Into::<Cu8>::into(1.0));
         assert_eq!(Cu8::new(255), Cu8::new(128) / Into::<Cu8>::into(0.5));
         assert_eq!(Cu8::new(255), Cu8::new(64) / Into::<Cu8>::into(0.25));
