@@ -16,7 +16,10 @@ pub struct Alpha<C: Channel> {
 
 impl<C: Channel> Alpha<C> {
     /// Build an alpha value.
-    pub fn new(value: C) -> Self {
+    pub fn new<V>(value: V) -> Self
+        where C: From<V>
+    {
+        let value = C::from(value);
         Alpha { value }
     }
     /// Get the component value.
