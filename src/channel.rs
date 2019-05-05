@@ -25,8 +25,24 @@ pub struct Cu8 {
     pub value: u8,
 }
 
+impl Cu8 {
+    pub fn new(value: u8) -> Self {
+        Cu8 { value }
+    }
+}
+
 impl From<u8> for Cu8 {
     fn from(value: u8) -> Self {
+        Cu8 { value }
+    }
+}
+
+impl From<f32> for Cu8 {
+    fn from(value: f32) -> Self {
+        // assert needed here to avoid UB on float-to-int cast
+        // once bug #10184 is fixed, this can be removed
+        assert!(value >= 0.0 && value <= 1.0);
+        let value = (value * 255.0).round() as u8;
         Cu8 { value }
     }
 }
@@ -97,4 +113,28 @@ fn scale_i32(a: u8, v: i32) -> i32 {
     let c = v * a as i32;
     // cheap alternative to divide by 255
     (((c + 1) + (c >> 8)) >> 8) as i32
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn cu8_into() {
+        assert_eq!(Cu8::new(128), Into::<Cu8>::into(0.5));
+    }
+    #[test]
+    fn cu8_divide() {
+        assert_eq!(Cu8::new(255), Cu8::new(255) / Into::<Cu8>::into(1.0));
+        assert_eq!(Cu8::new(255), Cu8::new(128) / Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(255), Cu8::new(64) / Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(255), Cu8::new(32) / Into::<Cu8>::into(0.125));
+        assert_eq!(Cu8::new(255), Cu8::new(16) / Into::<Cu8>::into(0.0625));
+        assert_eq!(Cu8::new(128), Cu8::new(128) / Into::<Cu8>::into(1.0));
+        assert_eq!(Cu8::new(128), Cu8::new(64) / Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(128), Cu8::new(32) / Into::<Cu8>::into(0.25));
+        assert_eq!(Cu8::new(128), Cu8::new(16) / Into::<Cu8>::into(0.125));
+        assert_eq!(Cu8::new(64), Cu8::new(64) / Into::<Cu8>::into(1.0));
+        assert_eq!(Cu8::new(64), Cu8::new(32) / Into::<Cu8>::into(0.5));
+        assert_eq!(Cu8::new(64), Cu8::new(16) / Into::<Cu8>::into(0.25));
+    }
 }
