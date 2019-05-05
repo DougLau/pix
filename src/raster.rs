@@ -13,9 +13,9 @@ use crate::pixel::PixFmt;
 /// use pix::{Alpha, Cu8, Raster, Rgba};
 /// let mut raster: Raster<Rgba<Cu8>> = Raster::new(10, 10);
 /// let mut matte: Raster<Alpha<Cu8>> = Raster::new(10, 10);
-/// let rgba = Rgba::<Cu8>::new(128.into(), 208.into(), 208.into(), 200.into());
-/// matte.set_pixel(2, 4, Alpha::<Cu8>::new(255.into()));
-/// matte.set_pixel(2, 5, Alpha::<Cu8>::new(128.into()));
+/// let rgba = Rgba::new(128, 208, 208, 200);
+/// matte.set_pixel(2, 4, Alpha::new(255));
+/// matte.set_pixel(2, 5, Alpha::new(128));
 /// raster.mask_over(&matte, 0, 0, rgba);
 /// let p = raster.as_u8_slice();
 /// // work with pixel data...
@@ -249,11 +249,10 @@ mod test {
     fn raster_mask() {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(3, 3);
-        let rgba = Rgba::<Cu8>::new(0xFF.into(), 0x80.into(), 0x40.into(),
-            0xFF.into());
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x80.into()));
-        m.set_pixel(2, 2, Alpha::<Cu8>::new(0x40.into()));
+        let rgba = Rgba::new(0xFF, 0x80, 0x40, 0xFF);
+        m.set_pixel(0, 0, Alpha::new(0xFFu8));
+        m.set_pixel(1, 1, Alpha::new(0x80));
+        m.set_pixel(2, 2, Alpha::new(0x40));
         r.mask_over(&m, 0, 0, rgba);
         let v = vec![
             0xFF,0x80,0x40,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
@@ -272,12 +271,11 @@ mod test {
     fn smaller_mask() {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
-        let rgba = Rgba::<Cu8>::new(0x40.into(), 0xFF.into(), 0x80.into(),
-            0x80.into());
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 0, Alpha::<Cu8>::new(0x80.into()));
-        m.set_pixel(0, 1, Alpha::<Cu8>::new(0x40.into()));
-        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x20.into()));
+        let rgba = Rgba::new(0x40, 0xFF, 0x80, 0x80);
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF));
+        m.set_pixel(1, 0, Alpha::<Cu8>::new(0x80));
+        m.set_pixel(0, 1, Alpha::<Cu8>::new(0x40));
+        m.set_pixel(1, 1, Alpha::<Cu8>::new(0x20));
         r.mask_over(&m, 1, 1, rgba);
         let v = vec![
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
@@ -290,12 +288,11 @@ mod test {
     fn top_left() {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
-        let rgba = Rgba::<Cu8>::new(0x20.into(), 0x40.into(), 0x80.into(),
-            0xFF.into());
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(0, 1, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 1, Alpha::<Cu8>::new(0xFF.into()));
+        let rgba = Rgba::new(0x20, 0x40, 0x80, 0xFF);
+        m.set_pixel(0, 0, Alpha::new(0xFF));
+        m.set_pixel(1, 0, Alpha::new(0xFF));
+        m.set_pixel(0, 1, Alpha::new(0xFF));
+        m.set_pixel(1, 1, Alpha::new(0xFF));
         r.mask_over(&m, -1, -1, rgba);
         let v = vec![
             0x20,0x40,0x80,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
@@ -308,12 +305,11 @@ mod test {
     fn bottom_right() {
         let mut r = Raster::<Rgba<Cu8>>::new(3, 3);
         let mut m = Raster::<Alpha<Cu8>>::new(2, 2);
-        let rgba = Rgba::<Cu8>::new(0x20.into(), 0x40.into(), 0x80.into(),
-            0xFF.into());
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 0, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(0, 1, Alpha::<Cu8>::new(0xFF.into()));
-        m.set_pixel(1, 1, Alpha::<Cu8>::new(0xFF.into()));
+        let rgba = Rgba::new(0x20, 0x40, 0x80, 0xFF);
+        m.set_pixel(0, 0, Alpha::new(0xFF));
+        m.set_pixel(1, 0, Alpha::new(0xFF));
+        m.set_pixel(0, 1, Alpha::new(0xFF));
+        m.set_pixel(1, 1, Alpha::new(0xFF));
         r.mask_over(&m, 2, 2, rgba);
         let v = vec![
             0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
