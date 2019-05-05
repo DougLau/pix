@@ -9,6 +9,9 @@ use crate::gamma::Gamma;
 pub trait Channel: Copy + Default + Mul<Output=Self> + Div<Output=Self> +
     From<u8> + Into<u8> + Gamma
 {
+    /// Get min of two channel values
+    fn min(self, rhs: Self) -> Self;
+
     /// Get max of two channel values
     fn max(self, rhs: Self) -> Self;
 
@@ -91,6 +94,10 @@ impl Gamma for Cu8 {
 }
 
 impl Channel for Cu8 {
+    /// Get min of two channel values
+    fn min(self, rhs: Self) -> Self {
+        Cu8 { value: self.value.min(rhs.value) }
+    }
     /// Get max of two channel values
     fn max(self, rhs: Self) -> Self {
         Cu8 { value: self.value.max(rhs.value) }
