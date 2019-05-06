@@ -43,7 +43,6 @@ impl<C: Channel, H: Channel> From<Rgba<H>> for Srgb<C>
         let g = Into::<C>::into(rgba.green());
         let b = Into::<C>::into(rgba.blue());
         let a = Into::<C>::into(rgba.alpha());
-        // FIXME: remove premultiplied alpha
         // NOTE: gamma must be encoded last !!!
         Srgb {
             red: (r / a).encode_gamma(),

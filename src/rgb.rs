@@ -61,9 +61,8 @@ impl<C: Channel, H: Channel> From<Rgba<H>> for Rgb<C>
         let r = Into::<C>::into(rgb.red());
         let g = Into::<C>::into(rgb.green());
         let b = Into::<C>::into(rgb.blue());
-        let _a = Into::<C>::into(rgb.alpha());
-        // FIXME: remove premultiplied alpha
-        Rgb::new(r, g, b)
+        let a = Into::<C>::into(rgb.alpha());
+        Rgb::new(r / a, g / a, b / a)
     }
 }
 

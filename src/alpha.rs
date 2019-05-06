@@ -29,7 +29,7 @@ impl<C: Channel> Alpha<C> {
     /// Blend pixel on top of another, using "over".
     fn with_alpha_over(self, dst: Alpha<C>, alpha: u8) -> Self {
         let v = Into::<C>::into(dst.value());
-        let a = Into::<C>::into(alpha);
+        let a = alpha.into();
         let value = self.value.lerp_alpha(v, a);
         Alpha::new(value)
     }

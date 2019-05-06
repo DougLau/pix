@@ -44,7 +44,7 @@ impl<C: Channel> Gray<C> {
     /// Blend pixel on top of another, using "over".
     fn with_alpha_over(self, dst: Gray<C>, alpha: u8) -> Self {
         let v = Into::<C>::into(dst.value());
-        let a = Into::<C>::into(alpha);
+        let a = alpha.into();
         let value = self.value.lerp_alpha(v, a);
         Gray::new(value)
     }
