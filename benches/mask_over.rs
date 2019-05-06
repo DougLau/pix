@@ -10,9 +10,9 @@ fn mask_over_gray(c: &mut Criterion, sz: u32) {
     c.bench_function(&s, move |b| {
         let mut r = Raster::<Gray<Cu8>>::new(sz, sz);
         let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(255.into()));
-        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128.into()));
-        b.iter(|| r.mask_over(&m, 0, 0, Gray::<Cu8>::new(100.into())))
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(255));
+        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128));
+        b.iter(|| r.mask_over(&m, 0, 0, Gray::<Cu8>::new(100)))
     });
 }
 
@@ -33,9 +33,9 @@ fn mask_over_rgba(c: &mut Criterion, sz: u32) {
     c.bench_function(&s, move |b| {
         let mut r = Raster::<Rgba<Cu8>>::new(sz, sz);
         let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
-        let rgba = Rgba::new(100.into(), 50.into(), 150.into(), 255.into());
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(255.into()));
-        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128.into()));
+        let rgba = Rgba::new(100, 50, 150, 255);
+        m.set_pixel(0, 0, Alpha::<Cu8>::new(255));
+        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128));
         b.iter(|| r.mask_over(&m, 0, 0, rgba))
     });
 }
