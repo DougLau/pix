@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.3.0] - 2019-05-05
 ### Added
 * Channel trait with Cu8 and Cu16 implementations
 * Gamma encoding/decoding module
