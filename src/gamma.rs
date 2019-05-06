@@ -121,6 +121,19 @@ impl Gamma for u8 {
     }
 }
 
+impl Gamma for u16 {
+    /// Encode a gamma value from linear intensity
+    fn encode_gamma(self) -> Self {
+        let s = self as f64 / 65535.0;
+        (s.encode_gamma() * 65535.0).round() as u16
+    }
+    /// Decode a gamma value into linear intensity
+    fn decode_gamma(self) -> Self {
+        let s = self as f64 / 65535.0;
+        (s.decode_gamma() * 65535.0).round() as u16
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 ### Added
-* Channel trait with Cu8 implementation
+* Channel trait with Cu8 and Cu16 implementations
 * Gamma encoding/decoding module
 * Alpha, Gray, Rgb, Rgba pixel formats
 * New Srgb pixel format

@@ -25,6 +25,10 @@ harness = false
 name = "cu8"
 harness = false
 
+[[bench]]
+name = "cu16"
+harness = false
+
 [features]
 default = ["use-simd"]
 use-simd = []
