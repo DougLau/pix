@@ -228,14 +228,14 @@ impl Channel for Ch16 {
 mod test {
     use super::*;
     #[test]
-    fn cu8_into() {
+    fn ch8_into() {
         assert_eq!(Ch8::new(255), 1.0.into());
         assert_eq!(Ch8::new(128), 0.5.into());
         assert_eq!(Ch8::new(64), 0.25.into());
         assert_eq!(Ch8::new(32), 0.125.into());
     }
     #[test]
-    fn cu8_mul() {
+    fn ch8_mul() {
         assert_eq!(Ch8::new(255), Ch8::new(255) * 1.0.into());
         assert_eq!(Ch8::new(128), Ch8::new(255) * 0.5.into());
         assert_eq!(Ch8::new(64), Ch8::new(255) * 0.25.into());
@@ -247,7 +247,7 @@ mod test {
         assert_eq!(Ch8::new(8), Ch8::new(128) * 0.0625.into());
     }
     #[test]
-    fn cu8_div() {
+    fn ch8_div() {
         assert_eq!(Ch8::new(255), Ch8::new(255) / 1.0.into());
         assert_eq!(Ch8::new(255), Ch8::new(128) / 0.5.into());
         assert_eq!(Ch8::new(255), Ch8::new(64) / 0.25.into());
@@ -262,14 +262,14 @@ mod test {
         assert_eq!(Ch8::new(64), Ch8::new(16) / 0.25.into());
     }
     #[test]
-    fn cu16_into() {
+    fn ch16_into() {
         assert_eq!(Ch16::new(65535), 1.0.into());
         assert_eq!(Ch16::new(32768), 0.5.into());
         assert_eq!(Ch16::new(16384), 0.25.into());
         assert_eq!(Ch16::new(8192), 0.125.into());
     }
     #[test]
-    fn cu16_mul() {
+    fn ch16_mul() {
         assert_eq!(Ch16::new(65535), Ch16::new(65535) * 1.0.into());
         assert_eq!(Ch16::new(32768), Ch16::new(65535) * 0.5.into());
         assert_eq!(Ch16::new(16384), Ch16::new(65535) * 0.25.into());
@@ -281,7 +281,7 @@ mod test {
         assert_eq!(Ch16::new(2048), Ch16::new(32768) * 0.0625.into());
     }
     #[test]
-    fn cu16_div() {
+    fn ch16_div() {
         assert_eq!(Ch16::new(65535), Ch16::new(65535) / 1.0.into());
         assert_eq!(Ch16::new(65535), Ch16::new(32768) / 0.5.into());
         assert_eq!(Ch16::new(65535), Ch16::new(16384) / 0.25.into());
