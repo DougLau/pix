@@ -7,16 +7,16 @@ use criterion::Criterion;
 
 fn cu16_mul(c: &mut Criterion) {
     c.bench_function(&"cu16_mul", move |b| {
-        let n = Cu16::new(32768);
-        let d = Cu16::new(16384);
+        let n = Ch16::new(32768);
+        let d = Ch16::new(16384);
         b.iter(|| n * d)
     });
 }
 
 fn cu16_div(c: &mut Criterion) {
     c.bench_function(&"cu16_div", move |b| {
-        let n = Cu16::new(32768);
-        let d = Cu16::new(16384);
+        let n = Ch16::new(32768);
+        let d = Ch16::new(16384);
         b.iter(|| n / d)
     });
 }

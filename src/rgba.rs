@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::channel::{Channel, Cu8};
+use crate::channel::{Channel, Ch8};
 use crate::pixel::PixFmt;
 use crate::rgb::Rgb;
 
@@ -94,7 +94,7 @@ impl<C: Channel> Rgba<C> {
     }
 }
 
-impl PixFmt for Rgba<Cu8> {
+impl PixFmt for Rgba<Ch8> {
     /// Blend pixels with an alpha mask.
     ///
     /// * `dst` Destination pixels.
@@ -135,7 +135,7 @@ impl PixFmt for Rgba<Cu8> {
 #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"),
           feature = "use-simd"))]
 #[target_feature(enable = "ssse3")]
-unsafe fn over_x86(pix: &mut [Rgba<Cu8>], mask: &[u8], clr: Rgba<Cu8>) {
+unsafe fn over_x86(pix: &mut [Rgba<Ch8>], mask: &[u8], clr: Rgba<Ch8>) {
     let len = pix.len().min(mask.len());
     // Truncate len to multiple of 4
     let len = (len >> 2) << 2;

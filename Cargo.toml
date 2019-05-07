@@ -22,11 +22,11 @@ name = "mask_over"
 harness = false
 
 [[bench]]
-name = "cu8"
+name = "ch8"
 harness = false
 
 [[bench]]
-name = "cu16"
+name = "ch16"
 harness = false
 
 [features]

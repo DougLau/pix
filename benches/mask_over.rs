@@ -8,11 +8,11 @@ use criterion::Criterion;
 fn mask_over_gray(c: &mut Criterion, sz: u32) {
     let s = format!("mask_over_gray_{}", sz);
     c.bench_function(&s, move |b| {
-        let mut r = Raster::<Gray<Cu8>>::new(sz, sz);
-        let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(255));
-        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128));
-        b.iter(|| r.mask_over(&m, 0, 0, Gray::<Cu8>::new(100)))
+        let mut r = Raster::<Gray<Ch8>>::new(sz, sz);
+        let mut m = Raster::<Alpha<Ch8>>::new(sz, sz);
+        m.set_pixel(0, 0, Alpha::<Ch8>::new(255));
+        m.set_pixel(sz - 1, sz - 1, Alpha::<Ch8>::new(128));
+        b.iter(|| r.mask_over(&m, 0, 0, Gray::<Ch8>::new(100)))
     });
 }
 
@@ -31,11 +31,11 @@ fn mask_over_gray_512(c: &mut Criterion) {
 fn mask_over_rgba(c: &mut Criterion, sz: u32) {
     let s = format!("mask_over_rgba_{}", sz);
     c.bench_function(&s, move |b| {
-        let mut r = Raster::<Rgba<Cu8>>::new(sz, sz);
-        let mut m = Raster::<Alpha<Cu8>>::new(sz, sz);
+        let mut r = Raster::<Rgba<Ch8>>::new(sz, sz);
+        let mut m = Raster::<Alpha<Ch8>>::new(sz, sz);
         let rgba = Rgba::new(100, 50, 150, 255);
-        m.set_pixel(0, 0, Alpha::<Cu8>::new(255));
-        m.set_pixel(sz - 1, sz - 1, Alpha::<Cu8>::new(128));
+        m.set_pixel(0, 0, Alpha::<Ch8>::new(255));
+        m.set_pixel(sz - 1, sz - 1, Alpha::<Ch8>::new(128));
         b.iter(|| r.mask_over(&m, 0, 0, rgba))
     });
 }

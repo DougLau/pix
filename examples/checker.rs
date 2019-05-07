@@ -3,11 +3,11 @@ extern crate pix;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use pix::{Cu8, Gray, Raster};
+use pix::{Ch8, Gray, Raster};
 
 fn main() -> Result<(), io::Error> {
     let v = Gray::new(255);
-    let mut r: Raster<Gray<Cu8>> = Raster::new(16, 16);
+    let mut r: Raster<Gray<Ch8>> = Raster::new(16, 16);
     for y in 0..16 {
         for x in 0..16 {
             if x + y & 1 != 0 {
@@ -18,7 +18,7 @@ fn main() -> Result<(), io::Error> {
     write_pgm(&r, "checker.pgm")
 }
 
-fn write_pgm(raster: &Raster<Gray<Cu8>>, filename: &str) -> io::Result<()> {
+fn write_pgm(raster: &Raster<Gray<Ch8>>, filename: &str) -> io::Result<()> {
     let fl = File::create(filename)?;
     let mut bw = io::BufWriter::new(fl);
     let w = bw.get_mut();

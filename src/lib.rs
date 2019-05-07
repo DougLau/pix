@@ -18,7 +18,7 @@ mod rgba;
 mod srgb;
 
 pub use crate::alpha::Alpha;
-pub use crate::channel::{Channel, Cu8, Cu16};
+pub use crate::channel::{Channel, Ch8, Ch16};
 pub use crate::gray::Gray;
 pub use crate::pixel::PixFmt;
 pub use crate::raster::Raster;

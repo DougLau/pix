@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Changed
+* Cu8 / Cu16 renamed to Ch8 / Ch16
+
 ## [0.3.0] - 2019-05-05
 ### Added
 * Channel trait with Cu8 and Cu16 implementations
