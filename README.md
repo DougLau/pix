@@ -1,11 +1,13 @@
 # pix
-A Rust library for working with pixels and images.  It can perform fast alpha
-compositing of a matte onto a destination image raster, using SIMD.
+Rust crate for pixel and raster image manipulation.
 
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
 
 ## Future Plans
-Compositing two raster images, using the over operator is an important missing
-feature.
-Adding SIMD versions of pixel formats other than RGBA8 would be good.
+* SIMD versions of other pixel formats
+* Split pix-ops into a separate crate
+* Add ColorModel trait and ColorSpace ?
+* Add CMYK color model.
+* HSV / HSL color model.
+* LAB color space (with white point).

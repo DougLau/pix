@@ -3,15 +3,14 @@
 // Copyright (c) 2018-2019  Douglas P Lau
 //
 use crate::channel::{Channel, Ch8};
-use crate::pixel::PixFmt;
-use crate::rgb::Rgb;
+use crate::pixel::Format;
 
 #[cfg(all(target_arch = "x86", feature = "use-simd"))]
 use std::arch::x86::*;
 #[cfg(all(target_arch = "x86_64", feature = "use-simd"))]
 use std::arch::x86_64::*;
 
-/// Linear RGBA [pixel format](trait.PixFmt.html).
+/// Linear RGBA [pixel format](trait.Format.html).
 ///
 /// The channels are *red*, *green*, *blue* and *alpha*.  They are encoded in
 /// linear intensity, with premultiplied alpha.
@@ -36,19 +35,6 @@ impl<C: Channel> From<Rgba<C>> for i32 {
         let alpha = Into::<u8>::into(rgba.alpha());
         let alpha = Into::<i32>::into(alpha) << 24;
         red | green | blue | alpha
-    }
-}
-
-impl<C: Channel, H: Channel> From<Rgb<H>> for Rgba<C>
-    where C: From<H>
-{
-    /// Get an Rgba from an Rgb
-    fn from(rgb: Rgb<H>) -> Self {
-        let r = Into::<C>::into(rgb.red());
-        let g = Into::<C>::into(rgb.green());
-        let b = Into::<C>::into(rgb.blue());
-        let a = C::full();
-        Rgba::new(r, g, b, a)
     }
 }
 
@@ -94,7 +80,7 @@ impl<C: Channel> Rgba<C> {
     }
 }
 
-impl PixFmt for Rgba<Ch8> {
+impl Format for Rgba<Ch8> {
     /// Blend pixels with an alpha mask.
     ///
     /// * `dst` Destination pixels.
@@ -116,7 +102,7 @@ impl PixFmt for Rgba<Ch8> {
                 return;
             }
         }
-        PixFmt::mask_over_fallback(dst, mask, clr);
+        Format::mask_over_fallback(dst, mask, clr);
     }
 
     /// Blend pixels with an alpha mask (slow fallback).
