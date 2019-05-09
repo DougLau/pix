@@ -16,7 +16,7 @@ impl Gamma for f64 {
     fn encode_gamma(self) -> Self {
         if self <= 0.0 {
             0.0
-        } else if self < 0.0031308 {
+        } else if self < 0.003_130_8 {
             self * 12.92
         } else if self < 1.0 {
             self.powf(1.0 / 2.4) * 1.055 - 0.055
@@ -124,12 +124,12 @@ impl Gamma for u8 {
 impl Gamma for u16 {
     /// Encode a gamma value from linear intensity
     fn encode_gamma(self) -> Self {
-        let s = self as f64 / 65535.0;
+        let s = f32::from(self) / 65535.0;
         (s.encode_gamma() * 65535.0).round() as u16
     }
     /// Decode a gamma value into linear intensity
     fn decode_gamma(self) -> Self {
-        let s = self as f64 / 65535.0;
+        let s = f32::from(self) / 65535.0;
         (s.decode_gamma() * 65535.0).round() as u16
     }
 }
@@ -139,7 +139,7 @@ impl Gamma for f32 {
     fn encode_gamma(self) -> Self {
         if self <= 0.0 {
             0.0
-        } else if self < 0.0031308 {
+        } else if self < 0.003_130_8 {
             self * 12.92
         } else if self < 1.0 {
             self.powf(1.0 / 2.4) * 1.055 - 0.055

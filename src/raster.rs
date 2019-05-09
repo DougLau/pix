@@ -86,8 +86,7 @@ impl<F: Format> Raster<F> {
         let capacity = buffer.len();
         assert_eq!(len * std::mem::size_of::<F>(), capacity);
         let slice = std::boxed::Box::<[u8]>::into_raw(buffer);
-        let ptr = (*slice).as_mut_ptr();
-        let ptr = std::mem::transmute::<*mut u8, *mut F>(ptr);
+        let ptr = (*slice).as_mut_ptr() as *mut F;
         let slice = std::slice::from_raw_parts_mut(ptr, len);
         let pixels: Box<[F]> = Box::from_raw(slice);
         Raster { width, height, pixels }
@@ -137,22 +136,22 @@ impl<F: Format> Raster<F> {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
-        Self::as_u8_slice_range(&self.pixels[s..t])
+        Self::u8_slice(&self.pixels[s..t])
     }
     /// Get view of a pixel slice as a u8 slice.
-    fn as_u8_slice_range(pix: &[F]) -> &[u8] {
+    fn u8_slice(pix: &[F]) -> &[u8] {
         unsafe { pix.align_to::<u8>().1 }
     }
     /// Get view of pixels as a u8 slice.
     pub fn as_u8_slice(&self) -> &[u8] {
-        Self::as_u8_slice_range(&self.pixels)
+        Self::u8_slice(&self.pixels)
     }
     /// Get view of pixels as a mutable u8 slice.
     pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
-        Self::as_u8_slice_range_mut(&mut self.pixels)
+        Self::u8_slice_mut(&mut self.pixels)
     }
     /// Get view of a pixel slice as a mutable u8 slice.
-    fn as_u8_slice_range_mut(pix: &mut [F]) -> &mut [u8] {
+    fn u8_slice_mut(pix: &mut [F]) -> &mut [u8] {
         unsafe { pix.align_to_mut::<u8>().1 }
     }
     /// Clear all pixels.

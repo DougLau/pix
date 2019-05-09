@@ -20,18 +20,18 @@ pub struct Rgb<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, A> From<Rgb<C, A>> for i32
-    where C: Channel, C: Into<Ch8>, A: Alpha<C>
+    where C: Channel, Ch8: From<C>, A: Alpha<C>
 {
     /// Get an i32 from an Rgb
     fn from(c: Rgb<C, A>) -> i32 {
-        let red: u8 = Into::<Ch8>::into(c.red()).into();
-        let red = (red as i32) << 0;
-        let green: u8 = Into::<Ch8>::into(c.green()).into();
-        let green = (green as i32) << 8;
-        let blue: u8 = Into::<Ch8>::into(c.blue()).into();
-        let blue = (blue as i32) << 16;
-        let alpha: u8 = Into::<Ch8>::into(c.alpha().value()).into();
-        let alpha = (alpha as i32) << 24;
+        let red: u8 = Ch8::from(c.red()).into();
+        let red = i32::from(red);
+        let green: u8 = Ch8::from(c.green()).into();
+        let green = i32::from(green) << 8;
+        let blue: u8 = Ch8::from(c.blue()).into();
+        let blue = i32::from(blue) << 16;
+        let alpha: u8 = Ch8::from(c.alpha().value()).into();
+        let alpha = i32::from(alpha) << 24;
         red | green | blue | alpha
     }
 }
@@ -41,11 +41,11 @@ impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
 {
     /// Get an Opaque Rgb from a Translucent Rgb
     fn from(c: Rgb<H, Translucent<H>>) -> Self {
-        let r = Into::<C>::into(c.red());
-        let g = Into::<C>::into(c.green());
-        let b = Into::<C>::into(c.blue());
-        let a = Into::<C>::into(c.alpha().value());
-        Rgb::new(r / a, g / a, b / a)
+        let red = C::from(c.red());
+        let green = C::from(c.green());
+        let blue = C::from(c.blue());
+        let a = C::from(c.alpha().value());
+        Rgb::new(red / a, green / a, blue / a)
     }
 }
 
@@ -54,11 +54,11 @@ impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
 {
     /// Get a Translucent Rgb from an Opaque Rgb
     fn from(c: Rgb<H, Opaque<H>>) -> Self {
-        let r = Into::<C>::into(c.red());
-        let g = Into::<C>::into(c.green());
-        let b = Into::<C>::into(c.blue());
-        let a = Into::<Translucent<C>>::into(c.alpha());
-        Rgb::with_alpha(r, g, b, a)
+        let red = C::from(c.red());
+        let green = C::from(c.green());
+        let blue = C::from(c.blue());
+        let alpha = Translucent::<C>::from(c.alpha());
+        Rgb::with_alpha(red, green, blue, alpha)
     }
 }
 

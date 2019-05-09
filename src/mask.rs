@@ -74,7 +74,7 @@ impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
     /// Get an Rgb from a Mask
     fn from(c: Mask<H, B>) -> Self {
         let v = C::MAX;
-        let a = Into::<A>::into(c.alpha());
+        let a = A::from(c.alpha());
         Rgb::with_alpha(v, v, v, a)
     }
 }

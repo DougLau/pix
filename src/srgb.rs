@@ -24,16 +24,16 @@ impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
 {
     /// Get an Srgb from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
-        let r = Into::<C>::into(c.red());
-        let g = Into::<C>::into(c.green());
-        let b = Into::<C>::into(c.blue());
-        let alpha = Into::<A>::into(c.alpha());
+        let red = C::from(c.red());
+        let green = C::from(c.green());
+        let blue = C::from(c.blue());
+        let alpha = A::from(c.alpha());
         let a = alpha.value();
         // NOTE: gamma must be encoded after removing premultiplied alpha !!!
         Srgb {
-            red: (r / a).encode_gamma(),
-            green: (g / a).encode_gamma(),
-            blue: (b / a).encode_gamma(),
+            red: (red / a).encode_gamma(),
+            green: (green / a).encode_gamma(),
+            blue: (blue / a).encode_gamma(),
             alpha,
         }
     }
@@ -45,10 +45,10 @@ impl<C, H, A, B> From<Srgb<H, B>> for Rgb<C, A>
 {
     /// Get an Rgb from an Srgb
     fn from(srgb: Srgb<H, B>) -> Self {
-        let r = Into::<C>::into(srgb.red()).decode_gamma();
-        let g = Into::<C>::into(srgb.green()).decode_gamma();
-        let b = Into::<C>::into(srgb.blue()).decode_gamma();
-        let a = Into::<A>::into(srgb.alpha());
+        let r = C::from(srgb.red()).decode_gamma();
+        let g = C::from(srgb.green()).decode_gamma();
+        let b = C::from(srgb.blue()).decode_gamma();
+        let a = A::from(srgb.alpha());
         Rgb::with_alpha(r, g, b, a)
     }
 }

@@ -34,12 +34,12 @@ impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
 {
     /// Get a Gray from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
-        let r = Into::<C>::into(c.red());
-        let g = Into::<C>::into(c.green());
-        let b = Into::<C>::into(c.blue());
-        let a = Into::<A>::into(c.alpha());
+        let red = C::from(c.red());
+        let green = C::from(c.green());
+        let blue = C::from(c.blue());
+        let a = A::from(c.alpha());
         // FIXME: adjust luminance based on channels
-        let v: C = r.max(g).max(b);
+        let v: C = red.max(green).max(blue);
         Gray::with_alpha(v, a)
     }
 }
@@ -50,8 +50,8 @@ impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
 {
     /// Get an Rgb from a Gray
     fn from(c: Gray<H, B>) -> Self {
-        let v = Into::<C>::into(c.value());
-        let a = Into::<A>::into(c.alpha());
+        let v = C::from(c.value());
+        let a = A::from(c.alpha());
         Rgb::with_alpha(v, v, v, a)
     }
 }

@@ -70,9 +70,9 @@ impl<R> Mul<R> for Ch8 where Self: From<R> {
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
-        let l = self.0 as u32;
+        let l = u32::from(self.0);
         let l = (l << 4) | (l >> 4);
-        let r = rhs.0 as u32;
+        let r = u32::from(rhs.0);
         let r = (r << 4) | (r >> 4);
         let value = ((l * r) >> 16) as u8;
         Ch8 { 0: value }
@@ -90,10 +90,11 @@ impl Mul<f32> for Ch8 {
 impl<R> Div<R> for Ch8 where Self: From<R> {
     type Output = Self;
     fn div(self, rhs: R) -> Self {
+        #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
         let rhs: Self = rhs.into();
         if rhs.0 > 0 {
-            let ss = (self.0 as u32) << 8;
-            let rr = rhs.0 as u32;
+            let ss = u32::from(self.0) << 8;
+            let rr = u32::from(rhs.0);
             let value = (ss / rr).min(255) as u8;
             Ch8 { 0: value }
         } else {
@@ -144,7 +145,7 @@ impl Channel for Ch8 {
 /// Scale an i32 value by a u8 (for lerp)
 #[inline]
 fn scale_i32(t: u8, v: i32) -> i32 {
-    let c = v * t as i32;
+    let c = v * i32::from(t);
     // cheap alternative to divide by 255
     (((c + 1) + (c >> 8)) >> 8) as i32
 }
@@ -158,7 +159,7 @@ impl Ch16 {
 
 impl From<Ch8> for Ch16 {
     fn from(c: Ch8) -> Self {
-        let value = c.0 as u16;
+        let value = u16::from(c.0);
         let value = value << 8 | value;
         Ch16 { 0: value }
     }
@@ -180,9 +181,9 @@ impl<R> Mul<R> for Ch16 where Self: From<R> {
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
-        let l = self.0 as u64;
+        let l = u64::from(self.0);
         let l = (l << 8) | (l >> 8);
-        let r = rhs.0 as u64;
+        let r = u64::from(rhs.0);
         let r = (r << 8) | (r >> 8);
         let value = ((l * r) >> 32) as u16;
         Ch16 { 0: value }
@@ -200,10 +201,11 @@ impl Mul<f32> for Ch16 {
 impl<R> Div<R> for Ch16 where Self: From<R> {
     type Output = Self;
     fn div(self, rhs: R) -> Self {
+        #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
         let rhs: Self = rhs.into();
         if rhs.0 > 0 {
-            let ss = (self.0 as u64) << 16;
-            let rr = rhs.0 as u64;
+            let ss = u64::from(self.0) << 16;
+            let rr = u64::from(rhs.0);
             let value = (ss / rr).min(65535) as u16;
             Ch16 { 0: value }
         } else {
@@ -254,7 +256,7 @@ impl Channel for Ch16 {
 /// Scale an i64 value by a u16 (for lerp)
 #[inline]
 fn scale_i64(t: u16, v: i64) -> i64 {
-    let c = v * t as i64;
+    let c = v * i64::from(t);
     // cheap alternative to divide by 65535
     (((c + 1) + (c >> 16)) >> 16) as i64
 }
@@ -280,7 +282,7 @@ impl Ch32 {
 
 impl From<Ch8> for Ch32 {
     fn from(c: Ch8) -> Self {
-        let value = c.0 as f32 * 255.0;
+        let value = f32::from(c.0) * 255.0;
         Ch32 { 0: value }
     }
 }
@@ -313,7 +315,7 @@ impl From<Ch32> for Ch16 {
 
 impl From<Ch16> for Ch32 {
     fn from(c: Ch16) -> Self {
-        let value = c.0 as f32 * 65535.0;
+        let value = f32::from(c.0) * 65535.0;
         Ch32 { 0: value }
     }
 }
