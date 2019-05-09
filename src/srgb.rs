@@ -19,7 +19,7 @@ pub struct Srgb<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
-    where C: Channel, H: Channel, C: From<H>, A: From<B>, A: Alpha<C>,
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
           B: Alpha<H>
 {
     /// Get an Srgb from an Rgb
@@ -40,7 +40,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
 }
 
 impl<C, H, A, B> From<Srgb<H, B>> for Rgb<C, A>
-    where C: Channel, H: Channel, C: From<H>, A: From<B>, A: Alpha<C>,
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
           B: Alpha<H>
 {
     /// Get an Rgb from an Srgb

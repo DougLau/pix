@@ -29,7 +29,7 @@ impl<C, A> From<u8> for Gray<C, A>
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
-    where C: Channel, H: Channel, C: From<H>, A: From<B>, A: Alpha<C>,
+    where C: Channel, C: From<H>, H: Channel, A: Alpha<C>, A: From<B>,
           B: Alpha<H>
 {
     /// Get a Gray from an Rgb
@@ -45,8 +45,8 @@ impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
 }
 
 impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
-    where C: Channel, H: Channel, A: Alpha<C>, B: Alpha<H>, C: From<H>,
-          A: From<B>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha<C>, A: From<B>,
+          B: Alpha<H>
 {
     /// Get an Rgb from a Gray
     fn from(c: Gray<H, B>) -> Self {

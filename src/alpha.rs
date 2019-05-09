@@ -52,7 +52,7 @@ impl<C: Channel> Alpha<C> for Opaque<C> {
 }
 
 impl<C, A> From<Translucent<A>> for Opaque<C>
-    where C: Channel, A: Channel, C: From<Translucent<A>>
+    where C: Channel, C: From<Translucent<A>>, A: Channel
 {
     /// Convert from a translucent value.
     fn from(_: Translucent<A>) -> Self {

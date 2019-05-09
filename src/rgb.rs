@@ -37,7 +37,7 @@ impl<C, A> From<Rgb<C, A>> for i32
 }
 
 impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
-    where C: Channel, H: Channel, C: From<H>
+    where C: Channel, C: From<H>, H: Channel
 {
     /// Get an Opaque Rgb from a Translucent Rgb
     fn from(c: Rgb<H, Translucent<H>>) -> Self {
@@ -50,7 +50,7 @@ impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
 }
 
 impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
-    where C: Channel, H: Channel, C: From<H>, Translucent<C>: From<Opaque<H>>
+    where C: Channel, C: From<H>, H: Channel, Translucent<C>: From<Opaque<H>>
 {
     /// Get a Translucent Rgb from an Opaque Rgb
     fn from(c: Rgb<H, Opaque<H>>) -> Self {

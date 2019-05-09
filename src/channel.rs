@@ -311,6 +311,13 @@ impl From<Ch32> for Ch16 {
     }
 }
 
+impl From<Ch16> for Ch32 {
+    fn from(c: Ch16) -> Self {
+        let value = c.0 as f32 * 65535.0;
+        Ch32 { 0: value }
+    }
+}
+
 impl Eq for Ch32 { }
 
 impl Ord for Ch32 {

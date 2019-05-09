@@ -17,7 +17,7 @@ pub struct Mask<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, A> From<u8> for Mask<C, A>
-    where C: Channel, A: Alpha<C>, C: From<Ch8>
+    where C: Channel, C: From<Ch8>, A: Alpha<C>
 {
     /// Get a Mask from a u8
     fn from(c: u8) -> Self {
@@ -26,7 +26,7 @@ impl<C, A> From<u8> for Mask<C, A>
 }
 
 impl<C, A> From<u16> for Mask<C, A>
-    where C: Channel, A: Alpha<C>, C: From<Ch16>
+    where C: Channel, C: From<Ch16>, A: Alpha<C>
 {
     /// Get a Mask from a u16
     fn from(c: u16) -> Self {
@@ -35,21 +35,21 @@ impl<C, A> From<u16> for Mask<C, A>
 }
 
 impl<A: Alpha<Ch8>> From<i32> for Mask<Ch8, A> {
-    /// Get a Mask<Ch8, _> from an i32
+    /// Get a Mask<Ch8, A> from an i32
     fn from(c: i32) -> Self {
         Mask::new(Ch8::new(c as u8))
     }
 }
 
 impl<A: Alpha<Ch16>> From<i32> for Mask<Ch16, A> {
-    /// Get a Mask<Ch16, _> from an i32
+    /// Get a Mask<Ch16, A> from an i32
     fn from(c: i32) -> Self {
         Mask::new(Ch16::new(c as u16))
     }
 }
 
 impl<C, A> From<f32> for Mask<C, A>
-    where C: Channel, A: Alpha<C>, C: From<Ch32>
+    where C: Channel, C: From<Ch32>, A: Alpha<C>
 {
     /// Get a Mask from an f32
     fn from(c: f32) -> Self {
@@ -58,7 +58,7 @@ impl<C, A> From<f32> for Mask<C, A>
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
-    where C: Channel, H: Channel, C: From<H>, A: From<B>, A: Alpha<C>,
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
           B: Alpha<H>
 {
     /// Get a Mask from an Rgb
@@ -68,7 +68,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
 }
 
 impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
-    where C: Channel, H: Channel, C: From<H>, A: From<B>, A: Alpha<C>,
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
           B: Alpha<H>
 {
     /// Get an Rgb from a Mask
