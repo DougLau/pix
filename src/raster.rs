@@ -2,26 +2,19 @@
 //
 // Copyright (c) 2017-2019  Douglas P Lau
 //
-use crate::{Blend, Format};
-use crate::mask::Mask8;
+use crate::Format;
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
 /// # Example
 /// ```
-/// use pix::{Mask8, Opaque, Raster, Rgb8};
+/// use pix::{Raster, Rgb, Rgb8};
+/// let clr = Rgb::new(0xFF, 0x88, 0x00, 0x00);
 /// let mut raster: Raster<Rgb8> = Raster::new(10, 10);
-/// let mut mask: Raster<Mask8> = Raster::new(10, 10);
-/// let clr = Rgb8::new(128, 208, 208, Opaque::default());
-/// mask.set_pixel(2, 4, 255);
-/// mask.set_pixel(2, 5, 128);
-/// raster.mask_over(&mask, 0, 0, clr);
-/// let p = raster.as_u8_slice();
-/// // work with pixel data...
+/// raster.set_rect(2, 4, 3, 3, clr);
 /// ```
 #[derive(Clone, Debug)]
 pub struct Raster<F: Format> {
-    color  : F,
     width  : u32,
     height : u32,
     pixels : Box<[F]>,
@@ -48,14 +41,13 @@ impl<F: Format> Raster<F> {
     /// * `width` Width in pixels.
     /// * `height` Height in pixels.
     pub fn new(width: u32, height: u32) -> Raster<F> {
-        let color = F::default();
         let len = width * height;
         let mut pixels = Vec::with_capacity(capacity(len));
         for _ in 0..len {
             pixels.push(F::default());
         }
         let pixels = pixels.into_boxed_slice();
-        Raster { color, width, height, pixels }
+        Raster { width, height, pixels }
     }
     /// Create a new raster image with owned pixel data.  You can get ownership
     /// of the pixel data back from the `Raster` as either a `Vec<F>` or a
@@ -72,11 +64,10 @@ impl<F: Format> Raster<F> {
     pub fn with_pixels<T: Into<Box<[F]>>>(width: u32, height: u32, pixels: T)
         -> Raster<F>
     {
-        let color = F::default();
         let len = width * height;
         let pixels = pixels.into();
         assert_eq!(len, capacity(pixels.len() as u32) as u32);
-        Raster { color, width, height, pixels }
+        Raster { width, height, pixels }
     }
     /// Get raster width.
     pub fn width(&self) -> u32 {
@@ -111,21 +102,21 @@ impl<F: Format> Raster<F> {
         &mut self.pixels
     }
     /// Get a row of pixels as a slice.
-    fn row_slice(&self, y: u32) -> &[F] {
+    pub fn row_slice(&self, y: u32) -> &[F] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         &self.pixels[s..t]
     }
     /// Get a row of pixels as a mutable slice.
-    fn row_slice_mut(&mut self, y: u32) -> &mut [F] {
+    pub fn row_slice_mut(&mut self, y: u32) -> &mut [F] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         &mut self.pixels[s..t]
     }
     /// Get a row of pixels as a u8 slice.
-    fn row_slice_u8(&self, y: u32) -> &[u8] {
+    pub fn row_slice_u8(&self, y: u32) -> &[u8] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
@@ -167,43 +158,6 @@ impl<F: Format> Raster<F> {
     }
 }
 
-impl<B: Blend> Raster<B> {
-    /// Blend pixels with an alpha mask.
-    ///
-    /// * `mask` Alpha mask for compositing.
-    /// * `x` Left position of alpha mask.
-    /// * `y` Top position of alpha mask.
-    /// * `clr` Color to composite.
-    pub fn mask_over(&mut self, mask: &Raster<Mask8>, x: i32, y: i32,
-        clr: B)
-    {
-        if x == 0 && self.width() == mask.width() &&
-           y == 0 && self.height() == mask.height()
-        {
-            B::mask_over(self.as_slice_mut(), mask.as_u8_slice(), clr);
-            return;
-        }
-        if x + (mask.width() as i32) < 0 || x >= self.width() as i32 {
-            return; // positioned off left or right edge
-        }
-        if y + (mask.height() as i32) < 0 || y >= self.height() as i32 {
-            return; // positioned off top or bottom edge
-        }
-        let mx = 0.max(-x) as usize;
-        let my = 0.max(-y) as u32;
-        let mw = mask.width() as usize;
-        let dx = 0.max(x) as usize;
-        let dy = 0.max(y) as u32;
-        let dw = self.width() as usize;
-        let h = (self.height() - dy).min(mask.height() - my);
-        for yi in 0..h {
-            let mut row = &mut self.row_slice_mut(dy + yi)[dx..dw];
-            let m = &mask.row_slice_u8(my + yi)[mx..mw];
-            B::mask_over(&mut row, m, clr);
-        }
-    }
-}
-
 /// Get the required capacity of the pixel vector.
 fn capacity(len: u32) -> usize {
     // Capacity must be 8-element multiple (for SIMD)
@@ -213,9 +167,7 @@ fn capacity(len: u32) -> usize {
 #[cfg(test)]
 mod test {
     use super::*;
-    use super::super::alpha::*;
-    use super::super::gray::*;
-    use super::super::rgb::*;
+    use super::super::*;
     #[test]
     fn raster_alpha() {
         let m = Raster::<Mask8>::new(10, 10);
@@ -247,79 +199,6 @@ mod test {
             0x00,0x00,0x00,0x00,
             0x00,0x00,0xBB,0xBB,
             0x00,0x00,0xBB,0xBB,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn raster_mask() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Mask8>::new(3, 3);
-        let c = Rgb::new(0xFF, 0x80, 0x40, 0xFF);
-        m.set_pixel(0, 0, 0xFF);
-        m.set_pixel(1, 1, 0x80);
-        m.set_pixel(2, 2, 0x40);
-        r.mask_over(&m, 0, 0, c);
-        let v = vec![
-            0xFF,0x80,0x40,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x80,0x40,0x20,0x80, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x40,0x20,0x10,0x40,
-        ];
-        let left = r.as_u8_slice();
-        // NOTE: fallback version     SIMD version
-        assert!(left[0] == 0xFF || left[0] == 0xFE);
-        assert!(left[1] == 0x80 || left[1] == 0x7F);
-        assert!(left[2] == 0x40 || left[2] == 0x3F);
-        assert!(left[3] == 0xFF || left[3] == 0xFE);
-        assert_eq!(&left[4..], &v[4..]);
-    }
-    #[test]
-    fn smaller_mask() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Mask8>::new(2, 2);
-        let c = Rgb::new(0x40, 0xFF, 0x80, 0x80);
-        m.set_pixel(0, 0, 0xFF);
-        m.set_pixel(1, 0, 0x80);
-        m.set_pixel(0, 1, 0x40);
-        m.set_pixel(1, 1, 0x20);
-        r.mask_over(&m, 1, 1, c);
-        let v = vec![
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x40,0xFF,0x80,0x80, 0x20,0x80,0x40,0x40,
-            0x00,0x00,0x00,0x00, 0x10,0x40,0x20,0x20, 0x08,0x20,0x10,0x10,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn top_left() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Mask8>::new(2, 2);
-        let c = Rgb::new(0x20, 0x40, 0x80, 0xFF);
-        m.set_pixel(0, 0, 0xFF);
-        m.set_pixel(1, 0, 0xFF);
-        m.set_pixel(0, 1, 0xFF);
-        m.set_pixel(1, 1, 0xFF);
-        r.mask_over(&m, -1, -1, c);
-        let v = vec![
-            0x20,0x40,0x80,0xFF, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn bottom_right() {
-        let mut r = Raster::<Rgba8>::new(3, 3);
-        let mut m = Raster::<Mask8>::new(2, 2);
-        let c = Rgb::new(0x20, 0x40, 0x80, 0xFF);
-        m.set_pixel(0, 0, 0xFF);
-        m.set_pixel(1, 0, 0xFF);
-        m.set_pixel(0, 1, 0xFF);
-        m.set_pixel(1, 1, 0xFF);
-        r.mask_over(&m, 2, 2, c);
-        let v = vec![
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
-            0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x20,0x40,0x80,0xFF,
         ];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }

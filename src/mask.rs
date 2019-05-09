@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Blend, Format, Rgb};
+use crate::{Format, Rgb};
 use crate::alpha::{Alpha, Translucent};
 use crate::channel::{Channel, Ch8, Ch16, Ch32};
 use std::marker::PhantomData;
@@ -62,28 +62,9 @@ impl<C: Channel, A: Alpha<C>> Mask<C, A> {
     pub fn alpha(self) -> A {
         self.alpha
     }
-    /// Blend pixel on top of another, using "over".
-    fn with_alpha_over(self, _dst: Mask<C, A>, _alpha: u8) -> Self {
-        let alpha = self.alpha();
-        Mask::new(alpha)
-    }
 }
 
 impl<C: Channel, A: Alpha<C>> Format for Mask<C, A> { }
-
-impl<C: Channel, A: Alpha<C>> Blend for Mask<C, A> {
-
-    /// Blend pixels with an alpha mask (slow fallback).
-    ///
-    /// * `dst` Destination pixels.
-    /// * `mask` Alpha mask for compositing.
-    /// * `src` Source color.
-    fn mask_over_fallback(dst: &mut [Self], mask: &[u8], src: Self) {
-        for (bot, m) in dst.iter_mut().zip(mask) {
-            *bot = src.with_alpha_over(*bot, *m);
-        }
-    }
-}
 
 /// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)
 /// pixel [Format](trait.Format.html).

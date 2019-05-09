@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Blend, Format};
+use crate::Format;
 use crate::alpha::{Alpha, Opaque, Translucent};
 use crate::channel::{Channel, Ch8, Ch16, Ch32};
 
@@ -47,6 +47,19 @@ impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
     }
 }
 
+impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
+    where C: Channel, H: Channel, C: From<H>, Translucent<C>: From<Opaque<H>>
+{
+    /// Get a Translucent Rgb from an Opaque Rgb
+    fn from(c: Rgb<H, Opaque<H>>) -> Self {
+        let r = Into::<C>::into(c.red());
+        let g = Into::<C>::into(c.green());
+        let b = Into::<C>::into(c.blue());
+        let a = Into::<Translucent<C>>::into(c.alpha());
+        Rgb::new(r, g, b, a)
+    }
+}
+
 impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
     /// Build a color by specifying red, green and blue values.
     pub fn new<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
@@ -75,36 +88,9 @@ impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
     pub fn alpha(self) -> A {
         self.alpha
     }
-    /// Blend pixel on top of another, using "over".
-    fn with_alpha_over(self, dst: Rgb<C, A>, alpha: u8) -> Self {
-        let r = Into::<C>::into(dst.red());
-        let g = Into::<C>::into(dst.green());
-        let b = Into::<C>::into(dst.blue());
-        let da = Into::<A>::into(dst.alpha());
-        let a = Into::<C>::into(alpha);
-        let red = self.red().lerp_alpha(r, a);
-        let green = self.green().lerp_alpha(g, a);
-        let blue = self.blue().lerp_alpha(b, a);
-        let alpha = self.alpha().lerp_alpha(da.value(), a);
-        Rgb::new(red, green, blue, alpha)
-    }
 }
 
 impl<C: Channel, A: Alpha<C>> Format for Rgb<C, A> { }
-
-impl<C: Channel, A: Alpha<C>> Blend for Rgb<C, A> {
-
-    /// Blend pixels with an alpha mask (slow fallback).
-    ///
-    /// * `dst` Destination pixels.
-    /// * `mask` Alpha mask for compositing.
-    /// * `src` Source color.
-    fn mask_over_fallback(dst: &mut [Self], mask: &[u8], src: Self) {
-        for (bot, m) in dst.iter_mut().zip(mask) {
-            *bot = src.with_alpha_over(*bot, *m);
-        }
-    }
-}
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).

@@ -5,9 +5,14 @@ Rust crate for pixel and raster image manipulation.
 [https://docs.rs/pix](https://docs.rs/pix)
 
 ## Future Plans
-* SIMD versions of other pixel formats
-* Split pix-ops into a separate crate
-* Add ColorModel trait and ColorSpace ?
-* Add CMYK color model.
-* HSV / HSL color model.
-* LAB color space (with white point).
+* Raster iterators.
+* Raster conversions between pixel formats.
+* Raster region copying (or iterating).
+* Color models: tristimulus, additive, subtractive, cylindrical
+* RGB: additive
+* CMYK: subtractive
+* HSV / HSL: cylindrical
+* LAB: color space (with white point).
+* XYZ: tristimulus
+* Color spaces
+* Gradient iterators in any color space

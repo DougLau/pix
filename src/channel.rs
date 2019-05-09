@@ -22,8 +22,8 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
     /// Maximum intensity (*one*)
     const MAX: Self;
 
-    /// Linear interpolation with alpha
-    fn lerp_alpha(self, dest: Self, alpha: Self) -> Self;
+    /// Linear interpolation
+    fn lerp(self, rhs: Self, t: Self) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -119,20 +119,20 @@ impl Channel for Ch8 {
 
     /// Linear interpolation
     #[inline]
-    fn lerp_alpha(self, dest: Self, alpha: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `alpha * top + (1 - alpha) * bot`
-        //       This is equivalent to lerp: `bot + alpha * (top - bot)`
-        let top: i32 = self.0.into();
-        let bot: i32 = dest.0.into();
-        let r = bot + scale_i32(alpha.0, top - bot);
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
+        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
+        let v0: i32 = self.0.into();
+        let v1: i32 = rhs.0.into();
+        let r = v0 + scale_i32(t.0, v1 - v0);
         Ch8 { 0: r as u8 }
     }
 }
 
-/// Scale an i32 value by a u8 (for alpha blending)
+/// Scale an i32 value by a u8 (for lerp)
 #[inline]
-fn scale_i32(a: u8, v: i32) -> i32 {
-    let c = v * a as i32;
+fn scale_i32(t: u8, v: i32) -> i32 {
+    let c = v * t as i32;
     // cheap alternative to divide by 255
     (((c + 1) + (c >> 8)) >> 8) as i32
 }
@@ -222,14 +222,22 @@ impl Channel for Ch16 {
 
     /// Linear interpolation
     #[inline]
-    fn lerp_alpha(self, dest: Self, alpha: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `alpha * top + (1 - alpha) * bot`
-        //       This is equivalent to lerp: `bot + alpha * (top - bot)`
-        let top: i32 = self.0.into();
-        let bot: i32 = dest.0.into();
-        let r = bot + scale_i32(alpha.into(), top - bot);
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
+        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
+        let v0: i64 = self.0.into();
+        let v1: i64 = rhs.0.into();
+        let r = v0 + scale_i64(t.0, v1 - v0);
         Ch16 { 0: r as u16 }
     }
+}
+
+/// Scale an i64 value by a u16 (for lerp)
+#[inline]
+fn scale_i64(t: u16, v: i64) -> i64 {
+    let c = v * t as i64;
+    // cheap alternative to divide by 65535
+    (((c + 1) + (c >> 16)) >> 16) as i64
 }
 
 /// 32-bit color [Channel](trait.Channel.html)
@@ -330,13 +338,13 @@ impl Channel for Ch32 {
 
     /// Linear interpolation
     #[inline]
-    fn lerp_alpha(self, dest: Self, alpha: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `alpha * top + (1 - alpha) * bot`
-        //       This is equivalent to lerp: `bot + alpha * (top - bot)`
-        let top = self.0;
-        let bot = dest.0;
-        let v = bot + alpha.0 * (top - bot);
-        Ch32 { 0: v }
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
+        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
+        let v0 = self.0;
+        let v1 = rhs.0;
+        let r = v0 + t.0 * (v1 - v0);
+        Ch32 { 0: r }
     }
 }
 

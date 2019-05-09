@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Blend, Format, Rgb};
+use crate::{Format, Rgb};
 use crate::alpha::{Alpha, Opaque, Translucent};
 use crate::channel::{Channel, Ch8, Ch16, Ch32};
 
@@ -83,18 +83,6 @@ impl<C: Channel, A: Alpha<C>> Srgb<C, A> {
 }
 
 impl<C: Channel, A: Alpha<C>> Format for Srgb<C, A> { }
-
-impl<C: Channel, A: Alpha<C>> Blend for Srgb<C, A> {
-
-    /// Blend pixels with an alpha mask (slow fallback).
-    ///
-    /// * `dst` Destination pixels.
-    /// * `mask` Alpha mask for compositing.
-    /// * `src` Source color.
-    fn mask_over_fallback(_dst: &mut [Self], _mask: &[u8], _src: Self) {
-        warn!("Gamma-encoded pixels cannot be composited!!!");
-    }
-}
 
 pub type Srgb8 = Srgb<Ch8, Opaque<Ch8>>;
 pub type Srgb16 = Srgb<Ch16, Opaque<Ch16>>;

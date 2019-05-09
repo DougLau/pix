@@ -15,8 +15,8 @@ pub trait Alpha<C: Channel>: Copy + Default + From<u8> {
     /// *Zero* is fully transparent, and *one* is fully opaque.
     fn value(&self) -> C;
 
-    /// Linear interpolation with alpha
-    fn lerp_alpha(self, dest: C, alpha: C) -> Self;
+    /// Linear interpolation
+    fn lerp(self, rhs: C) -> Self;
 }
 
 /// [Alpha](trait.Alpha.html) channel for fully opaque pixels and
@@ -45,8 +45,8 @@ impl<C: Channel> Alpha<C> for Opaque<C> {
         C::MAX
     }
 
-    /// Linear interpolation with alpha
-    fn lerp_alpha(self, _dest: C, _alpha: C) -> Self {
+    /// Linear interpolation
+    fn lerp(self, _rhs: C) -> Self {
         Opaque::default()
     }
 }
@@ -83,12 +83,11 @@ impl<C: Channel> From<u8> for Translucent<C> {
 }
 
 impl<C, A> From<Opaque<A>> for Translucent<C>
-    where C: Channel, A: Channel, C: From<Opaque<A>>
+    where C: Channel, A: Channel
 {
     /// Convert from an opaque value.
-    fn from(c: Opaque<A>) -> Self {
-        let value = C::from(c);
-        Translucent { value }
+    fn from(_: Opaque<A>) -> Self {
+        Self::new(C::MAX)
     }
 }
 
@@ -101,23 +100,8 @@ impl<C: Channel> Alpha<C> for Translucent<C> {
         self.value
     }
 
-    // FIXME: forward to channel's lerp_alpha, maybe?
-    /// Linear interpolation with alpha
-    fn lerp_alpha(self, dest: C, alpha: C) -> Self {
-        // NOTE: Alpha blending euqation is: `alpha * top + (1 - alpha) * bot`
-        //       This is equivalent to lerp: `bot + alpha * (top - bot)`
-        let top: i32 = Into::<u8>::into(self.value()).into();
-        let bot: i32 = Into::<u8>::into(dest).into();
-        let alpha = alpha.into();
-        let r = bot + scale_i32(alpha, top - bot);
-        (r as u8).into()
+    /// Linear interpolation
+    fn lerp(self, rhs: C) -> Self {
+        Self::new(self.value.lerp(rhs, rhs))
     }
-}
-
-/// Scale an i32 value by a u8 (for alpha blending)
-#[inline]
-fn scale_i32(a: u8, v: i32) -> i32 {
-    let c = v * a as i32;
-    // cheap alternative to divide by 255
-    (((c + 1) + (c >> 8)) >> 8) as i32
 }

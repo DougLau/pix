@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Blend, Format, Rgb};
+use crate::{Format, Rgb};
 use crate::alpha::{Alpha, Opaque, Translucent};
 use crate::channel::{Channel, Ch8, Ch16, Ch32};
 
@@ -73,30 +73,9 @@ impl<C: Channel, A: Alpha<C>> Gray<C, A> {
     pub fn alpha(self) -> A {
         self.alpha
     }
-    /// Blend pixel on top of another, using "over".
-    fn with_alpha_over(self, dst: Gray<C, A>, alpha: u8) -> Self {
-        let v = dst.value();
-        let a = alpha.into();
-        let value = self.value.lerp_alpha(v, a);
-        Gray::new(value, dst.alpha())
-    }
 }
 
 impl<C: Channel, A: Alpha<C>> Format for Gray<C, A> { }
-
-impl<C: Channel, A: Alpha<C>> Blend for Gray<C, A> {
-
-    /// Blend pixels with an alpha mask (slow fallback).
-    ///
-    /// * `dst` Destination pixels.
-    /// * `mask` Alpha mask for compositing.
-    /// * `src` Source color.
-    fn mask_over_fallback(dst: &mut [Self], mask: &[u8], src: Self) {
-        for (bot, m) in dst.iter_mut().zip(mask) {
-            *bot = src.with_alpha_over(*bot, *m);
-        }
-    }
-}
 
 /// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).

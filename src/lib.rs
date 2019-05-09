@@ -7,11 +7,7 @@
 //! Rasters are made up of pixels in one of many possible
 //! [Format](trait.Format.html)s.
 //!
-#[macro_use]
-extern crate log;
-
 mod alpha;
-mod blend;
 mod channel;
 mod format;
 mod gamma;
@@ -22,7 +18,6 @@ mod rgb;
 mod srgb;
 
 pub use crate::alpha::{Alpha, Opaque, Translucent};
-pub use crate::blend::Blend;
 pub use crate::channel::{Channel, Ch8, Ch16, Ch32};
 pub use crate::gray::{
     Gray, Gray8, Gray16, Gray32, GrayAlpha8, GrayAlpha16, GrayAlpha32

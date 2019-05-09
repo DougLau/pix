@@ -6,7 +6,9 @@
 * Reworked alpha channel handling
 * Cu8 / Cu16 renamed to Ch8 / Ch16
 * Renamed PixFmt to Format
-* Split Blend trait out of Format
+* Cleaned up lerp code
+### Removed
+* Blending moved to pixops crate
 
 ## [0.3.0] - 2019-05-05
 ### Added
