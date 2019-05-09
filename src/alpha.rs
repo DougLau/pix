@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
-pub trait Alpha<C: Channel>: Copy + Default + From<u8> {
+pub trait Alpha<C: Channel>: Copy + Default + From<C> {
 
     /// Get the alpha channel value.
     ///
@@ -24,14 +24,14 @@ pub trait Alpha<C: Channel>: Copy + Default + From<u8> {
 ///
 /// Pixel [Format](trait.Format.html)s with opaque alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Opaque<C: Channel> {
     value: PhantomData<C>,
 }
 
-impl<C: Channel> From<u8> for Opaque<C> {
-    /// Convert from a u8 value.
-    fn from(_: u8) -> Self {
+impl<C: Channel> From<C> for Opaque<C> {
+    /// Convert from a channel value.
+    fn from(_: C) -> Self {
         Opaque::default()
     }
 }
@@ -62,7 +62,7 @@ impl<C, A> From<Translucent<A>> for Opaque<C>
 
 /// [Alpha](trait.Alpha.html) channel for translucent or transparent pixels and
 /// [Raster](struct.Raster.html)s.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Translucent<C: Channel> {
     value: C,
 }
@@ -74,10 +74,9 @@ impl<C: Channel> Translucent<C> {
     }
 }
 
-impl<C: Channel> From<u8> for Translucent<C> {
-    /// Convert from a u8 value.
-    fn from(c: u8) -> Self {
-        let value = c.into();
+impl<C: Channel> From<C> for Translucent<C> {
+    /// Convert from a channel value.
+    fn from(value: C) -> Self {
         Translucent { value }
     }
 }

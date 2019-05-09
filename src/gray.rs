@@ -19,12 +19,12 @@ pub struct Gray<C: Channel, A: Alpha<C>> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha<C>> From<u8> for Gray<C, A> {
+impl<C, A> From<u8> for Gray<C, A>
+    where C: Channel, A: Alpha<C>, A: From<Opaque<C>>, C: From<Ch8>
+{
     /// Convert from a u8 value.
     fn from(c: u8) -> Self {
-        let value = c.into();
-        let alpha = A::from(255);
-        Gray::new(value, alpha)
+        Gray::new(Ch8::new(c))
     }
 }
 
@@ -40,7 +40,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
         let a = Into::<A>::into(c.alpha());
         // FIXME: adjust luminance based on channels
         let v: C = r.max(g).max(b);
-        Gray::new(v, a)
+        Gray::with_alpha(v, a)
     }
 }
 
@@ -52,14 +52,22 @@ impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
     fn from(c: Gray<H, B>) -> Self {
         let v = Into::<C>::into(c.value());
         let a = Into::<A>::into(c.alpha());
-        Rgb::new(v, v, v, a)
+        Rgb::with_alpha(v, v, v, a)
     }
 }
 
 impl<C: Channel, A: Alpha<C>> Gray<C, A> {
-    /// Build a gray value.
-    pub fn new<H, B>(value: H, alpha: B) -> Self
-        where H: Channel, C: From<H>, B: Alpha<H>, A: From<B>
+    /// Create an opaque gray value.
+    pub fn new<H>(value: H) -> Self
+        where C: From<H>, A: From<Opaque<C>>
+    {
+        let value = C::from(value);
+        let alpha = A::from(Opaque::default());
+        Gray { value, alpha }
+    }
+    /// Create a gray value with alpha.
+    pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
+        where C: From<H>, A: From<B>
     {
         let value = C::from(value);
         let alpha = A::from(alpha);

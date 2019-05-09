@@ -9,7 +9,7 @@ use crate::Format;
 /// # Example
 /// ```
 /// use pix::{Raster, Rgb, Rgb8};
-/// let clr = Rgb::new(0xFF, 0x88, 0x00, 0x00);
+/// let clr: Rgb8 = Rgb::new(0xFF, 0x88, 0x00);
 /// let mut raster: Raster<Rgb8> = Raster::new(10, 10);
 /// raster.set_rect(2, 4, 3, 3, clr);
 /// ```
@@ -41,12 +41,8 @@ impl<F: Format> Raster<F> {
     /// * `width` Width in pixels.
     /// * `height` Height in pixels.
     pub fn new(width: u32, height: u32) -> Raster<F> {
-        let len = width * height;
-        let mut pixels = Vec::with_capacity(capacity(len));
-        for _ in 0..len {
-            pixels.push(F::default());
-        }
-        let pixels = pixels.into_boxed_slice();
+        let len = (width * height) as usize;
+        let pixels = vec![F::default(); len].into_boxed_slice();
         Raster { width, height, pixels }
     }
     /// Create a new raster image with owned pixel data.  You can get ownership
@@ -61,12 +57,39 @@ impl<F: Format> Raster<F> {
     /// # Panics
     ///
     /// Panics if `pixels` length is not equal to `width` * `height`.
-    pub fn with_pixels<T: Into<Box<[F]>>>(width: u32, height: u32, pixels: T)
-        -> Raster<F>
+    pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Raster<F>
+        where B: Into<Box<[F]>>
     {
-        let len = width * height;
+        let len = (width * height) as usize;
         let pixels = pixels.into();
-        assert_eq!(len, capacity(pixels.len() as u32) as u32);
+        assert_eq!(len, pixels.len());
+        Raster { width, height, pixels }
+    }
+    /// Create a new raster image from a buffer of bytes.
+    ///
+    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `width` Width in pixels.
+    /// * `height` Height in pixels.
+    /// * `buffer` Byte buffer of pixel data.
+    ///
+    /// This is unsafe because the byte buffer is transmuted into `F`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `buffer` length is not equal to `width` * `height` *
+    /// `std::mem::size_of::<F>()`.
+    pub unsafe fn with_buffer<B>(width: u32, height: u32, buffer: B)
+        -> Raster<F> where B: Into<Box<[u8]>>
+    {
+        let len = (width * height) as usize;
+        let buffer: Box<[u8]> = buffer.into();
+        let capacity = buffer.len();
+        assert_eq!(len * std::mem::size_of::<F>(), capacity);
+        let slice = std::boxed::Box::<[u8]>::into_raw(buffer);
+        let ptr = (*slice).as_mut_ptr();
+        let ptr = std::mem::transmute::<*mut u8, *mut F>(ptr);
+        let slice = std::slice::from_raw_parts_mut(ptr, len);
+        let pixels: Box<[F]> = Box::from_raw(slice);
         Raster { width, height, pixels }
     }
     /// Get raster width.
@@ -77,62 +100,63 @@ impl<F: Format> Raster<F> {
     pub fn height(&self) -> u32 {
         self.height
     }
-    /// Get the length.
-    fn len(&self) -> usize {
-        (self.width * self.height) as usize
-    }
     /// Get one pixel value.
     pub fn pixel(&self, x: u32, y: u32) -> F {
-        let row = &self.row_slice(y);
+        let row = &self.as_slice_row(y);
         row[x as usize]
     }
     /// Set one pixel value.
-    pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P)
-        where P: Into<F>
-    {
-        let row = &mut self.row_slice_mut(y);
+    pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P) where F: From<P> {
+        let row = &mut self.as_slice_row_mut(y);
         row[x as usize] = p.into();
     }
-    /// Get the pixels as a slice.
+    /// Get view of pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
         &self.pixels
     }
-    /// Get the pixels as a mutable slice.
+    /// Get view of pixels as a mutable slice.
     pub fn as_slice_mut(&mut self) -> &mut [F] {
         &mut self.pixels
     }
-    /// Get a row of pixels as a slice.
-    pub fn row_slice(&self, y: u32) -> &[F] {
+    /// Get view of a row of pixels as a slice.
+    pub fn as_slice_row(&self, y: u32) -> &[F] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         &self.pixels[s..t]
     }
-    /// Get a row of pixels as a mutable slice.
-    pub fn row_slice_mut(&mut self, y: u32) -> &mut [F] {
+    /// Get view of a row of pixels as a mutable slice.
+    pub fn as_slice_row_mut(&mut self, y: u32) -> &mut [F] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         &mut self.pixels[s..t]
     }
-    /// Get a row of pixels as a u8 slice.
-    pub fn row_slice_u8(&self, y: u32) -> &[u8] {
+    /// Get view of a row of pixels as a u8 slice.
+    pub fn as_u8_slice_row(&self, y: u32) -> &[u8] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
-        F::as_u8_slice(&self.pixels[s..t])
+        Self::as_u8_slice_range(&self.pixels[s..t])
     }
-    /// Get the pixels as a u8 slice.
+    /// Get view of a pixel slice as a u8 slice.
+    fn as_u8_slice_range(pix: &[F]) -> &[u8] {
+        unsafe { pix.align_to::<u8>().1 }
+    }
+    /// Get view of pixels as a u8 slice.
     pub fn as_u8_slice(&self) -> &[u8] {
-        F::as_u8_slice(&self.pixels)
+        Self::as_u8_slice_range(&self.pixels)
     }
-    /// Get the pixels as a mutable u8 slice.
+    /// Get view of pixels as a mutable u8 slice.
     pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
-        F::as_u8_slice_mut(&mut self.pixels)
+        Self::as_u8_slice_range_mut(&mut self.pixels)
+    }
+    /// Get view of a pixel slice as a mutable u8 slice.
+    fn as_u8_slice_range_mut(pix: &mut [F]) -> &mut [u8] {
+        unsafe { pix.align_to_mut::<u8>().1 }
     }
     /// Clear all pixels.
     pub fn clear(&mut self) {
-        debug_assert_eq!(self.len(), self.pixels.len());
         for p in self.pixels.iter_mut() {
             *p = F::default();
         }
@@ -144,13 +168,16 @@ impl<F: Format> Raster<F> {
     /// * `w` Width of rectangle.
     /// * `h` Height of rectangle.
     /// * `clr` Color to set.
-    pub fn set_rect(&mut self, x: u32, y: u32, w: u32, h: u32, clr: F) {
+    pub fn set_rect<P>(&mut self, x: u32, y: u32, w: u32, h: u32, clr: P)
+        where F: From<P>
+    {
+        let clr = clr.into();
         if y < self.height() && x < self.width() {
             let xm = self.width.min(x + w);
             let ym = self.height.min(y + h);
             let xrange = (x as usize)..(xm as usize);
             for yi in y..ym {
-                self.row_slice_mut(yi)[xrange.clone()]
+                self.as_slice_row_mut(yi)[xrange.clone()]
                     .iter_mut()
                     .for_each(|p| *p = clr);
             }
@@ -158,27 +185,64 @@ impl<F: Format> Raster<F> {
     }
 }
 
-/// Get the required capacity of the pixel vector.
-fn capacity(len: u32) -> usize {
-    // Capacity must be 8-element multiple (for SIMD)
-    (((len + 7) >> 3) << 3) as usize
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
     use super::super::*;
     #[test]
-    fn raster_alpha() {
-        let m = Raster::<Mask8>::new(10, 10);
-        assert!(m.width == 10);
-        assert!(m.height == 10);
-        assert!(m.pixels.len() == 100);
+    fn mask8() {
+        let mut r = Raster::<Mask8>::new(3, 3);
+        r.set_pixel(0, 0, 1.0);
+        r.set_pixel(2, 0, 0x12);
+        r.set_pixel(1, 1, 0x34);
+        r.set_pixel(0, 2, 0x56);
+        r.set_pixel(2, 2, 0x78);
+        let v = vec![
+            0xFF, 0x00, 0x12,
+            0x00, 0x34, 0x00,
+            0x56, 0x00, 0x78,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
-    fn rectangle_rgb() {
+    fn mask16() {
+        let mut r = Raster::<Mask16>::new(3, 3);
+        r.set_pixel(2, 0, 0x9ABC);
+        r.set_pixel(1, 1, 0x5678);
+        r.set_pixel(0, 2, 0x1234);
+        r.set_pixel(0, 0, 1.0);
+        r.set_pixel(2, 2, 0x80u8);
+        let v = vec![
+            0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,
+            0x00,0x00, 0x78,0x56, 0x00,0x00,
+            0x34,0x12, 0x00,0x00, 0x80,0x80,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn mask32() {
+        let p: Vec<_> = vec![
+            0.25, 0.5, 0.75, 1.0,
+            0.5,  0.55, 0.7, 0.8,
+            0.75, 0.65, 0.6, 0.4,
+            1.0,  0.75, 0.5, 0.25,
+        ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
+        let mut r = Raster::<Mask32>::with_pixels(4, 4, p);
+        let clr = Mask::new(Ch32::new(0.05));
+        r.set_rect(1, 1, 2, 2, clr);
+        let v: Vec<_> = vec![
+            0.25, 0.5, 0.75, 1.0,
+            0.5,  0.05, 0.05, 0.8,
+            0.75, 0.05, 0.05, 0.4,
+            1.0,  0.75, 0.5, 0.25,
+        ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
+        let r2 = Raster::<Mask32>::with_pixels(4, 4, v);
+        assert_eq!(r.as_slice(), r2.as_slice());
+    }
+    #[test]
+    fn rgb8() {
         let mut r = Raster::<Rgb8>::new(4, 4);
-        let rgb = Rgb::new(0xCC, 0xAA, 0xBB, Opaque::default());
+        let rgb: Rgb8 = Rgb::new(0xCC, 0xAA, 0xBB);
         r.set_rect(1, 1, 2, 2, rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
@@ -189,16 +253,50 @@ mod test {
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
-    fn rectangle_gray() {
+    fn gray8() {
         let mut r = Raster::<Gray8>::new(4, 4);
         r.set_rect(0, 0, 1, 1, Gray::from(0x23));
         r.set_rect(10, 10, 1, 1, Gray::from(0x45));
-        r.set_rect(2, 2, 10, 10, Gray::from(0xBB));
+        r.set_rect(2, 2, 10, 10, 0xBB);
         let v = vec![
             0x23,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00,
             0x00,0x00,0xBB,0xBB,
             0x00,0x00,0xBB,0xBB,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn rgb8_buffer() {
+        let b = vec![
+            0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
+            0x00,0xBB,0x00, 0x66,0x77,0x88, 0x99,0xAA,0xBB,
+            0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
+        ];
+        let mut r = unsafe { Raster::<Rgb8>::with_buffer(3, 3, b) };
+        let rgb: Rgb8 = Rgb::new(0x12, 0x34, 0x56);
+        r.set_rect(0, 1, 2, 1, rgb);
+        let v = vec![
+            0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
+            0x12,0x34,0x56, 0x12,0x34,0x56, 0x99,0xAA,0xBB,
+            0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn grayalpha16_buffer() {
+        let b = vec![
+            0x01,0x10,0x05,0x50, 0x00,0x10,0x02,0x30, 0x04,0x50,0x06,0x70,
+            0x02,0x20,0x06,0x60, 0x08,0x90,0x0A,0xB0, 0x0C,0xD0,0x0E,0xF0,
+            0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
+        ];
+        let mut r = unsafe { Raster::<GrayAlpha16>::with_buffer(3, 3, b) };
+        let c = Gray::new(0x4444);
+        r.set_rect(1, 0, 2, 2, c);
+        let v = vec![
+            0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
+            0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
+            0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
         ];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }

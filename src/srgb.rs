@@ -49,7 +49,7 @@ impl<C, H, A, B> From<Srgb<H, B>> for Rgb<C, A>
         let g = Into::<C>::into(srgb.green()).decode_gamma();
         let b = Into::<C>::into(srgb.blue()).decode_gamma();
         let a = Into::<A>::into(srgb.alpha());
-        Rgb::new(r, g, b, a)
+        Rgb::with_alpha(r, g, b, a)
     }
 }
 

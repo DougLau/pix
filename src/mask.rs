@@ -17,12 +17,43 @@ pub struct Mask<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, A> From<u8> for Mask<C, A>
-    where C: Channel, A: Alpha<C>, A: From<u8>
+    where C: Channel, A: Alpha<C>, C: From<Ch8>
 {
     /// Get a Mask from a u8
     fn from(c: u8) -> Self {
-        let a = Into::<A>::into(c);
-        Mask::new(a)
+        Mask::new(Ch8::new(c))
+    }
+}
+
+impl<C, A> From<u16> for Mask<C, A>
+    where C: Channel, A: Alpha<C>, C: From<Ch16>
+{
+    /// Get a Mask from a u16
+    fn from(c: u16) -> Self {
+        Mask::new(Ch16::new(c))
+    }
+}
+
+impl<A: Alpha<Ch8>> From<i32> for Mask<Ch8, A> {
+    /// Get a Mask<Ch8, _> from an i32
+    fn from(c: i32) -> Self {
+        Mask::new(Ch8::new(c as u8))
+    }
+}
+
+impl<A: Alpha<Ch16>> From<i32> for Mask<Ch16, A> {
+    /// Get a Mask<Ch16, _> from an i32
+    fn from(c: i32) -> Self {
+        Mask::new(Ch16::new(c as u16))
+    }
+}
+
+impl<C, A> From<f32> for Mask<C, A>
+    where C: Channel, A: Alpha<C>, C: From<Ch32>
+{
+    /// Get a Mask from an f32
+    fn from(c: f32) -> Self {
+        Mask::new(Ch32::new(c))
     }
 }
 
@@ -32,8 +63,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
 {
     /// Get a Mask from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
-        let a = Into::<A>::into(c.alpha());
-        Mask::new(a)
+        Mask::new(c.alpha().value())
     }
 }
 
@@ -45,17 +75,17 @@ impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
     fn from(c: Mask<H, B>) -> Self {
         let v = C::MAX;
         let a = Into::<A>::into(c.alpha());
-        Rgb::new(v, v, v, a)
+        Rgb::with_alpha(v, v, v, a)
     }
 }
 
 impl<C: Channel, A: Alpha<C>> Mask<C, A> {
     /// Create a new Mask value.
     pub fn new<V>(alpha: V) -> Self
-        where A: From<V>
+        where C: From<V>
     {
         let value = PhantomData;
-        let alpha = A::from(alpha);
+        let alpha = A::from(C::from(alpha));
         Mask { value, alpha }
     }
     /// Get the alpha value.

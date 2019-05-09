@@ -14,7 +14,7 @@ use crate::gamma::Gamma;
 /// Defined channels are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
 pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
-    From<u8> + Into<u8> + Gamma
+    Gamma
 {
     /// Minimum intensity (*zero*)
     const MIN: Self;
@@ -33,6 +33,20 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ch8(u8);
 
+/// 16-bit color [Channel](trait.Channel.html)
+///
+/// The channel is represented by a u16, but multiplication and division treat
+/// the values as though they range between 0 and 1.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Ch16(u16);
+
+/// 32-bit color [Channel](trait.Channel.html)
+///
+/// The channel is represented by an f32, but the value is guaranteed to be
+/// between 0 and 1, inclusive.
+#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+pub struct Ch32(f32);
+
 impl Ch8 {
     /// Create a new 8-bit channel value.
     pub fn new(value: u8) -> Self {
@@ -46,35 +60,16 @@ impl From<u8> for Ch8 {
     }
 }
 
-impl From<f32> for Ch8 {
-    /// Convert from an f32.
-    ///
-    /// Returns [MIN](trait.Channel.html#associatedconstant.MIN) if value is
-    ///         less than 0.0, or NaN.
-    /// Returns [MAX](trait.Channel.html#associatedconstant.MAX) if value is
-    ///         greater than 1.0.
-    fn from(value: f32) -> Self {
-        // checks here to avoid UB on float-to-int cast (bug #10184)
-        let v = if value.is_nan() || value < 0.0 {
-            0
-        } else if value > 1.0 {
-            255
-        } else {
-            (value * 255.0).round() as u8
-        };
-        Ch8 { 0: v }
-    }
-}
-
 impl From<Ch8> for u8 {
     fn from(c: Ch8) -> u8 {
         c.0
     }
 }
 
-impl Mul for Ch8 {
+impl<R> Mul<R> for Ch8 where Self: From<R> {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
+    fn mul(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
         let l = self.0 as u32;
         let l = (l << 4) | (l >> 4);
         let r = rhs.0 as u32;
@@ -84,9 +79,18 @@ impl Mul for Ch8 {
     }
 }
 
-impl Div for Ch8 {
+impl Mul<f32> for Ch8 {
     type Output = Self;
-    fn div(self, rhs: Self) -> Self {
+    fn mul(self, rhs: f32) -> Self {
+        let rhs: Self = Ch32::new(rhs).into();
+        self * rhs
+    }
+}
+
+impl<R> Div<R> for Ch8 where Self: From<R> {
+    type Output = Self;
+    fn div(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
         if rhs.0 > 0 {
             let ss = (self.0 as u32) << 8;
             let rr = rhs.0 as u32;
@@ -95,6 +99,14 @@ impl Div for Ch8 {
         } else {
             Ch8 { 0: 0 }
         }
+    }
+}
+
+impl Div<f32> for Ch8 {
+    type Output = Self;
+    fn div(self, rhs: f32) -> Self {
+        let rhs: Self = Ch32::new(rhs).into();
+        self / rhs
     }
 }
 
@@ -137,13 +149,6 @@ fn scale_i32(t: u8, v: i32) -> i32 {
     (((c + 1) + (c >> 8)) >> 8) as i32
 }
 
-/// 16-bit color [Channel](trait.Channel.html)
-///
-/// The channel is represented by a u16, but multiplication and division treat
-/// the values as though they range between 0 and 1.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Ch16(u16);
-
 impl Ch16 {
     /// Create a new 16-bit channel value.
     pub fn new(value: u16) -> Self {
@@ -151,33 +156,30 @@ impl Ch16 {
     }
 }
 
-impl From<u8> for Ch16 {
-    fn from(value: u8) -> Self {
-        let value = value as u16;
+impl From<Ch8> for Ch16 {
+    fn from(c: Ch8) -> Self {
+        let value = c.0 as u16;
         let value = value << 8 | value;
         Ch16 { 0: value }
     }
 }
 
-impl From<f32> for Ch16 {
-    fn from(value: f32) -> Self {
-        // assert needed here to avoid UB on float-to-int cast
-        // once bug #10184 is fixed, this can be removed
-        assert!(value >= 0.0 && value <= 1.0);
-        let value = (value * 65535.0).round() as u16;
+impl From<u16> for Ch16 {
+    fn from(value: u16) -> Self {
         Ch16 { 0: value }
     }
 }
 
-impl From<Ch16> for u8 {
-    fn from(c: Ch16) -> u8 {
-        (c.0 >> 8) as u8
+impl From<Ch16> for Ch8 {
+    fn from(c: Ch16) -> Self {
+        Ch8::new((c.0 >> 8) as u8)
     }
 }
 
-impl Mul for Ch16 {
+impl<R> Mul<R> for Ch16 where Self: From<R> {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
+    fn mul(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
         let l = self.0 as u64;
         let l = (l << 8) | (l >> 8);
         let r = rhs.0 as u64;
@@ -187,9 +189,18 @@ impl Mul for Ch16 {
     }
 }
 
-impl Div for Ch16 {
+impl Mul<f32> for Ch16 {
     type Output = Self;
-    fn div(self, rhs: Self) -> Self {
+    fn mul(self, rhs: f32) -> Self {
+        let rhs: Self = Ch32::new(rhs).into();
+        self * rhs
+    }
+}
+
+impl<R> Div<R> for Ch16 where Self: From<R> {
+    type Output = Self;
+    fn div(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
         if rhs.0 > 0 {
             let ss = (self.0 as u64) << 16;
             let rr = rhs.0 as u64;
@@ -198,6 +209,14 @@ impl Div for Ch16 {
         } else {
             Ch16 { 0: 0 }
         }
+    }
+}
+
+impl Div<f32> for Ch16 {
+    type Output = Self;
+    fn div(self, rhs: f32) -> Self {
+        let rhs: Self = Ch32::new(rhs).into();
+        self / rhs
     }
 }
 
@@ -240,13 +259,6 @@ fn scale_i64(t: u16, v: i64) -> i64 {
     (((c + 1) + (c >> 16)) >> 16) as i64
 }
 
-/// 32-bit color [Channel](trait.Channel.html)
-///
-/// The channel is represented by an f32, but the value is guaranteed to be
-/// between 0 and 1, inclusive.
-#[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
-pub struct Ch32(f32);
-
 impl Ch32 {
     /// Create a new 32-bit channel value.
     ///
@@ -266,9 +278,9 @@ impl Ch32 {
     }
 }
 
-impl From<u8> for Ch32 {
-    fn from(value: u8) -> Self {
-        let value = value as f32 * 255.0;
+impl From<Ch8> for Ch32 {
+    fn from(c: Ch8) -> Self {
+        let value = c.0 as f32 * 255.0;
         Ch32 { 0: value }
     }
 }
@@ -279,13 +291,23 @@ impl From<f32> for Ch32 {
     }
 }
 
-impl From<Ch32> for u8 {
-    fn from(c: Ch32) -> u8 {
+impl From<Ch32> for Ch8 {
+    fn from(c: Ch32) -> Self {
         let value = c.0;
         debug_assert!(value >= 0.0 && value <= 1.0);
         // cast is not UB since the value is guaranteed to
         // be between 0.0 and 1.0 (see bug #10184)
-        (value * 255.0).round() as u8
+        Ch8::new((value * 255.0).round() as u8)
+    }
+}
+
+impl From<Ch32> for Ch16 {
+    fn from(c: Ch32) -> Self {
+        let value = c.0;
+        debug_assert!(value >= 0.0 && value <= 1.0);
+        // cast is not UB since the value is guaranteed to
+        // be between 0.0 and 1.0 (see bug #10184)
+        Ch16::new((value * 65535.0).round() as u16)
     }
 }
 
@@ -353,70 +375,77 @@ mod test {
     use super::*;
     #[test]
     fn ch8_into() {
-        assert_eq!(Ch8::new(255), 1.0.into());
-        assert_eq!(Ch8::new(128), 0.5.into());
-        assert_eq!(Ch8::new(64), 0.25.into());
-        assert_eq!(Ch8::new(32), 0.125.into());
-    }
-    #[test]
-    fn ch8_mul() {
-        assert_eq!(Ch8::new(255), Ch8::new(255) * 1.0.into());
-        assert_eq!(Ch8::new(128), Ch8::new(255) * 0.5.into());
-        assert_eq!(Ch8::new(64), Ch8::new(255) * 0.25.into());
-        assert_eq!(Ch8::new(32), Ch8::new(255) * 0.125.into());
-        assert_eq!(Ch8::new(16), Ch8::new(255) * 0.0625.into());
-        assert_eq!(Ch8::new(64), Ch8::new(128) * 0.5.into());
-        assert_eq!(Ch8::new(32), Ch8::new(128) * 0.25.into());
-        assert_eq!(Ch8::new(16), Ch8::new(128) * 0.125.into());
-        assert_eq!(Ch8::new(8), Ch8::new(128) * 0.0625.into());
-    }
-    #[test]
-    fn ch8_div() {
-        assert_eq!(Ch8::new(255), Ch8::new(255) / 1.0.into());
-        assert_eq!(Ch8::new(255), Ch8::new(128) / 0.5.into());
-        assert_eq!(Ch8::new(255), Ch8::new(64) / 0.25.into());
-        assert_eq!(Ch8::new(255), Ch8::new(32) / 0.125.into());
-        assert_eq!(Ch8::new(255), Ch8::new(16) / 0.0625.into());
-        assert_eq!(Ch8::new(128), Ch8::new(128) / 1.0.into());
-        assert_eq!(Ch8::new(128), Ch8::new(64) / 0.5.into());
-        assert_eq!(Ch8::new(128), Ch8::new(32) / 0.25.into());
-        assert_eq!(Ch8::new(128), Ch8::new(16) / 0.125.into());
-        assert_eq!(Ch8::new(64), Ch8::new(64) / 1.0.into());
-        assert_eq!(Ch8::new(64), Ch8::new(32) / 0.5.into());
-        assert_eq!(Ch8::new(64), Ch8::new(16) / 0.25.into());
+        assert_eq!(Ch16::new(255), 255.into());
+        assert_eq!(Ch16::new(128), 128.into());
+        assert_eq!(Ch16::new(64), 64.into());
+        assert_eq!(Ch16::new(32), 32.into());
     }
     #[test]
     fn ch16_into() {
-        assert_eq!(Ch16::new(65535), 1.0.into());
-        assert_eq!(Ch16::new(32768), 0.5.into());
-        assert_eq!(Ch16::new(16384), 0.25.into());
-        assert_eq!(Ch16::new(8192), 0.125.into());
+        assert_eq!(Ch16::new(65535), 65535.into());
+        assert_eq!(Ch16::new(32768), 32768.into());
+        assert_eq!(Ch16::new(16384), 16384.into());
+        assert_eq!(Ch16::new(8192), 8192.into());
+    }
+    #[test]
+    fn ch32_into() {
+        assert_eq!(Ch32::new(1.0), 1.0.into());
+        assert_eq!(Ch32::new(0.5), 0.5.into());
+        assert_eq!(Ch32::new(0.25), 0.25.into());
+        assert_eq!(Ch32::new(0.125), 0.125.into());
+    }
+    #[test]
+    fn ch8_mul() {
+        assert_eq!(Ch8::new(255), Ch8::new(255) * 1.0);
+        assert_eq!(Ch8::new(128), Ch8::new(255) * 0.5);
+        assert_eq!(Ch8::new(64), Ch8::new(255) * 0.25);
+        assert_eq!(Ch8::new(32), Ch8::new(255) * 0.125);
+        assert_eq!(Ch8::new(16), Ch8::new(255) * 0.0625);
+        assert_eq!(Ch8::new(64), Ch8::new(128) * 0.5);
+        assert_eq!(Ch8::new(32), Ch8::new(128) * 0.25);
+        assert_eq!(Ch8::new(16), Ch8::new(128) * 0.125);
+        assert_eq!(Ch8::new(8), Ch8::new(128) * 0.0625);
+    }
+    #[test]
+    fn ch8_div() {
+        assert_eq!(Ch8::new(255), Ch8::new(255) / 1.0);
+        assert_eq!(Ch8::new(255), Ch8::new(128) / 0.5);
+        assert_eq!(Ch8::new(255), Ch8::new(64) / 0.25);
+        assert_eq!(Ch8::new(255), Ch8::new(32) / 0.125);
+        assert_eq!(Ch8::new(255), Ch8::new(16) / 0.0625);
+        assert_eq!(Ch8::new(128), Ch8::new(128) / 1.0);
+        assert_eq!(Ch8::new(128), Ch8::new(64) / 0.5);
+        assert_eq!(Ch8::new(128), Ch8::new(32) / 0.25);
+        assert_eq!(Ch8::new(128), Ch8::new(16) / 0.125);
+        assert_eq!(Ch8::new(64), Ch8::new(64) / 1.0);
+        assert_eq!(Ch8::new(64), Ch8::new(32) / 0.5);
+        assert_eq!(Ch8::new(64), Ch8::new(16) / 0.25);
     }
     #[test]
     fn ch16_mul() {
-        assert_eq!(Ch16::new(65535), Ch16::new(65535) * 1.0.into());
-        assert_eq!(Ch16::new(32768), Ch16::new(65535) * 0.5.into());
-        assert_eq!(Ch16::new(16384), Ch16::new(65535) * 0.25.into());
-        assert_eq!(Ch16::new(8192), Ch16::new(65535) * 0.125.into());
-        assert_eq!(Ch16::new(4096), Ch16::new(65535) * 0.0625.into());
-        assert_eq!(Ch16::new(16384), Ch16::new(32768) * 0.5.into());
-        assert_eq!(Ch16::new(8192), Ch16::new(32768) * 0.25.into());
-        assert_eq!(Ch16::new(4096), Ch16::new(32768) * 0.125.into());
-        assert_eq!(Ch16::new(2048), Ch16::new(32768) * 0.0625.into());
+        assert_eq!(Ch16::new(65535), Ch16::new(65535) * 1.0);
+        assert_eq!(Ch16::new(32768), Ch16::new(65535) * 0.5);
+        assert_eq!(Ch16::new(16384), Ch16::new(65535) * 0.25);
+        assert_eq!(Ch16::new(8192), Ch16::new(65535) * 0.125);
+        assert_eq!(Ch16::new(4096), Ch16::new(65535) * 0.0625);
+        assert_eq!(Ch16::new(16384), Ch16::new(32768) * 0.5);
+        assert_eq!(Ch16::new(8192), Ch16::new(32768) * 0.25);
+        assert_eq!(Ch16::new(4096), Ch16::new(32768) * 0.125);
+        assert_eq!(Ch16::new(2048), Ch16::new(32768) * 0.0625);
     }
     #[test]
     fn ch16_div() {
-        assert_eq!(Ch16::new(65535), Ch16::new(65535) / 1.0.into());
-        assert_eq!(Ch16::new(65535), Ch16::new(32768) / 0.5.into());
-        assert_eq!(Ch16::new(65535), Ch16::new(16384) / 0.25.into());
-        assert_eq!(Ch16::new(65535), Ch16::new(8192) / 0.125.into());
-        assert_eq!(Ch16::new(65535), Ch16::new(4096) / 0.0625.into());
-        assert_eq!(Ch16::new(32768), Ch16::new(32768) / 1.0.into());
-        assert_eq!(Ch16::new(32768), Ch16::new(16384) / 0.5.into());
-        assert_eq!(Ch16::new(32768), Ch16::new(8192) / 0.25.into());
-        assert_eq!(Ch16::new(32768), Ch16::new(4096) / 0.125.into());
-        assert_eq!(Ch16::new(16384), Ch16::new(16384) / 1.0.into());
-        assert_eq!(Ch16::new(16384), Ch16::new(8192) / 0.5.into());
-        assert_eq!(Ch16::new(16384), Ch16::new(4096) / 0.25.into());
+        assert_eq!(Ch16::new(65535), Ch16::new(65535) / 1.0);
+        assert_eq!(Ch16::new(65535), Ch16::new(32768) / 0.5);
+        assert_eq!(Ch16::new(65535), Ch16::new(16384) / 0.25);
+        assert_eq!(Ch16::new(65535), Ch16::new(8192) / 0.125);
+        assert_eq!(Ch16::new(65535), Ch16::new(4096) / 0.0625);
+        assert_eq!(Ch16::new(32768), Ch16::new(32768) / 1.0);
+        assert_eq!(Ch16::new(32768), Ch16::new(16384) / 0.5);
+        assert_eq!(Ch16::new(32768), Ch16::new(8192) / 0.25);
+        assert_eq!(Ch16::new(32768), Ch16::new(4096) / 0.125);
+        assert_eq!(Ch16::new(16384), Ch16::new(16384) / 1.0);
+        assert_eq!(Ch16::new(16384), Ch16::new(8192) / 0.5);
+        assert_eq!(Ch16::new(16384), Ch16::new(4096) / 0.25);
     }
 }

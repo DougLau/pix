@@ -19,17 +19,19 @@ pub struct Rgb<C: Channel, A: Alpha<C>> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha<C>> From<Rgb<C, A>> for i32 {
+impl<C, A> From<Rgb<C, A>> for i32
+    where C: Channel, C: Into<Ch8>, A: Alpha<C>
+{
     /// Get an i32 from an Rgb
     fn from(c: Rgb<C, A>) -> i32 {
-        let red = Into::<u8>::into(c.red());
-        let red = Into::<i32>::into(red) << 0;
-        let green = Into::<u8>::into(c.green());
-        let green = Into::<i32>::into(green) << 8;
-        let blue = Into::<u8>::into(c.blue());
-        let blue = Into::<i32>::into(blue) << 16;
-        let alpha = Into::<u8>::into(c.alpha().value());
-        let alpha = Into::<i32>::into(alpha) << 24;
+        let red: u8 = Into::<Ch8>::into(c.red()).into();
+        let red = (red as i32) << 0;
+        let green: u8 = Into::<Ch8>::into(c.green()).into();
+        let green = (green as i32) << 8;
+        let blue: u8 = Into::<Ch8>::into(c.blue()).into();
+        let blue = (blue as i32) << 16;
+        let alpha: u8 = Into::<Ch8>::into(c.alpha().value()).into();
+        let alpha = (alpha as i32) << 24;
         red | green | blue | alpha
     }
 }
@@ -43,7 +45,7 @@ impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
         let g = Into::<C>::into(c.green());
         let b = Into::<C>::into(c.blue());
         let a = Into::<C>::into(c.alpha().value());
-        Rgb::new(r / a, g / a, b / a, Opaque::default())
+        Rgb::new(r / a, g / a, b / a)
     }
 }
 
@@ -56,13 +58,23 @@ impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
         let g = Into::<C>::into(c.green());
         let b = Into::<C>::into(c.blue());
         let a = Into::<Translucent<C>>::into(c.alpha());
-        Rgb::new(r, g, b, a)
+        Rgb::with_alpha(r, g, b, a)
     }
 }
 
 impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
     /// Build a color by specifying red, green and blue values.
-    pub fn new<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
+    pub fn new<H>(red: H, green: H, blue: H) -> Self
+        where C: From<H>, A: From<Opaque<C>>
+    {
+        let red = C::from(red);
+        let green = C::from(green);
+        let blue = C::from(blue);
+        let alpha = A::from(Opaque::default());
+        Rgb { red, green, blue, alpha }
+    }
+    /// Create a color by specifying red, green, blue and alpha values.
+    pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
         where C: From<H>, A: From<B>
     {
         let red = C::from(red);
