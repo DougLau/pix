@@ -17,5 +17,7 @@
 /// * [Srgb](struct.Srgb.html)
 ///
 pub trait Format: Clone + Copy + Default {
+
+    /// Channel type
     type Chan;
 }

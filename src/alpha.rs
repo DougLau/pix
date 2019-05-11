@@ -8,12 +8,15 @@ use std::marker::PhantomData;
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
-pub trait Alpha<C: Channel>: Copy + Default + From<C> {
+pub trait Alpha: Copy + Default {
+
+    /// Channel type
+    type Chan;
 
     /// Get the alpha channel value.
     ///
     /// *Zero* is fully transparent, and *one* is fully opaque.
-    fn value(&self) -> C;
+    fn value(&self) -> Self::Chan;
 }
 
 /// [Alpha](trait.Alpha.html) channel for fully opaque pixels and
@@ -22,7 +25,7 @@ pub trait Alpha<C: Channel>: Copy + Default + From<C> {
 /// Pixel [Format](trait.Format.html)s with opaque alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct Opaque<C: Channel> {
+pub struct Opaque<C> {
     value: PhantomData<C>,
 }
 
@@ -33,7 +36,8 @@ impl<C: Channel> From<C> for Opaque<C> {
     }
 }
 
-impl<C: Channel> Alpha<C> for Opaque<C> {
+impl<C: Channel> Alpha for Opaque<C> {
+    type Chan = C;
 
     /// Get the alpha channel value.
     ///
@@ -66,9 +70,12 @@ impl<C: Channel> Translucent<C> {
     }
 }
 
-impl<C: Channel> From<C> for Translucent<C> {
+impl<C: Channel, H: Channel> From<H> for Translucent<C>
+    where C: From<H>
+{
     /// Convert from a channel value.
-    fn from(value: C) -> Self {
+    fn from(value: H) -> Self {
+        let value = value.into();
         Translucent { value }
     }
 }
@@ -82,7 +89,8 @@ impl<C, A> From<Opaque<A>> for Translucent<C>
     }
 }
 
-impl<C: Channel> Alpha<C> for Translucent<C> {
+impl<C: Channel> Alpha for Translucent<C> {
+    type Chan = C;
 
     /// Get the alpha channel value.
     ///

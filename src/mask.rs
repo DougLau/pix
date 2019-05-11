@@ -11,13 +11,13 @@ use std::marker::PhantomData;
 /// [Format](trait.Format.html).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Mask<C: Channel, A: Alpha<C>> {
+pub struct Mask<C: Channel, A: Alpha> {
     value: PhantomData<C>,
     alpha: A,
 }
 
 impl<C, A> From<u8> for Mask<C, A>
-    where C: Channel, C: From<Ch8>, A: Alpha<C>
+    where C: Channel, A: Alpha, A: From<Ch8>
 {
     /// Get a Mask from a u8
     fn from(c: u8) -> Self {
@@ -26,7 +26,7 @@ impl<C, A> From<u8> for Mask<C, A>
 }
 
 impl<C, A> From<u16> for Mask<C, A>
-    where C: Channel, C: From<Ch16>, A: Alpha<C>
+    where C: Channel, A: Alpha, A: From<Ch16>
 {
     /// Get a Mask from a u16
     fn from(c: u16) -> Self {
@@ -34,14 +34,18 @@ impl<C, A> From<u16> for Mask<C, A>
     }
 }
 
-impl<A: Alpha<Ch8>> From<i32> for Mask<Ch8, A> {
+impl<A: Alpha> From<i32> for Mask<Ch8, A>
+    where A: From<Ch8>
+{
     /// Get a Mask<Ch8, A> from an i32
     fn from(c: i32) -> Self {
         Mask::new(Ch8::new(c as u8))
     }
 }
 
-impl<A: Alpha<Ch16>> From<i32> for Mask<Ch16, A> {
+impl<A: Alpha> From<i32> for Mask<Ch16, A>
+    where A: From<Ch16>
+{
     /// Get a Mask<Ch16, A> from an i32
     fn from(c: i32) -> Self {
         Mask::new(Ch16::new(c as u16))
@@ -49,7 +53,7 @@ impl<A: Alpha<Ch16>> From<i32> for Mask<Ch16, A> {
 }
 
 impl<C, A> From<f32> for Mask<C, A>
-    where C: Channel, C: From<Ch32>, A: Alpha<C>
+    where C: Channel, A: Alpha, A: From<Ch32>
 {
     /// Get a Mask from an f32
     fn from(c: f32) -> Self {
@@ -58,18 +62,16 @@ impl<C, A> From<f32> for Mask<C, A>
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha, B: Alpha
 {
     /// Get a Mask from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
-        Mask::new(c.alpha().value())
+        Mask::new(c.alpha())
     }
 }
 
 impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha, B: Alpha
 {
     /// Get an Rgb from a Mask
     fn from(c: Mask<H, B>) -> Self {
@@ -79,13 +81,11 @@ impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Mask<C, A> {
+impl<C: Channel, A: Alpha> Mask<C, A> {
     /// Create a new Mask value.
-    pub fn new<V>(alpha: V) -> Self
-        where C: From<V>
-    {
+    pub fn new<V>(alpha: V) -> Self where A: From<V> {
         let value = PhantomData;
-        let alpha = A::from(C::from(alpha));
+        let alpha = A::from(alpha);
         Mask { value, alpha }
     }
     /// Get the alpha value.
@@ -94,7 +94,7 @@ impl<C: Channel, A: Alpha<C>> Mask<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Mask<C, A> {
+impl<C: Channel, A: Alpha> Format for Mask<C, A> {
     type Chan = C;
 }
 

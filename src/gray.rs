@@ -14,13 +14,13 @@ use crate::channel::{Channel, Ch8, Ch16, Ch32};
 /// [GrayAlpha16](type.GrayAlpha16.html), [GrayAlpha32](type.GrayAlpha32.html)
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Gray<C: Channel, A: Alpha<C>> {
+pub struct Gray<C: Channel, A: Alpha> {
     value: C,
     alpha: A,
 }
 
 impl<C, A> From<u8> for Gray<C, A>
-    where C: Channel, A: Alpha<C>, A: From<Opaque<C>>, C: From<Ch8>
+    where C: Channel, A: Alpha, A: From<Opaque<C>>, C: From<Ch8>
 {
     /// Convert from a u8 value.
     fn from(c: u8) -> Self {
@@ -29,8 +29,7 @@ impl<C, A> From<u8> for Gray<C, A>
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha<C>, A: From<B>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {
     /// Get a Gray from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
@@ -45,8 +44,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
 }
 
 impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha<C>, A: From<B>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {
     /// Get an Rgb from a Gray
     fn from(c: Gray<H, B>) -> Self {
@@ -56,7 +54,7 @@ impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Gray<C, A> {
+impl<C: Channel, A: Alpha> Gray<C, A> {
     /// Create an opaque gray value.
     pub fn new<H>(value: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
@@ -83,7 +81,7 @@ impl<C: Channel, A: Alpha<C>> Gray<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Gray<C, A> {
+impl<C: Channel, A: Alpha> Format for Gray<C, A> {
     type Chan = C;
 }
 

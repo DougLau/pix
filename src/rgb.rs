@@ -12,7 +12,7 @@ use crate::channel::{Channel, Ch8, Ch16, Ch32};
 /// The channels are *red*, *green* and *blue*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Rgb<C: Channel, A: Alpha<C>> {
+pub struct Rgb<C: Channel, A: Alpha> {
     red: C,
     green: C,
     blue: C,
@@ -20,7 +20,7 @@ pub struct Rgb<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, A> From<Rgb<C, A>> for i32
-    where C: Channel, Ch8: From<C>, A: Alpha<C>
+    where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
 {
     /// Get an i32 from an Rgb
     fn from(c: Rgb<C, A>) -> i32 {
@@ -62,7 +62,7 @@ impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
+impl<C: Channel, A: Alpha> Rgb<C, A> {
     /// Build a color by specifying red, green and blue values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
@@ -102,7 +102,7 @@ impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Rgb<C, A> {
+impl<C: Channel, A: Alpha> Format for Rgb<C, A> {
     type Chan = C;
 }
 

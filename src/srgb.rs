@@ -11,7 +11,7 @@ use crate::channel::{Channel, Ch8, Ch16, Ch32};
 /// The channels are *red*, *green* and *blue*.  They are gamma-encoded.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Srgb<C: Channel, A: Alpha<C>> {
+pub struct Srgb<C: Channel, A: Alpha> {
     red: C,
     green: C,
     blue: C,
@@ -19,8 +19,8 @@ pub struct Srgb<C: Channel, A: Alpha<C>> {
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha<Chan=C>, A: From<B>,
+          B: Alpha
 {
     /// Get an Srgb from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
@@ -40,8 +40,8 @@ impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
 }
 
 impl<C, H, A, B> From<Srgb<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha<C>,
-          B: Alpha<H>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>,
+          B: Alpha
 {
     /// Get an Rgb from an Srgb
     fn from(srgb: Srgb<H, B>) -> Self {
@@ -53,7 +53,7 @@ impl<C, H, A, B> From<Srgb<H, B>> for Rgb<C, A>
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Srgb<C, A> {
+impl<C: Channel, A: Alpha> Srgb<C, A> {
     /// Build a color by specifying red, green and blue values.
     pub fn new<V>(red: V, green: V, blue: V) -> Self
         where C: From<V>
@@ -82,7 +82,7 @@ impl<C: Channel, A: Alpha<C>> Srgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Srgb<C, A> {
+impl<C: Channel, A: Alpha> Format for Srgb<C, A> {
     type Chan = C;
 }
 
