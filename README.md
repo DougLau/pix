@@ -11,8 +11,8 @@ Currently an early work-in-progress.
 ### Cover Trait
 * Provides iterator of pixels in a region
 * Impl by Raster
-* Impl by Gradients (linear, radial, etc)
 * Impl by Rgb, Gray, Mask, etc.
+* Impl by Gradients (linear, radial, etc)
 * Raster region copying (or iterating).
 
 ### Color models / spaces

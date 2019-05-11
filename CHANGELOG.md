@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.4.0] - 2019-05-11
 ### Added
 * Ch32 channel
 ### Changed
