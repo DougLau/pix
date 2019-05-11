@@ -15,7 +15,10 @@ pub trait Alpha: Copy + Default {
 
     /// Get the alpha channel value.
     ///
-    /// *Zero* is fully transparent, and *one* is fully opaque.
+    /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
+    /// transparent, and
+    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) is fully
+    /// opaque.
     fn value(&self) -> Self::Chan;
 }
 
@@ -50,7 +53,9 @@ impl<C: Channel> Alpha for Opaque<C> {
 
     /// Get the alpha channel value.
     ///
-    /// *Zero* is fully transparent, and *one* is fully opaque.
+    /// Always returns
+    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) (fully
+    /// opaque).
     fn value(&self) -> C {
         C::MAX
     }
@@ -94,7 +99,10 @@ impl<C: Channel> Alpha for Translucent<C> {
 
     /// Get the alpha channel value.
     ///
-    /// *Zero* is fully transparent, and *one* is fully opaque.
+    /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
+    /// transparent, and
+    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) is fully
+    /// opaque.
     fn value(&self) -> C {
         self.value
     }
