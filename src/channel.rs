@@ -21,9 +21,6 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
 
     /// Maximum intensity (*one*)
     const MAX: Self;
-
-    /// Linear interpolation
-    fn lerp(self, rhs: Self, t: Self) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -129,25 +126,6 @@ impl Channel for Ch8 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch8 = Ch8 { 0: 0xFF };
-
-    /// Linear interpolation
-    #[inline]
-    fn lerp(self, rhs: Self, t: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
-        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
-        let v0: i32 = self.0.into();
-        let v1: i32 = rhs.0.into();
-        let r = v0 + scale_i32(t.0, v1 - v0);
-        Ch8 { 0: r as u8 }
-    }
-}
-
-/// Scale an i32 value by a u8 (for lerp)
-#[inline]
-fn scale_i32(t: u8, v: i32) -> i32 {
-    let c = v * i32::from(t);
-    // cheap alternative to divide by 255
-    (((c + 1) + (c >> 8)) >> 8) as i32
 }
 
 impl Ch16 {
@@ -168,6 +146,12 @@ impl From<Ch8> for Ch16 {
 impl From<u16> for Ch16 {
     fn from(value: u16) -> Self {
         Ch16 { 0: value }
+    }
+}
+
+impl From<Ch16> for u16 {
+    fn from(c: Ch16) -> u16 {
+        c.0
     }
 }
 
@@ -240,25 +224,6 @@ impl Channel for Ch16 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch16 = Ch16 { 0: 0xFFFF };
-
-    /// Linear interpolation
-    #[inline]
-    fn lerp(self, rhs: Self, t: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
-        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
-        let v0: i64 = self.0.into();
-        let v1: i64 = rhs.0.into();
-        let r = v0 + scale_i64(t.0, v1 - v0);
-        Ch16 { 0: r as u16 }
-    }
-}
-
-/// Scale an i64 value by a u16 (for lerp)
-#[inline]
-fn scale_i64(t: u16, v: i64) -> i64 {
-    let c = v * i64::from(t);
-    // cheap alternative to divide by 65535
-    (((c + 1) + (c >> 16)) >> 16) as i64
 }
 
 impl Ch32 {
@@ -290,6 +255,12 @@ impl From<Ch8> for Ch32 {
 impl From<f32> for Ch32 {
     fn from(value: f32) -> Self {
         Ch32::new(value)
+    }
+}
+
+impl From<Ch32> for f32 {
+    fn from(c: Ch32) -> f32 {
+        c.0
     }
 }
 
@@ -366,17 +337,6 @@ impl Channel for Ch32 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch32 = Ch32 { 0: 1.0 };
-
-    /// Linear interpolation
-    #[inline]
-    fn lerp(self, rhs: Self, t: Self) -> Self {
-        // NOTE: Alpha blending euqation is: `(1 - t) * v0 + t * v1`
-        //       This is equivalent to lerp: `v0 + t * (v1 - v0)`
-        let v0 = self.0;
-        let v1 = rhs.0;
-        let r = v0 + t.0 * (v1 - v0);
-        Ch32 { 0: r }
-    }
 }
 
 #[cfg(test)]

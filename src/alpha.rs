@@ -14,9 +14,6 @@ pub trait Alpha<C: Channel>: Copy + Default + From<C> {
     ///
     /// *Zero* is fully transparent, and *one* is fully opaque.
     fn value(&self) -> C;
-
-    /// Linear interpolation
-    fn lerp(self, rhs: C) -> Self;
 }
 
 /// [Alpha](trait.Alpha.html) channel for fully opaque pixels and
@@ -43,11 +40,6 @@ impl<C: Channel> Alpha<C> for Opaque<C> {
     /// *Zero* is fully transparent, and *one* is fully opaque.
     fn value(&self) -> C {
         C::MAX
-    }
-
-    /// Linear interpolation
-    fn lerp(self, _rhs: C) -> Self {
-        Opaque::default()
     }
 }
 
@@ -97,10 +89,5 @@ impl<C: Channel> Alpha<C> for Translucent<C> {
     /// *Zero* is fully transparent, and *one* is fully opaque.
     fn value(&self) -> C {
         self.value
-    }
-
-    /// Linear interpolation
-    fn lerp(self, rhs: C) -> Self {
-        Self::new(self.value.lerp(rhs, rhs))
     }
 }
