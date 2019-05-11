@@ -20,6 +20,15 @@ pub struct Raster<F: Format> {
     pixels : Box<[F]>,
 }
 
+/// Raster location and dimensions
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Region {
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+}
+
 impl<F: Format> Into<Box<[F]>> for Raster<F> {
     /// Get internal pixel data as boxed slice.
     fn into(self) -> Box<[F]> {
@@ -184,6 +193,35 @@ impl<F: Format> Raster<F> {
     }
 }
 
+impl Region {
+    /// Create a new raster region
+    pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
+        Region { x, y, width, height }
+    }
+    /// Get intersection with another region
+    pub fn intersection(self, rhs: Self) -> Option<Self> {
+        let x = self.x.max(rhs.x);
+        let x1 = self.right()?.min(rhs.right()?);
+        let y = self.y.max(rhs.y);
+        let y1 = self.bottom()?.min(rhs.bottom()?);
+        if x < x1 && y < y1 {
+            let width = u32::try_from(x1 - x).ok()?;
+            let height = u32::try_from(y1 - y).ok()?;
+            Some(Region::new(x, y, width, height))
+        } else {
+            None
+        }
+    }
+    /// Get right side
+    fn right(self) -> Option<i32> {
+        Some(self.x + i32::try_from(self.width).ok()?)
+    }
+    /// Get bottom side
+    fn bottom(self) -> Option<i32> {
+        Some(self.y + i32::try_from(self.height).ok()?)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -297,6 +335,25 @@ mod test {
             0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
         ];
+        // FIXME: this will fail on big-endian archs
         assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn region_size() {
+        assert!(std::mem::size_of::<Region>() == 16);
+    }
+    #[test]
+    fn intersect() -> Result<(), ()> {
+        let r = Region::new(0, 0, 5, 5);
+        assert_eq!(r, Region::new(0, 0, 5, 5));
+        assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)).ok_or(())?);
+        assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)).ok_or(())?);
+        assert_eq!(Region::new(0, 0, 4, 4), r.intersection(
+            Region::new(-1, -1, 5, 5)).ok_or(())?);
+        assert_eq!(Region::new(1, 2, 1, 3), r.intersection(
+            Region::new(1, 2, 1, 100)).ok_or(())?);
+        assert_eq!(Region::new(2, 1, 3, 1), r.intersection(
+            Region::new(2, 1, 100, 1)).ok_or(())?);
+        Ok(())
     }
 }
