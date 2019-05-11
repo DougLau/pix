@@ -20,7 +20,7 @@ pub struct Gray<C: Channel, A: Alpha> {
 }
 
 impl<C, A> From<u8> for Gray<C, A>
-    where C: Channel, A: Alpha, A: From<Opaque<C>>, C: From<Ch8>
+    where C: Channel, C: From<Ch8>, A: Alpha, A: From<Opaque<C>>
 {
     /// Convert from a u8 value.
     fn from(c: u8) -> Self {

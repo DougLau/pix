@@ -62,7 +62,7 @@ impl<C, A> From<f32> for Mask<C, A>
 }
 
 impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha, B: Alpha
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {
     /// Get a Mask from an Rgb
     fn from(c: Rgb<H, B>) -> Self {
@@ -71,7 +71,7 @@ impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
 }
 
 impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: From<B>, A: Alpha, B: Alpha
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {
     /// Get an Rgb from a Mask
     fn from(c: Mask<H, B>) -> Self {

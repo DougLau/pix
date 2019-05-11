@@ -36,6 +36,15 @@ impl<C: Channel> From<C> for Opaque<C> {
     }
 }
 
+impl<C, A> From<Translucent<A>> for Opaque<C>
+    where C: Channel, C: From<Translucent<A>>, A: Channel
+{
+    /// Convert from a translucent value.
+    fn from(_: Translucent<A>) -> Self {
+        Opaque::default()
+    }
+}
+
 impl<C: Channel> Alpha for Opaque<C> {
     type Chan = C;
 
@@ -44,15 +53,6 @@ impl<C: Channel> Alpha for Opaque<C> {
     /// *Zero* is fully transparent, and *one* is fully opaque.
     fn value(&self) -> C {
         C::MAX
-    }
-}
-
-impl<C, A> From<Translucent<A>> for Opaque<C>
-    where C: Channel, C: From<Translucent<A>>, A: Channel
-{
-    /// Convert from a translucent value.
-    fn from(_: Translucent<A>) -> Self {
-        Opaque::default()
     }
 }
 
@@ -70,8 +70,8 @@ impl<C: Channel> Translucent<C> {
     }
 }
 
-impl<C: Channel, H: Channel> From<H> for Translucent<C>
-    where C: From<H>
+impl<C, H> From<H> for Translucent<C>
+    where C: Channel, C: From<H>, H: Channel
 {
     /// Convert from a channel value.
     fn from(value: H) -> Self {
