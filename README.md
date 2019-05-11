@@ -1,18 +1,25 @@
 # pix
 Rust crate for pixel and raster image manipulation.
+Currently an early work-in-progress.
 
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
 
 ## Future Plans
-* Raster iterators.
-* Raster conversions between pixel formats.
+* Conversions between pixel formats.
+
+### Cover Trait
+* Provides iterator of pixels in a region
+* Impl by Raster
+* Impl by Gradients (linear, radial, etc)
+* Impl by Rgb, Gray, Mask, etc.
 * Raster region copying (or iterating).
-* Color models: tristimulus, additive, subtractive, cylindrical
+
+### Color models / spaces
+* Tristimulus, additive, subtractive, cylindrical
 * RGB: additive
 * CMYK: subtractive
 * HSV / HSL: cylindrical
-* LAB: color space (with white point).
+* LAB, LCH
 * XYZ: tristimulus
-* Color spaces
-* Gradient iterators in any color space
+* White point

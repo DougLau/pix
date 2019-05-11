@@ -8,5 +8,5 @@ documentation = "https://docs.rs/pix"
 homepage = "https://github.com/DougLau/pix"
 repository = "https://github.com/DougLau/pix"
 readme = "README.md"
-keywords = ["image", "pixel"]
+keywords = ["pixel", "image", "rgb", "color"]
 edition = "2018"
