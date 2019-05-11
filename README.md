@@ -23,3 +23,6 @@ Currently an early work-in-progress.
 * LAB, LCH
 * XYZ: tristimulus
 * White point
+
+### Alpha Handling
+See https://github.com/LuaDist/libpng/blob/master/png.h#L1170-L1223

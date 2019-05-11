@@ -1,4 +1,4 @@
-// rgb.rs       Linear RGB pixel format.
+// rgb.rs       RGB pixel format.
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //

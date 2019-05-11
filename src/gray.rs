@@ -1,4 +1,4 @@
-// gray.rs      Linear grayscale pixel format.
+// gray.rs      Grayscale pixel format.
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
