@@ -2,9 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Format, Rgb};
-use crate::alpha::{Alpha, Opaque, Translucent};
-use crate::channel::{Channel, Ch8, Ch16, Ch32};
+use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, Rgb, Translucent};
 
 /// Gray pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.

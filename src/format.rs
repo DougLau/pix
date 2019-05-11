@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
+use crate::Channel;
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -19,5 +20,5 @@
 pub trait Format: Clone + Copy + Default {
 
     /// Channel type
-    type Chan;
+    type Chan: Channel;
 }

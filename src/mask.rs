@@ -2,9 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Format, Rgb};
-use crate::alpha::{Alpha, Translucent};
-use crate::channel::{Channel, Ch8, Ch16, Ch32};
+use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Rgb, Translucent};
 use std::marker::PhantomData;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel

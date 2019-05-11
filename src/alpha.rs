@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::channel::Channel;
+use crate::Channel;
 use std::marker::PhantomData;
 
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 pub trait Alpha: Copy + Default {
 
     /// Channel type
-    type Chan;
+    type Chan: Channel;
 
     /// Get the alpha channel value.
     ///
