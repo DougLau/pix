@@ -82,7 +82,9 @@ impl<C: Channel, A: Alpha<C>> Srgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Srgb<C, A> { }
+impl<C: Channel, A: Alpha<C>> Format for Srgb<C, A> {
+    type Chan = C;
+}
 
 pub type Srgb8 = Srgb<Ch8, Opaque<Ch8>>;
 pub type Srgb16 = Srgb<Ch16, Opaque<Ch16>>;

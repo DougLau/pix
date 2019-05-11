@@ -94,7 +94,9 @@ impl<C: Channel, A: Alpha<C>> Mask<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Mask<C, A> { }
+impl<C: Channel, A: Alpha<C>> Format for Mask<C, A> {
+    type Chan = C;
+}
 
 /// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)
 /// pixel [Format](trait.Format.html).

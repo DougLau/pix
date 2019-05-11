@@ -113,11 +113,11 @@ const ENCODE_LUT_U8: &[u8] = &[
 impl Gamma for u8 {
     /// Encode a gamma value from linear intensity
     fn encode_gamma(self) -> Self {
-        ENCODE_LUT_U8[self as usize]
+        ENCODE_LUT_U8[usize::from(self)]
     }
     /// Decode a gamma value into linear intensity
     fn decode_gamma(self) -> Self {
-        DECODE_LUT_U8[self as usize]
+        DECODE_LUT_U8[usize::from(self)]
     }
 }
 

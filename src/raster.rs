@@ -1,12 +1,12 @@
-// raster.rs    A 2D raster image.
+// raster.rs    Raster images.
 //
 // Copyright (c) 2017-2019  Douglas P Lau
 //
-use crate::Format;
+use std::convert::TryFrom;
+use crate::{Ch8, Ch16, Format};
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
-/// # Example
 /// ```
 /// use pix::{Raster, Rgb, Rgb8};
 /// let clr: Rgb8 = Rgb::new(0xFF, 0x88, 0x00);
@@ -44,12 +44,21 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
 }
 
 impl<F: Format> Raster<F> {
-    /// Create a new raster image.
+    /// Create a new empty raster image.
     ///
     /// * `F` Pixel [Format](trait.Format.html).
     /// * `width` Width in pixels.
     /// * `height` Height in pixels.
-    pub fn new(width: u32, height: u32) -> Raster<F> {
+    ///
+    /// ## Examples
+    /// ```
+    /// use pix::*;
+    /// let r1: Raster<Gray8> = Raster::new(20, 20);
+    /// let r2: Raster<Mask8> = Raster::new(64, 64);
+    /// let r3: Raster<Rgb16> = Raster::new(10, 10);
+    /// let r4: Raster<GrayAlpha32> = Raster::new(100, 150);
+    /// ```
+    pub fn new(width: u32, height: u32) -> Self {
         let len = (width * height) as usize;
         let pixels = vec![F::default(); len].into_boxed_slice();
         Raster { width, height, pixels }
@@ -66,7 +75,17 @@ impl<F: Format> Raster<F> {
     /// # Panics
     ///
     /// Panics if `pixels` length is not equal to `width` * `height`.
-    pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Raster<F>
+    ///
+    /// ## Example
+    /// ```
+    /// use pix::*;
+    /// let p = vec![Rgb8::new(255, 0, 255); 16];   // vec of magenta pix
+    /// let mut r = Raster::with_pixels(4, 4, p);   // convert to raster
+    /// let clr: Rgb8 = Rgb::new(0x00, 0xFF, 0x00); // green
+    /// r.set_rect(2, 0, 1, 3, clr);                // make stripe
+    /// let p2 = Into::<Vec<Rgb8>>::into(r);        // convert back to vec
+    /// ```
+    pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Self
         where B: Into<Box<[F]>>
     {
         let len = (width * height) as usize;
@@ -74,30 +93,57 @@ impl<F: Format> Raster<F> {
         assert_eq!(len, pixels.len());
         Raster { width, height, pixels }
     }
-    /// Create a new raster image from a buffer of bytes.
+    /// Create a new raster image from a u8 buffer.
     ///
     /// * `F` Pixel [Format](trait.Format.html).
     /// * `width` Width in pixels.
     /// * `height` Height in pixels.
-    /// * `buffer` Byte buffer of pixel data.
-    ///
-    /// This is unsafe because the byte buffer is transmuted into `F`.
+    /// * `buffer` Buffer of pixel data.
     ///
     /// # Panics
     ///
     /// Panics if `buffer` length is not equal to `width` * `height` *
     /// `std::mem::size_of::<F>()`.
-    pub unsafe fn with_buffer<B>(width: u32, height: u32, buffer: B)
-        -> Raster<F> where B: Into<Box<[u8]>>
+    pub fn with_u8_buffer<B>(width: u32, height: u32, buffer: B) -> Self
+        where B: Into<Box<[u8]>>, F: Format<Chan=Ch8>
     {
         let len = (width * height) as usize;
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
         assert_eq!(len * std::mem::size_of::<F>(), capacity);
         let slice = std::boxed::Box::<[u8]>::into_raw(buffer);
-        let ptr = (*slice).as_mut_ptr() as *mut F;
-        let slice = std::slice::from_raw_parts_mut(ptr, len);
-        let pixels: Box<[F]> = Box::from_raw(slice);
+        let pixels: Box<[F]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut F;
+            let slice = std::slice::from_raw_parts_mut(ptr, len);
+            Box::from_raw(slice)
+        };
+        Raster { width, height, pixels }
+    }
+    /// Create a new raster image from a u16 buffer.
+    ///
+    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `width` Width in pixels.
+    /// * `height` Height in pixels.
+    /// * `buffer` Buffer of pixel data.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `buffer` length is not equal to `width` * `height` *
+    /// `std::mem::size_of::<F>()`.
+    pub fn with_u16_buffer<B>(width: u32, height: u32, buffer: B) -> Self
+        where B: Into<Box<[u16]>>, F: Format<Chan=Ch16>
+    {
+        let len = (width * height) as usize;
+        let buffer: Box<[u16]> = buffer.into();
+        let capacity = buffer.len();
+        assert_eq!(len * std::mem::size_of::<F>(),
+            capacity * std::mem::size_of::<u16>());
+        let slice = std::boxed::Box::<[u16]>::into_raw(buffer);
+        let pixels: Box<[F]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut F;
+            let slice = std::slice::from_raw_parts_mut(ptr, len);
+            Box::from_raw(slice)
+        };
         Raster { width, height, pixels }
     }
     /// Get raster width.
@@ -181,11 +227,11 @@ impl<F: Format> Raster<F> {
     {
         let clr = clr.into();
         if y < self.height() && x < self.width() {
-            let xm = self.width.min(x + w);
+            let xm = self.width.min(x + w) as usize;
+            let x = x as usize;
             let ym = self.height.min(y + h);
-            let xrange = (x as usize)..(xm as usize);
             for yi in y..ym {
-                self.as_slice_row_mut(yi)[xrange.clone()]
+                self.as_slice_row_mut(yi)[x..xm]
                     .iter_mut()
                     .for_each(|p| *p = clr);
             }
@@ -310,7 +356,7 @@ mod test {
             0x00,0xBB,0x00, 0x66,0x77,0x88, 0x99,0xAA,0xBB,
             0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
         ];
-        let mut r = unsafe { Raster::<Rgb8>::with_buffer(3, 3, b) };
+        let mut r = Raster::<Rgb8>::with_u8_buffer(3, 3, b);
         let rgb: Rgb8 = Rgb::new(0x12, 0x34, 0x56);
         r.set_rect(0, 1, 2, 1, rgb);
         let v = vec![
@@ -323,11 +369,11 @@ mod test {
     #[test]
     fn grayalpha16_buffer() {
         let b = vec![
-            0x01,0x10,0x05,0x50, 0x00,0x10,0x02,0x30, 0x04,0x50,0x06,0x70,
-            0x02,0x20,0x06,0x60, 0x08,0x90,0x0A,0xB0, 0x0C,0xD0,0x0E,0xF0,
-            0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
+            0x1001,0x5005, 0x1000,0x3002, 0x5004,0x7006,
+            0x2002,0x6006, 0x9008,0xB00A, 0xD00C,0xF00E,
+            0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
-        let mut r = unsafe { Raster::<GrayAlpha16>::with_buffer(3, 3, b) };
+        let mut r = Raster::<GrayAlpha16>::with_u16_buffer(3, 3, b);
         let c = Gray::new(0x4444);
         r.set_rect(1, 0, 2, 2, c);
         let v = vec![

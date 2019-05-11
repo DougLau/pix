@@ -102,7 +102,9 @@ impl<C: Channel, A: Alpha<C>> Rgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha<C>> Format for Rgb<C, A> { }
+impl<C: Channel, A: Alpha<C>> Format for Rgb<C, A> {
+    type Chan = C;
+}
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).

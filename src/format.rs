@@ -16,4 +16,6 @@
 ///   [Rgba16](type.Rgba16.html), [Rgba32](type.Rgba32.html)
 /// * [Srgb](struct.Srgb.html)
 ///
-pub trait Format: Clone + Copy + Default { }
+pub trait Format: Clone + Copy + Default {
+    type Chan;
+}
