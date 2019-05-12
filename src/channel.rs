@@ -27,6 +27,18 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
 ///
 /// The channel is represented by a u8, but multiplication and division treat
 /// the values as though they range between 0 and 1.
+///
+/// ```
+/// # use pix::*;
+/// let c: Ch8 = std::u8::MIN.into();
+/// assert_eq!(c, Ch8::MIN);
+/// let c: Ch16 = c.into();
+/// assert_eq!(c, Ch16::MIN);
+/// let c: Ch8 = std::u8::MAX.into();
+/// assert_eq!(c, Ch8::MAX);
+/// let c: Ch32 = c.into();
+/// assert_eq!(c, Ch32::MAX);
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ch8(u8);
 
@@ -34,6 +46,18 @@ pub struct Ch8(u8);
 ///
 /// The channel is represented by a u16, but multiplication and division treat
 /// the values as though they range between 0 and 1.
+///
+/// ```
+/// # use pix::*;
+/// let c: Ch16 = std::u16::MIN.into();
+/// assert_eq!(c, Ch16::MIN);
+/// let c: Ch8 = c.into();
+/// assert_eq!(c, Ch8::MIN);
+/// let c: Ch16 = std::u16::MAX.into();
+/// assert_eq!(c, Ch16::MAX);
+/// let c: Ch32 = c.into();
+/// assert_eq!(c, Ch32::MAX);
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ch16(u16);
 
@@ -41,6 +65,18 @@ pub struct Ch16(u16);
 ///
 /// The channel is represented by an f32, but the value is guaranteed to be
 /// between 0 and 1, inclusive.
+///
+/// ```
+/// # use pix::*;
+/// let c: Ch32 = 0.0.into();
+/// assert_eq!(c, Ch32::MIN);
+/// let c: Ch8 = c.into();
+/// assert_eq!(c, Ch8::MIN);
+/// let c: Ch32 = 1.0.into();
+/// assert_eq!(c, Ch32::MAX);
+/// let c: Ch16 = c.into();
+/// assert_eq!(c, Ch16::MAX);
+/// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
 pub struct Ch32(f32);
 
@@ -247,7 +283,7 @@ impl Ch32 {
 
 impl From<Ch8> for Ch32 {
     fn from(c: Ch8) -> Self {
-        let value = f32::from(c.0) * 255.0;
+        let value = f32::from(c.0) / 255.0;
         Ch32 { 0: value }
     }
 }
@@ -286,7 +322,7 @@ impl From<Ch32> for Ch16 {
 
 impl From<Ch16> for Ch32 {
     fn from(c: Ch16) -> Self {
-        let value = f32::from(c.0) * 65535.0;
+        let value = f32::from(c.0) / 65535.0;
         Ch32 { 0: value }
     }
 }
@@ -344,10 +380,21 @@ mod test {
     use super::*;
     #[test]
     fn ch8_into() {
-        assert_eq!(Ch16::new(255), 255.into());
-        assert_eq!(Ch16::new(128), 128.into());
-        assert_eq!(Ch16::new(64), 64.into());
-        assert_eq!(Ch16::new(32), 32.into());
+        assert_eq!(Ch8::new(255), 255.into());
+        assert_eq!(Ch8::new(128), 128.into());
+        assert_eq!(Ch8::new(64), 64.into());
+        assert_eq!(Ch8::new(32), 32.into());
+        for i in 0..=255 {
+            let c8 = Ch8::new(i);
+            let c16: Ch16 = c8.into();
+            assert_eq!(c8, c16.into());
+        }
+        assert_eq!(Ch16::new(0), Ch8::new(0).into());
+        assert_eq!(Ch8::new(128), Ch16::new(32768).into());
+        assert_eq!(Ch16::new(65535), Ch8::new(255).into());
+        assert_eq!(Ch32::new(0.0), Ch8::new(0).into());
+        assert_eq!(Ch8::new(128), Ch32::new(0.5).into());
+        assert_eq!(Ch32::new(1.0), Ch8::new(255).into());
     }
     #[test]
     fn ch16_into() {
