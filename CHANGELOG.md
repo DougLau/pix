@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Changed
+* Fixed bugs in channel conversions.
+
 ## [0.4.0] - 2019-05-11
 ### Added
 * Ch32 channel
