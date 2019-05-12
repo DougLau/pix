@@ -109,7 +109,7 @@ pub type GrayAlpha32 = Gray<Ch32, Translucent<Ch32>>;
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::super::*;
 
     #[test]
     fn check_sizes() {
@@ -119,5 +119,17 @@ mod test {
         assert!(std::mem::size_of::<GrayAlpha8>() == 2);
         assert!(std::mem::size_of::<GrayAlpha16>() == 4);
         assert!(std::mem::size_of::<GrayAlpha32>() == 8);
+    }
+
+    #[test]
+    fn conversions() {
+        assert_eq!(Gray8::new(64), Rgb8::new(16, 32, 64).into());
+        assert_eq!(Gray8::new(32), Rgb16::new(4096, 8200, 0).into());
+        assert_eq!(Gray8::new(128), Rgb32::new(0.25, 0.5, 0.1).into());
+        assert_eq!(Gray16::new(16448), Rgb8::new(16, 32, 64).into());
+        assert_eq!(Gray16::new(8200), Rgb16::new(4096, 8200, 0).into());
+        assert_eq!(Gray16::new(32768), Rgb32::new(0.25, 0.5, 0.1).into());
+        assert_eq!(Gray32::new(0.5), Rgb32::new(0.25, 0.5, 0.1).into());
+        assert_eq!(Gray8::new(32), Rgba8::with_alpha(16, 32, 24, 128).into());
     }
 }
