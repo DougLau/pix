@@ -386,7 +386,7 @@ mod test {
     }
     #[test]
     fn region_size() {
-        assert!(std::mem::size_of::<Region>() == 16);
+        assert_eq!(std::mem::size_of::<Region>(), 16);
     }
     #[test]
     fn intersect() -> Result<(), ()> {

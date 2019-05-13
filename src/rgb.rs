@@ -134,11 +134,11 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert!(std::mem::size_of::<Rgb8>() == 3);
-        assert!(std::mem::size_of::<Rgb16>() == 6);
-        assert!(std::mem::size_of::<Rgb32>() == 12);
-        assert!(std::mem::size_of::<Rgba8>() == 4);
-        assert!(std::mem::size_of::<Rgba16>() == 8);
-        assert!(std::mem::size_of::<Rgba32>() == 16);
+        assert_eq!(std::mem::size_of::<Rgb8>(), 3);
+        assert_eq!(std::mem::size_of::<Rgb16>(), 6);
+        assert_eq!(std::mem::size_of::<Rgb32>(), 12);
+        assert_eq!(std::mem::size_of::<Rgba8>(), 4);
+        assert_eq!(std::mem::size_of::<Rgba16>(), 8);
+        assert_eq!(std::mem::size_of::<Rgba32>(), 16);
     }
 }

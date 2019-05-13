@@ -99,11 +99,11 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert!(std::mem::size_of::<Srgb8>() == 3);
-        assert!(std::mem::size_of::<Srgb16>() == 6);
-        assert!(std::mem::size_of::<Srgb32>() == 12);
-        assert!(std::mem::size_of::<Srgba8>() == 4);
-        assert!(std::mem::size_of::<Srgba16>() == 8);
-        assert!(std::mem::size_of::<Srgba32>() == 16);
+        assert_eq!(std::mem::size_of::<Srgb8>(), 3);
+        assert_eq!(std::mem::size_of::<Srgb16>(), 6);
+        assert_eq!(std::mem::size_of::<Srgb32>(), 12);
+        assert_eq!(std::mem::size_of::<Srgba8>(), 4);
+        assert_eq!(std::mem::size_of::<Srgba16>(), 8);
+        assert_eq!(std::mem::size_of::<Srgba32>(), 16);
     }
 }

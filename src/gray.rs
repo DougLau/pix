@@ -113,12 +113,12 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert!(std::mem::size_of::<Gray8>() == 1);
-        assert!(std::mem::size_of::<Gray16>() == 2);
-        assert!(std::mem::size_of::<Gray32>() == 4);
-        assert!(std::mem::size_of::<GrayAlpha8>() == 2);
-        assert!(std::mem::size_of::<GrayAlpha16>() == 4);
-        assert!(std::mem::size_of::<GrayAlpha32>() == 8);
+        assert_eq!(std::mem::size_of::<Gray8>(), 1);
+        assert_eq!(std::mem::size_of::<Gray16>(), 2);
+        assert_eq!(std::mem::size_of::<Gray32>(), 4);
+        assert_eq!(std::mem::size_of::<GrayAlpha8>(), 2);
+        assert_eq!(std::mem::size_of::<GrayAlpha16>(), 4);
+        assert_eq!(std::mem::size_of::<GrayAlpha32>(), 8);
     }
 
     #[test]

@@ -114,8 +114,8 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert!(std::mem::size_of::<Mask8>() == 1);
-        assert!(std::mem::size_of::<Mask16>() == 2);
-        assert!(std::mem::size_of::<Mask32>() == 4);
+        assert_eq!(std::mem::size_of::<Mask8>(), 1);
+        assert_eq!(std::mem::size_of::<Mask16>(), 2);
+        assert_eq!(std::mem::size_of::<Mask32>(), 4);
     }
 }
