@@ -24,6 +24,6 @@ pub use crate::gray::{
 };
 pub use crate::mask::{Mask, Mask8, Mask16, Mask32};
 pub use crate::format::Format;
-pub use crate::raster::{Raster, Region};
+pub use crate::raster::{Raster, RasterIter, Region};
 pub use crate::rgb::{Rgb, Rgb8, Rgb16, Rgb32, Rgba8, Rgba16, Rgba32};
 pub use crate::srgb::{Srgb, Srgb8, Srgb16, Srgb32, Srgba8, Srgba16, Srgba32};

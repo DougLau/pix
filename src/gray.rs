@@ -17,6 +17,14 @@ pub struct Gray<C: Channel, A: Alpha> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
 impl<C, A> From<u8> for Gray<C, A>
     where C: Channel, C: From<Ch8>, A: Alpha, A: From<Opaque<C>>
 {

@@ -17,6 +17,14 @@ pub struct Rgb<C: Channel, A: Alpha> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
 impl<C, A> From<Rgb<C, A>> for i32
     where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
 {

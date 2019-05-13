@@ -4,6 +4,7 @@
 //
 use std::convert::TryFrom;
 use crate::{Ch8, Ch16, Format};
+use crate::{Alpha, Channel, Gray, Rgb};
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
@@ -11,7 +12,7 @@ use crate::{Ch8, Ch16, Format};
 /// use pix::{Raster, Rgb, Rgb8};
 /// let clr: Rgb8 = Rgb::new(0xFF, 0x88, 0x00);
 /// let mut raster: Raster<Rgb8> = Raster::new(10, 10);
-/// raster.set_rect(2, 4, 3, 3, clr);
+/// raster.set_region((2, 4, 3, 3), clr);
 /// ```
 #[derive(Clone, Debug)]
 pub struct Raster<F: Format> {
@@ -20,7 +21,30 @@ pub struct Raster<F: Format> {
     pixels : Box<[F]>,
 }
 
-/// Raster location and dimensions
+/// Iterator for pixels within a [Raster](struct.Raster.html).
+pub struct RasterIter<'a, F: Format> {
+    raster: &'a Raster<F>,
+    left: u32,
+    right: u32,
+    bottom: u32,
+    x: u32,
+    y: u32,
+}
+
+/// Location / dimensions of pixels relative to a [Raster](struct.Raster.html).
+///
+/// ### Create directly
+/// ```
+/// # use pix::*;
+/// let r0 = Region::new(80, 20, 120, 280);
+/// let r1 = r0.intersection((50, 40, 360, 240));
+/// ```
+/// ### Create from Raster
+/// ```
+/// # use pix::*;
+/// let r: Raster<Rgb8> = Raster::new(100, 100);
+/// let reg = r.region(); // (0, 0, 100, 100)
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Region {
     x: i32,
@@ -40,6 +64,17 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
     /// Get internal pixel data as `Vec` of pixels.
     fn into(self) -> Vec<F> {
         self.pixels.into()
+    }
+}
+
+impl<C, H, A, B> From<Raster<Gray<H, B>>> for Raster<Rgb<C, A>>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    fn from(s: Raster<Gray<H, B>>) -> Self {
+        let mut r: Self = Raster::new(s.width(), s.height());
+        let reg = r.region();
+        r.set_region(reg, s.region_iter(reg));
+        r
     }
 }
 
@@ -82,7 +117,7 @@ impl<F: Format> Raster<F> {
     /// let p = vec![Rgb8::new(255, 0, 255); 16];   // vec of magenta pix
     /// let mut r = Raster::with_pixels(4, 4, p);   // convert to raster
     /// let clr: Rgb8 = Rgb::new(0x00, 0xFF, 0x00); // green
-    /// r.set_rect(2, 0, 1, 3, clr);                // make stripe
+    /// r.set_region((2, 0, 1, 3), clr);            // make stripe
     /// let p2 = Into::<Vec<Rgb8>>::into(r);        // convert back to vec
     /// ```
     pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Self
@@ -124,7 +159,7 @@ impl<F: Format> Raster<F> {
     /// * `F` Pixel [Format](trait.Format.html).
     /// * `width` Width in pixels.
     /// * `height` Height in pixels.
-    /// * `buffer` Buffer of pixel data.
+    /// * `buffer` Buffer of pixel data (in native-endian byte order).
     ///
     /// # Panics
     ///
@@ -163,6 +198,66 @@ impl<F: Format> Raster<F> {
     pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P) where F: From<P> {
         let row = &mut self.as_slice_row_mut(y);
         row[x as usize] = p.into();
+    }
+    /// Clear all pixels to [Format](trait.Format.html) default.
+    pub fn clear(&mut self) {
+        for p in self.pixels.iter_mut() {
+            *p = F::default();
+        }
+    }
+    /// Get Region of entire Raster.
+    pub fn region(&self) -> Region {
+        Region::new(0, 0, self.width(), self.height())
+    }
+    /// Get an iterator of pixels.
+    ///
+    /// * `reg` Region within raster.
+    pub fn region_iter<R>(&self, reg: R) -> RasterIter<F>
+        where R: Into<Region>
+    {
+        RasterIter::new(self, reg.into())
+    }
+    /// Set a region using a pixel iterator.
+    ///
+    /// * `reg` Region within raster.
+    /// * `it` Iterator of pixels in region.
+    ///
+    /// ### Set rectangle to solid color
+    /// ```
+    /// # use pix::*;
+    /// let mut raster: Raster<Rgb8> = Raster::new(100, 100);
+    /// let clr: Rgb8 = Rgb::new(0xDD, 0x96, 0x70);
+    /// raster.set_region((20, 40, 25, 50), clr);
+    /// ```
+    /// ### Copy part of one raster to another, converting pixel format
+    /// ```
+    /// # use pix::*;
+    /// let mut rgb: Raster<Rgb8> = Raster::new(100, 100);
+    /// let mut gray: Raster<Gray16> = Raster::new(50, 50);
+    /// // ... load image data
+    /// let src = gray.region().intersection((20, 10, 25, 25));
+    /// let dst = rgb.region().intersection((40, 40, 25, 25));
+    /// rgb.set_region(dst, gray.region_iter(src));
+    /// ```
+    pub fn set_region<R, I, P>(&mut self, reg: R, mut it: I)
+        where R: Into<Region>, I: Iterator<Item=P>, P: Format, F: From<P>
+    {
+        let reg = reg.into();
+        let x0 = if reg.x >= 0 { reg.x as u32 } else { self.width() };
+        let x1 = self.width().min(x0 + reg.width);
+        let (x0, x1) = (x0 as usize, x1 as usize);
+        let y0 = if reg.y >= 0 { reg.y as u32 } else { self.height() };
+        let y1 = self.height().min(y0 + reg.height);
+        if y0 < y1 && x0 < x1 {
+            for yi in y0..y1 {
+                let row = self.as_slice_row_mut(yi);
+                for x in x0..x1 {
+                    if let Some(p) = it.next() {
+                        row[x] = p.into();
+                    }
+                }
+            }
+        }
     }
     /// Get view of pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
@@ -209,62 +304,80 @@ impl<F: Format> Raster<F> {
     fn u8_slice_mut(pix: &mut [F]) -> &mut [u8] {
         unsafe { pix.align_to_mut::<u8>().1 }
     }
-    /// Clear all pixels.
-    pub fn clear(&mut self) {
-        for p in self.pixels.iter_mut() {
-            *p = F::default();
-        }
-    }
-    /// Set a rectangle to specified color.
+}
+
+impl<'a, F: Format> RasterIter<'a, F> {
+    /// Create a new raster pixel iterator
     ///
-    /// * `x` Left position of rectangle.
-    /// * `y` Top position of rectangle.
-    /// * `w` Width of rectangle.
-    /// * `h` Height of rectangle.
-    /// * `clr` Color to set.
-    pub fn set_rect<P>(&mut self, x: u32, y: u32, w: u32, h: u32, clr: P)
-        where F: From<P>
-    {
-        let clr = clr.into();
-        if y < self.height() && x < self.width() {
-            let xm = self.width.min(x + w) as usize;
-            let x = x as usize;
-            let ym = self.height.min(y + h);
-            for yi in y..ym {
-                self.as_slice_row_mut(yi)[x..xm]
-                    .iter_mut()
-                    .for_each(|p| *p = clr);
+    /// * `region` Region of pixels to iterate.
+    fn new(raster: &'a Raster<F>, region: Region) -> Self {
+        let y = u32::try_from(region.y).unwrap_or(0);
+        let bottom = u32::try_from(region.bottom()).unwrap_or(0);
+        let x = u32::try_from(region.x).unwrap_or(0);
+        let right = u32::try_from(region.right()).unwrap_or(0);
+        let left = x;
+        RasterIter { raster, left, right, bottom, x, y }
+    }
+}
+
+impl<'a, F: Format> Iterator for RasterIter<'a, F> {
+    type Item = F;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.x >= self.right {
+            self.x = self.left;
+            self.y += 1;
+            if self.y >= self.bottom {
+                return None;
             }
         }
+        let p = self.raster.pixel(self.x, self.y);
+        self.x += 1;
+        Some(p)
+    }
+}
+
+impl From<(i32, i32, u32, u32)> for Region {
+    fn from(r: (i32, i32, u32, u32)) -> Self {
+        Region::new(r.0, r.1, r.2, r.3)
     }
 }
 
 impl Region {
-    /// Create a new raster region
+    /// Create a new region
     pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
         Region { x, y, width, height }
     }
     /// Get intersection with another region
-    pub fn intersection(self, rhs: Self) -> Option<Self> {
-        let x = self.x.max(rhs.x);
-        let x1 = self.right()?.min(rhs.right()?);
-        let y = self.y.max(rhs.y);
-        let y1 = self.bottom()?.min(rhs.bottom()?);
-        if x < x1 && y < y1 {
-            let width = u32::try_from(x1 - x).ok()?;
-            let height = u32::try_from(y1 - y).ok()?;
-            Some(Region::new(x, y, width, height))
-        } else {
-            None
-        }
+    pub fn intersection<R>(self, rhs: R) -> Self
+        where R: Into<Self>
+    {
+        let rhs = rhs.into();
+        let x0 = self.x.max(rhs.x);
+        let x1 = self.right().min(rhs.right());
+        let w = (x1 - x0) as u32;
+        let y0 = self.y.max(rhs.y);
+        let y1 = self.bottom().min(rhs.bottom());
+        let h = (y1 - y0) as u32;
+        Region::new(x0, y0, w, h)
     }
     /// Get right side
-    fn right(self) -> Option<i32> {
-        Some(self.x + i32::try_from(self.width).ok()?)
+    fn right(self) -> i32 {
+        let x = i64::from(self.x) + i64::from(self.width);
+        if x < std::i32::MAX.into() {
+            x as i32
+        } else {
+            self.x
+        }
     }
     /// Get bottom side
-    fn bottom(self) -> Option<i32> {
-        Some(self.y + i32::try_from(self.height).ok()?)
+    fn bottom(self) -> i32 {
+        let y = i64::from(self.y) + i64::from(self.height);
+        if y < std::i32::MAX.into() {
+            y as i32
+        } else {
+            self.y
+        }
     }
 }
 
@@ -312,7 +425,7 @@ mod test {
         ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
         let mut r = Raster::<Mask32>::with_pixels(4, 4, p);
         let clr = Mask::new(Ch32::new(0.05));
-        r.set_rect(1, 1, 2, 2, clr);
+        r.set_region((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
             0.25, 0.5, 0.75, 1.0,
             0.5,  0.05, 0.05, 0.8,
@@ -326,7 +439,7 @@ mod test {
     fn rgb8() {
         let mut r = Raster::<Rgb8>::new(4, 4);
         let rgb: Rgb8 = Rgb::new(0xCC, 0xAA, 0xBB);
-        r.set_rect(1, 1, 2, 2, rgb);
+        r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
             0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
@@ -338,9 +451,9 @@ mod test {
     #[test]
     fn gray8() {
         let mut r = Raster::<Gray8>::new(4, 4);
-        r.set_rect(0, 0, 1, 1, Gray::from(0x23));
-        r.set_rect(10, 10, 1, 1, Gray::from(0x45));
-        r.set_rect(2, 2, 10, 10, 0xBB);
+        r.set_region((0, 0, 1, 1), Gray::from(0x23));
+        r.set_region((10, 10, 1, 1), Gray::from(0x45));
+        r.set_region((2, 2, 10, 10), Gray::from(0xBB));
         let v = vec![
             0x23,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00,
@@ -358,7 +471,7 @@ mod test {
         ];
         let mut r = Raster::<Rgb8>::with_u8_buffer(3, 3, b);
         let rgb: Rgb8 = Rgb::new(0x12, 0x34, 0x56);
-        r.set_rect(0, 1, 2, 1, rgb);
+        r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
             0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
             0x12,0x34,0x56, 0x12,0x34,0x56, 0x99,0xAA,0xBB,
@@ -374,14 +487,26 @@ mod test {
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
         let mut r = Raster::<GrayAlpha16>::with_u16_buffer(3, 3, b);
-        let c = Gray::new(0x4444);
-        r.set_rect(1, 0, 2, 2, c);
+        r.set_region((1, 0, 2, 2), Gray::new(0x4444));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
         ];
         // FIXME: this will fail on big-endian archs
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn conversion() {
+        let mut r: Raster<Gray8> = Raster::new(3, 3);
+        r.set_region((2, 0, 4, 2), Gray::new(0x45));
+        r.set_region((0, 2, 2, 10), Gray::new(0xDA));
+        let r: Raster<Rgb8> = r.into();
+        let v = vec![
+            0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
+            0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
+            0xDA,0xDA,0xDA, 0xDA,0xDA,0xDA, 0x00,0x00,0x00,
+        ];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
@@ -392,14 +517,14 @@ mod test {
     fn intersect() -> Result<(), ()> {
         let r = Region::new(0, 0, 5, 5);
         assert_eq!(r, Region::new(0, 0, 5, 5));
-        assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)).ok_or(())?);
-        assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)).ok_or(())?);
+        assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)));
+        assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)));
         assert_eq!(Region::new(0, 0, 4, 4), r.intersection(
-            Region::new(-1, -1, 5, 5)).ok_or(())?);
+            Region::new(-1, -1, 5, 5)));
         assert_eq!(Region::new(1, 2, 1, 3), r.intersection(
-            Region::new(1, 2, 1, 100)).ok_or(())?);
+            Region::new(1, 2, 1, 100)));
         assert_eq!(Region::new(2, 1, 3, 1), r.intersection(
-            Region::new(2, 1, 100, 1)).ok_or(())?);
+            Region::new(2, 1, 100, 1)));
         Ok(())
     }
 }

@@ -14,6 +14,14 @@ pub struct Mask<C: Channel, A: Alpha> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
 impl<C, A> From<u8> for Mask<C, A>
     where C: Channel, A: Alpha, A: From<Ch8>
 {
