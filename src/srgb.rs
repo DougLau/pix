@@ -18,6 +18,14 @@ pub struct Srgb<C: Channel, A: Alpha> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha> Iterator for Srgb<C, A> {
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
 impl<C, H, A, B> From<Rgb<H, B>> for Srgb<C, A>
     where C: Channel, C: From<H>, H: Channel, A: Alpha<Chan=C>, A: From<B>,
           B: Alpha
