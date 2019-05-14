@@ -103,6 +103,11 @@ impl<C> From<u8> for Translucent<C> where C: Channel, C: From<u8> {
         Translucent::new(value.into())
     }
 }
+impl<C> From<u16> for Translucent<C> where C: Channel, C: From<u16> {
+    fn from(value: u16) -> Self {
+        Translucent::new(value.into())
+    }
+}
 impl From<Translucent<Ch16>> for Translucent<Ch8> {
     fn from(t: Translucent<Ch16>) -> Self {
         Translucent::new(t.value.into())

@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Rgb, Translucent};
+use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Gray, Rgb, Translucent};
 use std::marker::PhantomData;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
@@ -84,6 +84,27 @@ impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
         let v = C::MAX;
         let a = A::from(c.alpha());
         Rgb::with_alpha(v, v, v, a)
+    }
+}
+
+impl<C, H, A, B> From<Gray<H, B>> for Mask<C, A>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    /// Get a Mask from a Gray
+    fn from(c: Gray<H, B>) -> Self {
+        let a = A::from(c.alpha());
+        Mask::new(a)
+    }
+}
+
+impl<C, H, A, B> From<Mask<H, B>> for Gray<C, A>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    /// Get a Gray from a Mask
+    fn from(c: Mask<H, B>) -> Self {
+        let v = C::MAX;
+        let a = A::from(c.alpha());
+        Gray::with_alpha(v, a)
     }
 }
 

@@ -4,7 +4,7 @@
 //
 use std::convert::TryFrom;
 use crate::{Ch8, Ch16, Format};
-use crate::{Alpha, Channel, Gray, Rgb};
+use crate::{Alpha, Channel, Gray, Mask, Rgb};
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
@@ -90,7 +90,44 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
 impl<C, H, A, B> From<Raster<Gray<H, B>>> for Raster<Rgb<C, A>>
     where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {
+    /// Convert a Gray Raster into an Rgb Raster
     fn from(s: Raster<Gray<H, B>>) -> Self {
+        let mut r: Self = Raster::new(s.width(), s.height());
+        let reg = r.region();
+        r.set_region(reg, s.region_iter(reg));
+        r
+    }
+}
+
+impl<C, H, A, B> From<Raster<Rgb<H, B>>> for Raster<Gray<C, A>>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    /// Convert an Rgb Raster into a Gray Raster
+    fn from(s: Raster<Rgb<H, B>>) -> Self {
+        let mut r: Self = Raster::new(s.width(), s.height());
+        let reg = r.region();
+        r.set_region(reg, s.region_iter(reg));
+        r
+    }
+}
+
+impl<C, H, A, B> From<Raster<Gray<H, B>>> for Raster<Mask<C, A>>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    /// Convert a Gray Raster into a Mask Raster
+    fn from(s: Raster<Gray<H, B>>) -> Self {
+        let mut r: Self = Raster::new(s.width(), s.height());
+        let reg = r.region();
+        r.set_region(reg, s.region_iter(reg));
+        r
+    }
+}
+
+impl<C, H, A, B> From<Raster<Mask<H, B>>> for Raster<Gray<C, A>>
+    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
+{
+    /// Convert a Mask Raster into a Gray Raster
+    fn from(s: Raster<Mask<H, B>>) -> Self {
         let mut r: Self = Raster::new(s.width(), s.height());
         let reg = r.region();
         r.set_region(reg, s.region_iter(reg));
@@ -518,15 +555,54 @@ mod test {
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
-    fn conversion() {
+    fn gray_to_rgb() {
         let mut r: Raster<Gray8> = Raster::new(3, 3);
-        r.set_region((2, 0, 4, 2), Gray::new(0x45));
-        r.set_region((0, 2, 2, 10), Gray::new(0xDA));
+        r.set_region((2, 0, 4, 2), Gray8::new(0x45));
+        r.set_region((0, 2, 2, 10), Gray8::new(0xDA));
         let r: Raster<Rgb8> = r.into();
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
             0xDA,0xDA,0xDA, 0xDA,0xDA,0xDA, 0x00,0x00,0x00,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn rgb_to_gray() {
+        let mut r: Raster<Rgb16> = Raster::new(3, 3);
+        r.set_region((1, 0, 4, 2), Rgb16::new(0x4321, 0x9085, 0x5543));
+        r.set_region((0, 1, 1, 10), Rgb16::new(0x5768, 0x4091, 0x5000));
+        let r: Raster<Gray8> = r.into();
+        let v = vec![
+            0x00, 0x90, 0x90,
+            0x57, 0x90, 0x90,
+            0x57, 0x00, 0x00,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn gray_to_mask() {
+        let mut r: Raster<GrayAlpha8> = Raster::new(3, 3);
+        r.set_region((0, 1, 2, 8), GrayAlpha8::with_alpha(0x67, 0x94));
+        r.set_region((2, 0, 1, 10), GrayAlpha8::with_alpha(0xBA, 0xA2));
+        let r: Raster<Mask16> = r.into();
+        let v = vec![
+            0x00, 0x00, 0x00, 0x00, 0xA2, 0xA2,
+            0x94, 0x94, 0x94, 0x94, 0xA2, 0xA2,
+            0x94, 0x94, 0x94, 0x94, 0xA2, 0xA2,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn mask_to_gray() {
+        let mut r: Raster<Mask16> = Raster::new(3, 3);
+        r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
+        r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
+        let r: Raster<GrayAlpha8> = r.into();
+        let v = vec![
+            0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x98,
+            0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
+            0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
         ];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
