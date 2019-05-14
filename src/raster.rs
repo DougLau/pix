@@ -22,6 +22,26 @@ pub struct Raster<F: Format> {
 }
 
 /// Iterator for pixels within a [Raster](struct.Raster.html).
+///
+/// Use Raster::[region_iter](struct.Raster.html#method.region_iter) to
+/// create.
+///
+/// ### All pixels in a Raster
+/// ```
+/// # use pix::*;
+/// let mut mask: Raster<Mask8> = Raster::new(32, 32);
+/// // ... set mask data
+/// let it = mask.region_iter(mask.region());
+/// ```
+///
+/// ### Iterator of Region within a Raster
+/// ```
+/// # use pix::*;
+/// let mut gray: Raster<GrayAlpha16> = Raster::new(40, 40);
+/// // ... load raster data
+/// let region = gray.region().intersection((20, 20, 10, 10));
+/// let it = gray.region_iter(region);
+/// ```
 pub struct RasterIter<'a, F: Format> {
     raster: &'a Raster<F>,
     left: u32,
@@ -310,6 +330,7 @@ impl<'a, F: Format> RasterIter<'a, F> {
     /// Create a new raster pixel iterator
     ///
     /// * `region` Region of pixels to iterate.
+    ///
     fn new(raster: &'a Raster<F>, region: Region) -> Self {
         let y = u32::try_from(region.y).unwrap_or(0);
         let bottom = u32::try_from(region.bottom()).unwrap_or(0);
