@@ -42,31 +42,51 @@ impl<C, A> From<Rgb<C, A>> for i32
     }
 }
 
-impl<C, H> From<Rgb<H, Translucent<H>>> for Rgb<C, Opaque<C>>
-    where C: Channel, C: From<H>, H: Channel
-{
-    /// Get an Opaque Rgb from a Translucent Rgb
-    fn from(c: Rgb<H, Translucent<H>>) -> Self {
-        let red = C::from(c.red());
-        let green = C::from(c.green());
-        let blue = C::from(c.blue());
-        let a = C::from(c.alpha().value());
-        Rgb::new(red / a, green / a, blue / a)
-    }
+/// Convert an Rgb to another Rgb with a different Channel
+macro_rules! from_impl_rgb {
+    ( $c:tt, $h:tt ) => {
+        impl<A, B> From<Rgb<$h, B>> for Rgb<$c, A>
+            where A: Alpha, B: Alpha, A: From<B>
+        {
+            fn from(c: Rgb<$h, B>) -> Self {
+                let red = c.red().into();
+                let green = c.green().into();
+                let blue = c.blue().into();
+                let alpha = c.alpha().into();
+                Rgb { red, green, blue, alpha }
+            }
+        }
+    };
 }
 
-impl<C, H> From<Rgb<H, Opaque<H>>> for Rgb<C, Translucent<C>>
-    where C: Channel, C: From<H>, H: Channel, Translucent<C>: From<Opaque<H>>
-{
-    /// Get a Translucent Rgb from an Opaque Rgb
-    fn from(c: Rgb<H, Opaque<H>>) -> Self {
-        let red = C::from(c.red());
-        let green = C::from(c.green());
-        let blue = C::from(c.blue());
-        let alpha = Translucent::<C>::from(c.alpha());
-        Rgb::with_alpha(red, green, blue, alpha)
-    }
+from_impl_rgb!(Ch8, Ch16);
+from_impl_rgb!(Ch8, Ch32);
+from_impl_rgb!(Ch16, Ch8);
+from_impl_rgb!(Ch16, Ch32);
+from_impl_rgb!(Ch32, Ch8);
+from_impl_rgb!(Ch32, Ch16);
+
+/// Convert an Rgb to another Rgb with a different Alpha
+macro_rules! from_impl_alpha {
+    ( $c:tt, $s:tt, $d:tt ) => {
+        impl From<Rgb<$c, $s<$c>>> for Rgb<$c, $d<$c>> {
+            fn from(c: Rgb<$c, $s<$c>>) -> Self {
+                let red = c.red().into();
+                let green = c.green().into();
+                let blue = c.blue().into();
+                let alpha = c.alpha().into();
+                Rgb { red, green, blue, alpha }
+            }
+        }
+    };
 }
+
+from_impl_alpha!(Ch8, Translucent, Opaque);
+from_impl_alpha!(Ch16, Translucent, Opaque);
+from_impl_alpha!(Ch32, Translucent, Opaque);
+from_impl_alpha!(Ch8, Opaque, Translucent);
+from_impl_alpha!(Ch16, Opaque, Translucent);
+from_impl_alpha!(Ch32, Opaque, Translucent);
 
 impl<C: Channel, A: Alpha> Rgb<C, A> {
     /// Build a color by specifying red, green and blue values.

@@ -67,6 +67,25 @@ impl<C, A> From<f32> for Mask<C, A>
     }
 }
 
+macro_rules! from_impl_mask {
+    ( $c:tt, $h:tt ) => {
+        impl<A, B> From<Mask<$h, B>> for Mask<$c, A>
+            where A: Alpha, B: Alpha, A: From<B>
+        {
+            fn from(c: Mask<$h, B>) -> Self {
+                Mask::new(c.alpha().into())
+            }
+        }
+    }
+}
+
+from_impl_mask!(Ch8, Ch16);
+from_impl_mask!(Ch8, Ch32);
+from_impl_mask!(Ch16, Ch8);
+from_impl_mask!(Ch16, Ch32);
+from_impl_mask!(Ch32, Ch8);
+from_impl_mask!(Ch32, Ch16);
+
 impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
     where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
 {

@@ -4,14 +4,13 @@
 //
 use std::convert::TryFrom;
 use crate::{Ch8, Ch16, Format};
-use crate::{Alpha, Channel, Gray, Mask, Rgb};
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
 /// ```
-/// use pix::{Raster, Rgb, Rgb8};
-/// let clr: Rgb8 = Rgb::new(0xFF, 0x88, 0x00);
-/// let mut raster: Raster<Rgb8> = Raster::new(10, 10);
+/// # use pix::*;
+/// let clr = Rgb8::new(0xFF, 0x88, 0x00);
+/// let mut raster = Raster::<Rgb8>::new(10, 10);
 /// raster.set_region((2, 4, 3, 3), clr);
 /// ```
 #[derive(Clone, Debug)]
@@ -29,7 +28,7 @@ pub struct Raster<F: Format> {
 /// ### All pixels in a Raster
 /// ```
 /// # use pix::*;
-/// let mut mask: Raster<Mask8> = Raster::new(32, 32);
+/// let mut mask = Raster::<Mask8>::new(32, 32);
 /// // ... set mask data
 /// let it = mask.region_iter(mask.region());
 /// ```
@@ -37,7 +36,7 @@ pub struct Raster<F: Format> {
 /// ### Iterator of Region within a Raster
 /// ```
 /// # use pix::*;
-/// let mut gray: Raster<GrayAlpha16> = Raster::new(40, 40);
+/// let mut gray = Raster::<GrayAlpha16>::new(40, 40);
 /// // ... load raster data
 /// let region = gray.region().intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
@@ -62,7 +61,7 @@ pub struct RasterIter<'a, F: Format> {
 /// ### Create from Raster
 /// ```
 /// # use pix::*;
-/// let r: Raster<Rgb8> = Raster::new(100, 100);
+/// let r = Raster::<Rgb8>::new(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -87,54 +86,6 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
     }
 }
 
-impl<C, H, A, B> From<Raster<Gray<H, B>>> for Raster<Rgb<C, A>>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Convert a Gray Raster into an Rgb Raster
-    fn from(s: Raster<Gray<H, B>>) -> Self {
-        let mut r: Self = Raster::new(s.width(), s.height());
-        let reg = r.region();
-        r.set_region(reg, s.region_iter(reg));
-        r
-    }
-}
-
-impl<C, H, A, B> From<Raster<Rgb<H, B>>> for Raster<Gray<C, A>>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Convert an Rgb Raster into a Gray Raster
-    fn from(s: Raster<Rgb<H, B>>) -> Self {
-        let mut r: Self = Raster::new(s.width(), s.height());
-        let reg = r.region();
-        r.set_region(reg, s.region_iter(reg));
-        r
-    }
-}
-
-impl<C, H, A, B> From<Raster<Gray<H, B>>> for Raster<Mask<C, A>>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Convert a Gray Raster into a Mask Raster
-    fn from(s: Raster<Gray<H, B>>) -> Self {
-        let mut r: Self = Raster::new(s.width(), s.height());
-        let reg = r.region();
-        r.set_region(reg, s.region_iter(reg));
-        r
-    }
-}
-
-impl<C, H, A, B> From<Raster<Mask<H, B>>> for Raster<Gray<C, A>>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Convert a Mask Raster into a Gray Raster
-    fn from(s: Raster<Mask<H, B>>) -> Self {
-        let mut r: Self = Raster::new(s.width(), s.height());
-        let reg = r.region();
-        r.set_region(reg, s.region_iter(reg));
-        r
-    }
-}
-
 impl<F: Format> Raster<F> {
     /// Create a new empty raster image.
     ///
@@ -145,10 +96,10 @@ impl<F: Format> Raster<F> {
     /// ## Examples
     /// ```
     /// use pix::*;
-    /// let r1: Raster<Gray8> = Raster::new(20, 20);
-    /// let r2: Raster<Mask8> = Raster::new(64, 64);
-    /// let r3: Raster<Rgb16> = Raster::new(10, 10);
-    /// let r4: Raster<GrayAlpha32> = Raster::new(100, 150);
+    /// let r1 = Raster::<Gray8>::new(20, 20);
+    /// let r2 = Raster::<Mask8>::new(64, 64);
+    /// let r3 = Raster::<Rgb16>::new(10, 10);
+    /// let r4 = Raster::<GrayAlpha32>::new(100, 150);
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
         let len = (width * height) as usize;
@@ -173,7 +124,7 @@ impl<F: Format> Raster<F> {
     /// use pix::*;
     /// let p = vec![Rgb8::new(255, 0, 255); 16];   // vec of magenta pix
     /// let mut r = Raster::with_pixels(4, 4, p);   // convert to raster
-    /// let clr: Rgb8 = Rgb::new(0x00, 0xFF, 0x00); // green
+    /// let clr = Rgb8::new(0x00, 0xFF, 0x00);      // green
     /// r.set_region((2, 0, 1, 3), clr);            // make stripe
     /// let p2 = Into::<Vec<Rgb8>>::into(r);        // convert back to vec
     /// ```
@@ -282,15 +233,15 @@ impl<F: Format> Raster<F> {
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
-    /// let mut raster: Raster<Rgb8> = Raster::new(100, 100);
-    /// let clr: Rgb8 = Rgb::new(0xDD, 0x96, 0x70);
+    /// let mut raster = Raster::<Rgb8>::new(100, 100);
+    /// let clr = Rgb8::new(0xDD, 0x96, 0x70);
     /// raster.set_region((20, 40, 25, 50), clr);
     /// ```
     /// ### Copy part of one raster to another, converting pixel format
     /// ```
     /// # use pix::*;
-    /// let mut rgb: Raster<Rgb8> = Raster::new(100, 100);
-    /// let mut gray: Raster<Gray16> = Raster::new(50, 50);
+    /// let mut rgb = Raster::<Rgb8>::new(100, 100);
+    /// let mut gray = Raster::<Gray16>::new(50, 50);
     /// // ... load image data
     /// let src = gray.region().intersection((20, 10, 25, 25));
     /// let dst = rgb.region().intersection((40, 40, 25, 25));
@@ -299,6 +250,7 @@ impl<F: Format> Raster<F> {
     pub fn set_region<R, I, P>(&mut self, reg: R, mut it: I)
         where R: Into<Region>, I: Iterator<Item=P>, P: Format, F: From<P>
     {
+        // FIXME: src/dst regions must have same shape!
         let reg = reg.into();
         let x0 = if reg.x >= 0 { reg.x as u32 } else { self.width() };
         let x1 = self.width().min(x0 + reg.width);
@@ -361,13 +313,31 @@ impl<F: Format> Raster<F> {
     fn u8_slice_mut(pix: &mut [F]) -> &mut [u8] {
         unsafe { pix.align_to_mut::<u8>().1 }
     }
+    /// Make a copy with a specified pixel format.
+    ///
+    /// * `P` Pixel format of new Raster.
+    ///
+    /// ### Convert from Rgb8 to Rgba16
+    /// ```
+    /// # use pix::*;
+    /// let mut r0 = Raster::<Rgb8>::new(50, 50);
+    /// // load pixels into raster
+    /// let r1: Raster<Rgba16> = r0.to_raster();
+    /// ```
+    pub fn to_raster<P>(&self) -> Raster<P>
+        where P: Format, P: From<F>
+    {
+        let mut r = Raster::new(self.width(), self.height());
+        let reg = self.region();
+        r.set_region(reg, self.region_iter(reg));
+        r
+    }
 }
 
 impl<'a, F: Format> RasterIter<'a, F> {
-    /// Create a new raster pixel iterator
+    /// Create a new Raster pixel iterator
     ///
     /// * `region` Region of pixels to iterate.
-    ///
     fn new(raster: &'a Raster<F>, region: Region) -> Self {
         let y = u32::try_from(region.y).unwrap_or(0);
         let bottom = u32::try_from(region.bottom()).unwrap_or(0);
@@ -402,11 +372,11 @@ impl From<(i32, i32, u32, u32)> for Region {
 }
 
 impl Region {
-    /// Create a new region
+    /// Create a new Region
     pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
         Region { x, y, width, height }
     }
-    /// Get intersection with another region
+    /// Get intersection with another Region
     pub fn intersection<R>(self, rhs: R) -> Self
         where R: Into<Self>
     {
@@ -482,7 +452,7 @@ mod test {
             1.0,  0.75, 0.5, 0.25,
         ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
         let mut r = Raster::<Mask32>::with_pixels(4, 4, p);
-        let clr = Mask::new(Ch32::new(0.05));
+        let clr = Mask32::new(Ch32::new(0.05));
         r.set_region((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
             0.25, 0.5, 0.75, 1.0,
@@ -496,7 +466,7 @@ mod test {
     #[test]
     fn rgb8() {
         let mut r = Raster::<Rgb8>::new(4, 4);
-        let rgb: Rgb8 = Rgb::new(0xCC, 0xAA, 0xBB);
+        let rgb = Rgb8::new(0xCC, 0xAA, 0xBB);
         r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
@@ -528,7 +498,7 @@ mod test {
             0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
         ];
         let mut r = Raster::<Rgb8>::with_u8_buffer(3, 3, b);
-        let rgb: Rgb8 = Rgb::new(0x12, 0x34, 0x56);
+        let rgb = Rgb8::new(0x12, 0x34, 0x56);
         r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
             0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
@@ -556,10 +526,10 @@ mod test {
     }
     #[test]
     fn gray_to_rgb() {
-        let mut r: Raster<Gray8> = Raster::new(3, 3);
+        let mut r = Raster::<Gray8>::new(3, 3);
         r.set_region((2, 0, 4, 2), Gray8::new(0x45));
         r.set_region((0, 2, 2, 10), Gray8::new(0xDA));
-        let r: Raster<Rgb8> = r.into();
+        let r: Raster<Rgb8> = r.to_raster();
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
@@ -569,10 +539,10 @@ mod test {
     }
     #[test]
     fn rgb_to_gray() {
-        let mut r: Raster<Rgb16> = Raster::new(3, 3);
+        let mut r = Raster::<Rgb16>::new(3, 3);
         r.set_region((1, 0, 4, 2), Rgb16::new(0x4321, 0x9085, 0x5543));
         r.set_region((0, 1, 1, 10), Rgb16::new(0x5768, 0x4091, 0x5000));
-        let r: Raster<Gray8> = r.into();
+        let r: Raster<Gray8> = r.to_raster();
         let v = vec![
             0x00, 0x90, 0x90,
             0x57, 0x90, 0x90,
@@ -582,10 +552,10 @@ mod test {
     }
     #[test]
     fn gray_to_mask() {
-        let mut r: Raster<GrayAlpha8> = Raster::new(3, 3);
+        let mut r = Raster::<GrayAlpha8>::new(3, 3);
         r.set_region((0, 1, 2, 8), GrayAlpha8::with_alpha(0x67, 0x94));
         r.set_region((2, 0, 1, 10), GrayAlpha8::with_alpha(0xBA, 0xA2));
-        let r: Raster<Mask16> = r.into();
+        let r: Raster<Mask16> = r.to_raster();
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0xA2, 0xA2,
             0x94, 0x94, 0x94, 0x94, 0xA2, 0xA2,
@@ -595,16 +565,59 @@ mod test {
     }
     #[test]
     fn mask_to_gray() {
-        let mut r: Raster<Mask16> = Raster::new(3, 3);
+        let mut r = Raster::<Mask16>::new(3, 3);
         r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
         r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
-        let r: Raster<GrayAlpha8> = r.into();
+        let r: Raster<GrayAlpha8> = r.to_raster();
         let v = vec![
             0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x98,
             0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
             0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
         ];
         assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
+    fn from_rgb8() {
+        let r = Raster::<Rgb8>::new(50, 50);
+        let _: Raster<Rgb16> = r.to_raster();
+        let _: Raster<Rgb32> = r.to_raster();
+        let _: Raster<Rgba8> = r.to_raster();
+        let _: Raster<Rgba16> = r.to_raster();
+        let _: Raster<Rgba32> = r.to_raster();
+        let _: Raster<Gray8> = r.to_raster();
+        let _: Raster<Gray16> = r.to_raster();
+        let _: Raster<Gray32> = r.to_raster();
+        let _: Raster<GrayAlpha8> = r.to_raster();
+        let _: Raster<GrayAlpha16> = r.to_raster();
+        let _: Raster<GrayAlpha32> = r.to_raster();
+        let _: Raster<Mask8> = r.to_raster();
+        let _: Raster<Mask16> = r.to_raster();
+        let _: Raster<Mask32> = r.to_raster();
+        let _: Raster<Srgb8> = r.to_raster();
+        let _: Raster<Srgb16> = r.to_raster();
+        let _: Raster<Srgb32> = r.to_raster();
+        let _: Raster<Srgba8> = r.to_raster();
+        let _: Raster<Srgba16> = r.to_raster();
+        let _: Raster<Srgba32> = r.to_raster();
+    }
+    #[test]
+    fn from_mask8() {
+        let r = Raster::<Mask8>::new(50, 50);
+        let _: Raster<Rgb8> = r.to_raster();
+        let _: Raster<Rgb16> = r.to_raster();
+        let _: Raster<Rgb32> = r.to_raster();
+        let _: Raster<Rgba8> = r.to_raster();
+        let _: Raster<Rgba16> = r.to_raster();
+        let _: Raster<Rgba32> = r.to_raster();
+        let _: Raster<Gray8> = r.to_raster();
+        let _: Raster<Gray16> = r.to_raster();
+        let _: Raster<Gray32> = r.to_raster();
+        let _: Raster<GrayAlpha8> = r.to_raster();
+        let _: Raster<GrayAlpha16> = r.to_raster();
+        let _: Raster<GrayAlpha32> = r.to_raster();
+        let _: Raster<Mask8> = r.to_raster();
+        let _: Raster<Mask16> = r.to_raster();
+        let _: Raster<Mask32> = r.to_raster();
     }
     #[test]
     fn region_size() {

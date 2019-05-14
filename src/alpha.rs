@@ -32,26 +32,21 @@ pub struct Opaque<C> {
     value: PhantomData<C>,
 }
 
-// FIXME: is there a way to avoid all this duplication without overlapping
-//        implicit From<Opaque<C>> for Opaque<C> ?   Macros?
-impl From<Opaque<Ch16>> for Opaque<Ch8> {
-    fn from(_: Opaque<Ch16>) -> Self { Opaque::default() }
+/// Convert an Opaque to another Opaque with a different Channel
+macro_rules! from_impl_opaque {
+    ( $s:tt, $d:tt ) => {
+        impl From<Opaque<$s>> for Opaque<$d> {
+            fn from(_: Opaque<$s>) -> Self { Opaque::default() }
+        }
+    };
 }
-impl From<Opaque<Ch32>> for Opaque<Ch8> {
-    fn from(_: Opaque<Ch32>) -> Self { Opaque::default() }
-}
-impl From<Opaque<Ch8>> for Opaque<Ch16> {
-    fn from(_: Opaque<Ch8>) -> Self { Opaque::default() }
-}
-impl From<Opaque<Ch32>> for Opaque<Ch16> {
-    fn from(_: Opaque<Ch32>) -> Self { Opaque::default() }
-}
-impl From<Opaque<Ch8>> for Opaque<Ch32> {
-    fn from(_: Opaque<Ch8>) -> Self { Opaque::default() }
-}
-impl From<Opaque<Ch16>> for Opaque<Ch32> {
-    fn from(_: Opaque<Ch16>) -> Self { Opaque::default() }
-}
+
+from_impl_opaque!(Ch8, Ch16);
+from_impl_opaque!(Ch8, Ch32);
+from_impl_opaque!(Ch16, Ch8);
+from_impl_opaque!(Ch16, Ch32);
+from_impl_opaque!(Ch32, Ch8);
+from_impl_opaque!(Ch32, Ch16);
 
 impl<C, A> From<Translucent<A>> for Opaque<C> where C: Channel, A: Channel {
     /// Convert from a translucent value.
@@ -97,7 +92,6 @@ impl<C, H> From<H> for Translucent<C>
     }
 }
 
-// FIXME: more duplication....
 impl<C> From<u8> for Translucent<C> where C: Channel, C: From<u8> {
     fn from(value: u8) -> Self {
         Translucent::new(value.into())
@@ -108,36 +102,24 @@ impl<C> From<u16> for Translucent<C> where C: Channel, C: From<u16> {
         Translucent::new(value.into())
     }
 }
-impl From<Translucent<Ch16>> for Translucent<Ch8> {
-    fn from(t: Translucent<Ch16>) -> Self {
-        Translucent::new(t.value.into())
-    }
+
+/// Convert a Translucent to another Translucent with a different Channel
+macro_rules! from_impl_translucent {
+    ( $s:tt, $d:tt ) => {
+        impl From<Translucent<$s>> for Translucent<$d> {
+            fn from(t: Translucent<$s>) -> Self {
+                Translucent::new(t.value.into())
+            }
+        }
+    };
 }
-impl From<Translucent<Ch32>> for Translucent<Ch8> {
-    fn from(t: Translucent<Ch32>) -> Self {
-        Translucent::new(t.value.into())
-    }
-}
-impl From<Translucent<Ch8>> for Translucent<Ch16> {
-    fn from(t: Translucent<Ch8>) -> Self {
-        Translucent::new(t.value.into())
-    }
-}
-impl From<Translucent<Ch32>> for Translucent<Ch16> {
-    fn from(t: Translucent<Ch32>) -> Self {
-        Translucent::new(t.value.into())
-    }
-}
-impl From<Translucent<Ch8>> for Translucent<Ch32> {
-    fn from(t: Translucent<Ch8>) -> Self {
-        Translucent::new(t.value.into())
-    }
-}
-impl From<Translucent<Ch16>> for Translucent<Ch32> {
-    fn from(t: Translucent<Ch16>) -> Self {
-        Translucent::new(t.value.into())
-    }
-}
+
+from_impl_translucent!(Ch8, Ch16);
+from_impl_translucent!(Ch8, Ch32);
+from_impl_translucent!(Ch16, Ch8);
+from_impl_translucent!(Ch16, Ch32);
+from_impl_translucent!(Ch32, Ch8);
+from_impl_translucent!(Ch32, Ch16);
 
 impl<C, A> From<Opaque<A>> for Translucent<C>
     where C: Channel, A: Channel

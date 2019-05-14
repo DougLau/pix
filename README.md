@@ -6,7 +6,6 @@ Currently a work-in-progress.
 [https://docs.rs/pix](https://docs.rs/pix)
 
 ## Future Plans
-* More conversions between pixel formats.
 * Gradient (linear, radial, etc) and GradientIter
 
 ### Color models / spaces

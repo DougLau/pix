@@ -2,7 +2,7 @@
 
 ### Added
 * RasterIter struct
-* Raster::region, region_iter, set_region methods
+* Raster::region, region_iter, set_region, to_raster methods
 * Gray, Mask, Rgb now implement Iterator (for use with set_region)
 ### Changed
 * Fixed bugs in channel conversions
