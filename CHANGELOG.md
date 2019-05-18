@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Added
+* RasterBuilder
 * Raster::region, region_iter, set_region, to_raster methods
 * RasterIter struct
 * Gray, Mask, Rgb now implement Iterator (for use with set_region)
