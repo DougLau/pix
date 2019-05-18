@@ -1,14 +1,16 @@
 ## [Unreleased]
 
 ### Added
-* RasterIter struct
 * Raster::region, region_iter, set_region, to_raster methods
+* RasterIter struct
 * Gray, Mask, Rgb now implement Iterator (for use with set_region)
+* AlphaMode, GammaMode, PixModes
 ### Changed
 * Fixed bugs in channel conversions
 * Region::intersection, right, bottom reworked
 ### Removed
 * Raster::set_rect (use set_region instead)
+* Srgb struct and types (use GammaMode instead)
 
 ## [0.4.0] - 2019-05-11
 ### Added

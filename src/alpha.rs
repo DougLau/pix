@@ -32,21 +32,28 @@ pub struct Opaque<C> {
     value: PhantomData<C>,
 }
 
-/// Convert an Opaque to another Opaque with a different Channel
-macro_rules! from_impl_opaque {
-    ( $s:tt, $d:tt ) => {
-        impl From<Opaque<$s>> for Opaque<$d> {
-            fn from(_: Opaque<$s>) -> Self { Opaque::default() }
-        }
-    };
+impl<C, H> From<H> for Opaque<C>
+    where C: Channel + From<H>, H: Channel
+{
+    fn from(_value: H) -> Self {
+        Opaque::default()
+    }
 }
-
-from_impl_opaque!(Ch8, Ch16);
-from_impl_opaque!(Ch8, Ch32);
-from_impl_opaque!(Ch16, Ch8);
-from_impl_opaque!(Ch16, Ch32);
-from_impl_opaque!(Ch32, Ch8);
-from_impl_opaque!(Ch32, Ch16);
+impl<C: Channel> From<Opaque<C>> for Ch8 {
+    fn from(_value: Opaque<C>) -> Self {
+        Ch8::MAX
+    }
+}
+impl<C: Channel> From<Opaque<C>> for Ch16 {
+    fn from(_value: Opaque<C>) -> Self {
+        Ch16::MAX
+    }
+}
+impl<C: Channel> From<Opaque<C>> for Ch32 {
+    fn from(_value: Opaque<C>) -> Self {
+        Ch32::MAX
+    }
+}
 
 impl<C, A> From<Translucent<A>> for Opaque<C> where C: Channel, A: Channel {
     /// Convert from a translucent value.
@@ -75,51 +82,21 @@ pub struct Translucent<C: Channel> {
     value: C,
 }
 
-impl<C: Channel> Translucent<C> {
-    /// Create a new translucent alpha value.
-    pub fn new(value: C) -> Self {
-        Translucent { value }
-    }
-}
-
 impl<C, H> From<H> for Translucent<C>
-    where C: Channel, C: From<H>, H: Channel
+    where C: Channel + From<H>, H: Channel
 {
-    /// Convert from a channel value.
     fn from(value: H) -> Self {
         let value = value.into();
         Translucent { value }
     }
 }
 
-impl<C> From<u8> for Translucent<C> where C: Channel, C: From<u8> {
-    fn from(value: u8) -> Self {
-        Translucent::new(value.into())
+impl<C: Channel> Translucent<C> {
+    /// Create a new translucent alpha value.
+    pub fn new(value: C) -> Self {
+        Translucent { value }
     }
 }
-impl<C> From<u16> for Translucent<C> where C: Channel, C: From<u16> {
-    fn from(value: u16) -> Self {
-        Translucent::new(value.into())
-    }
-}
-
-/// Convert a Translucent to another Translucent with a different Channel
-macro_rules! from_impl_translucent {
-    ( $s:tt, $d:tt ) => {
-        impl From<Translucent<$s>> for Translucent<$d> {
-            fn from(t: Translucent<$s>) -> Self {
-                Translucent::new(t.value.into())
-            }
-        }
-    };
-}
-
-from_impl_translucent!(Ch8, Ch16);
-from_impl_translucent!(Ch8, Ch32);
-from_impl_translucent!(Ch16, Ch8);
-from_impl_translucent!(Ch16, Ch32);
-from_impl_translucent!(Ch32, Ch8);
-from_impl_translucent!(Ch32, Ch16);
 
 impl<C, A> From<Opaque<A>> for Translucent<C>
     where C: Channel, A: Channel
@@ -141,5 +118,33 @@ impl<C: Channel> Alpha for Translucent<C> {
     /// opaque.
     fn value(&self) -> C {
         self.value
+    }
+}
+
+/// Mode for handling alpha
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AlphaMode {
+    /// Each channel is associated, or premultiplied, with alpha
+    Associated,
+    /// Each channel is separated from alpha (not premultiplied)
+    Separated,
+}
+
+impl AlphaMode {
+    pub fn encode<C>(self, c: C, a: C) -> C
+        where C: Channel
+    {
+        match self {
+            AlphaMode::Associated => c * a,
+            AlphaMode::Separated => c,
+        }
+    }
+    pub fn decode<C>(self, c: C, a: C) -> C
+        where C: Channel
+    {
+        match self {
+            AlphaMode::Associated => c / a,
+            AlphaMode::Separated=> c,
+        }
     }
 }

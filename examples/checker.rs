@@ -7,7 +7,7 @@ use pix::{Gray8, Raster};
 
 fn main() -> Result<(), io::Error> {
     let v = Gray8::from(255);
-    let mut r: Raster<Gray8> = Raster::new(16, 16);
+    let mut r = Raster::<Gray8>::new(16, 16);
     for y in 0..16 {
         for x in 0..16 {
             if x + y & 1 != 0 {

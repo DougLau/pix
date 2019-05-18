@@ -3,7 +3,7 @@
 // Copyright (c) 2017-2019  Douglas P Lau
 //
 use std::convert::TryFrom;
-use crate::{Ch8, Ch16, Format};
+use crate::{AlphaMode, Ch8, Ch16, Channel, Format, GammaMode, PixModes};
 
 /// Raster image representing a two-dimensional array of pixels.
 ///
@@ -15,9 +15,11 @@ use crate::{Ch8, Ch16, Format};
 /// ```
 #[derive(Clone, Debug)]
 pub struct Raster<F: Format> {
-    width  : u32,
-    height : u32,
-    pixels : Box<[F]>,
+    alpha_mode: AlphaMode,
+    gamma_mode: GammaMode,
+    width     : u32,
+    height    : u32,
+    pixels    : Box<[F]>,
 }
 
 /// Iterator for pixels within a [Raster](struct.Raster.html).
@@ -87,7 +89,9 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
 }
 
 impl<F: Format> Raster<F> {
-    /// Create a new empty raster image.
+    /// Create a new empty raster image with separated
+    /// [AlphaMode](enum.AlphaMode.html) and linear
+    /// [GammaMode](enum.GammaMode.html).
     ///
     /// * `F` Pixel [Format](trait.Format.html).
     /// * `width` Width in pixels.
@@ -102,9 +106,24 @@ impl<F: Format> Raster<F> {
     /// let r4 = Raster::<GrayAlpha32>::new(100, 150);
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
+        // FIXME: this should use a builder...
+        let alpha_mode = AlphaMode::Separated;
+        let gamma_mode = GammaMode::Linear;
+        Self::with_modes(width, height, alpha_mode, gamma_mode)
+    }
+    /// Create a new empty raster image with specified alpha/gamma modes.
+    ///
+    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `width` Width in pixels.
+    /// * `height` Height in pixels.
+    /// * `alpha_mode` Alpha mode.
+    /// * `gamma_mode` Gamma mode.
+    pub fn with_modes(width: u32, height: u32, alpha_mode: AlphaMode,
+        gamma_mode: GammaMode) -> Self
+    {
         let len = (width * height) as usize;
         let pixels = vec![F::default(); len].into_boxed_slice();
-        Raster { width, height, pixels }
+        Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
     /// Create a new raster image with owned pixel data.  You can get ownership
     /// of the pixel data back from the `Raster` as either a `Vec<F>` or a
@@ -131,10 +150,12 @@ impl<F: Format> Raster<F> {
     pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Self
         where B: Into<Box<[F]>>
     {
+        let alpha_mode = AlphaMode::Separated;
+        let gamma_mode = GammaMode::Linear;
         let len = (width * height) as usize;
         let pixels = pixels.into();
         assert_eq!(len, pixels.len());
-        Raster { width, height, pixels }
+        Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
     /// Create a new raster image from a u8 buffer.
     ///
@@ -150,6 +171,8 @@ impl<F: Format> Raster<F> {
     pub fn with_u8_buffer<B>(width: u32, height: u32, buffer: B) -> Self
         where B: Into<Box<[u8]>>, F: Format<Chan=Ch8>
     {
+        let alpha_mode = AlphaMode::Separated;
+        let gamma_mode = GammaMode::Linear;
         let len = (width * height) as usize;
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
@@ -160,7 +183,7 @@ impl<F: Format> Raster<F> {
             let slice = std::slice::from_raw_parts_mut(ptr, len);
             Box::from_raw(slice)
         };
-        Raster { width, height, pixels }
+        Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
     /// Create a new raster image from a u16 buffer.
     ///
@@ -176,6 +199,8 @@ impl<F: Format> Raster<F> {
     pub fn with_u16_buffer<B>(width: u32, height: u32, buffer: B) -> Self
         where B: Into<Box<[u16]>>, F: Format<Chan=Ch16>
     {
+        let alpha_mode = AlphaMode::Separated;
+        let gamma_mode = GammaMode::Linear;
         let len = (width * height) as usize;
         let buffer: Box<[u16]> = buffer.into();
         let capacity = buffer.len();
@@ -187,7 +212,7 @@ impl<F: Format> Raster<F> {
             let slice = std::slice::from_raw_parts_mut(ptr, len);
             Box::from_raw(slice)
         };
-        Raster { width, height, pixels }
+        Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
     /// Get raster width.
     pub fn width(&self) -> u32 {
@@ -203,7 +228,9 @@ impl<F: Format> Raster<F> {
         row[x as usize]
     }
     /// Set one pixel value.
-    pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P) where F: From<P> {
+    pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P)
+        where F: From<P>
+    {
         let row = &mut self.as_slice_row_mut(y);
         row[x as usize] = p.into();
     }
@@ -247,11 +274,14 @@ impl<F: Format> Raster<F> {
     /// let dst = rgb.region().intersection((40, 40, 25, 25));
     /// rgb.set_region(dst, gray.region_iter(src));
     /// ```
-    pub fn set_region<R, I, P>(&mut self, reg: R, mut it: I)
-        where R: Into<Region>, I: Iterator<Item=P>, P: Format, F: From<P>
+    pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
+        where F: Format<Chan=C>, C: Channel + From<H>, H: Channel,
+              P: Format<Chan=H>, R: Into<Region>, I: Iterator<Item=P> + PixModes
     {
         // FIXME: src/dst regions must have same shape!
         let reg = reg.into();
+        let gamma_mode = self.gamma_mode;
+        let alpha_mode = self.alpha_mode;
         let x0 = if reg.x >= 0 { reg.x as u32 } else { self.width() };
         let x1 = self.width().min(x0 + reg.width);
         let (x0, x1) = (x0 as usize, x1 as usize);
@@ -262,11 +292,60 @@ impl<F: Format> Raster<F> {
                 let row = self.as_slice_row_mut(yi);
                 for x in x0..x1 {
                     if let Some(p) = it.next() {
-                        row[x] = p.into();
+                        row[x] = Self::convert_pixel(p, &it, gamma_mode,
+                            alpha_mode);
                     }
                 }
             }
         }
+    }
+    /// Convert a pixel from one format to another
+    fn convert_pixel<C, P, H, M>(p: P, m: &M, gamma_mode: GammaMode,
+        alpha_mode: AlphaMode) -> F
+        where F: Format<Chan=C>, C: Channel + From<H>, H: Channel,
+              P: Format<Chan=H>, M: PixModes
+    {
+        let rgba = p.rgba();
+        // Decode gamma
+        let rgba = match m.gamma_mode() {
+            Some(m) => {
+                [m.decode(rgba[0]),
+                 m.decode(rgba[1]),
+                 m.decode(rgba[2]),
+                 rgba[3]]
+            },
+            None => rgba,
+        };
+        // Remove associated alpha
+        let rgba = match m.alpha_mode() {
+            Some(m) => {
+                [m.decode(rgba[0], rgba[3]),
+                 m.decode(rgba[1], rgba[3]),
+                 m.decode(rgba[2], rgba[3]),
+                 rgba[3]]
+            },
+            None => rgba,
+        };
+        // Convert bit depth
+        let red = rgba[0].into();
+        let green = rgba[1].into();
+        let blue = rgba[2].into();
+        let alpha = rgba[3].into();
+        // Apply alpha
+        let rgba = [
+            alpha_mode.encode(red, alpha),
+            alpha_mode.encode(green, alpha),
+            alpha_mode.encode(blue, alpha),
+            alpha
+        ];
+        // Encode gamma
+        let rgba = [
+            gamma_mode.encode(rgba[0]),
+            gamma_mode.encode(rgba[1]),
+            gamma_mode.encode(rgba[2]),
+            rgba[3]
+        ];
+        F::with_rgba(rgba)
     }
     /// Get view of pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
@@ -324,8 +403,9 @@ impl<F: Format> Raster<F> {
     /// // load pixels into raster
     /// let r1: Raster<Rgba16> = r0.to_raster();
     /// ```
-    pub fn to_raster<P>(&self) -> Raster<P>
-        where P: Format, P: From<F>
+    pub fn to_raster<C, H, P>(&self) -> Raster<P>
+        where P: Format<Chan=C>, C: Channel + From<H>, H: Channel,
+              F: Format<Chan=H>
     {
         let mut r = Raster::new(self.width(), self.height());
         let reg = self.region();
@@ -345,6 +425,19 @@ impl<'a, F: Format> RasterIter<'a, F> {
         let right = u32::try_from(region.right()).unwrap_or(0);
         let left = x;
         RasterIter { raster, left, right, bottom, x, y }
+    }
+}
+
+impl<'a, F: Format> PixModes for RasterIter<'a, F> {
+
+    /// Get the pixel format alpha mode
+    fn alpha_mode(&self) -> Option<AlphaMode> {
+        Some(self.raster.alpha_mode)
+    }
+
+    /// Get the pixel format gamma mode
+    fn gamma_mode(&self) -> Option<GammaMode> {
+        Some(self.raster.gamma_mode)
     }
 }
 
@@ -416,7 +509,7 @@ mod test {
     #[test]
     fn mask8() {
         let mut r = Raster::<Mask8>::new(3, 3);
-        r.set_pixel(0, 0, 1.0);
+        r.set_pixel(0, 0, 0xFF);
         r.set_pixel(2, 0, 0x12);
         r.set_pixel(1, 1, 0x34);
         r.set_pixel(0, 2, 0x56);
@@ -434,8 +527,8 @@ mod test {
         r.set_pixel(2, 0, 0x9ABC);
         r.set_pixel(1, 1, 0x5678);
         r.set_pixel(0, 2, 0x1234);
-        r.set_pixel(0, 0, 1.0);
-        r.set_pixel(2, 2, 0x80u8);
+        r.set_pixel(0, 0, 0xFFFF);
+        r.set_pixel(2, 2, 0x8080);
         let v = vec![
             0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,
             0x00,0x00, 0x78,0x56, 0x00,0x00,
@@ -479,9 +572,9 @@ mod test {
     #[test]
     fn gray8() {
         let mut r = Raster::<Gray8>::new(4, 4);
-        r.set_region((0, 0, 1, 1), Gray::from(0x23));
-        r.set_region((10, 10, 1, 1), Gray::from(0x45));
-        r.set_region((2, 2, 10, 10), Gray::from(0xBB));
+        r.set_region((0, 0, 1, 1), Gray8::from(0x23));
+        r.set_region((10, 10, 1, 1), Gray8::from(0x45));
+        r.set_region((2, 2, 10, 10), Gray8::from(0xBB));
         let v = vec![
             0x23,0x00,0x00,0x00,
             0x00,0x00,0x00,0x00,
@@ -515,7 +608,7 @@ mod test {
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
         let mut r = Raster::<GrayAlpha16>::with_u16_buffer(3, 3, b);
-        r.set_region((1, 0, 2, 2), Gray::new(0x4444));
+        r.set_region((1, 0, 2, 2), GrayAlpha16::new(0x4444));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
@@ -577,6 +670,19 @@ mod test {
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
+    fn copy_region_gray() {
+        let mut r = Raster::<Gray16>::with_modes(3, 3, AlphaMode::Separated,
+            GammaMode::Srgb);
+        r.set_region((0, 2, 2, 5), Gray16::new(0x4455));
+        r.set_region((2, 0, 3, 2), Gray8::new(0x33));
+        let v = vec![
+            0x00,0x00, 0x00,0x00, 0x0A,0x7C,
+            0x00,0x00, 0x00,0x00, 0x0A,0x7C,
+            0xB1,0x8D, 0xB1,0x8D, 0x00,0x00,
+        ];
+        assert_eq!(r.as_u8_slice(), &v[..]);
+    }
+    #[test]
     fn from_rgb8() {
         let r = Raster::<Rgb8>::new(50, 50);
         let _: Raster<Rgb16> = r.to_raster();
@@ -593,12 +699,6 @@ mod test {
         let _: Raster<Mask8> = r.to_raster();
         let _: Raster<Mask16> = r.to_raster();
         let _: Raster<Mask32> = r.to_raster();
-        let _: Raster<Srgb8> = r.to_raster();
-        let _: Raster<Srgb16> = r.to_raster();
-        let _: Raster<Srgb32> = r.to_raster();
-        let _: Raster<Srgba8> = r.to_raster();
-        let _: Raster<Srgba16> = r.to_raster();
-        let _: Raster<Srgba32> = r.to_raster();
     }
     #[test]
     fn from_mask8() {

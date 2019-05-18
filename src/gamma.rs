@@ -2,80 +2,29 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
+use crate::{Channel, Ch8, Ch16, Ch32};
 
-/// Trait to encode/decode gamma for sRGB
+/// Trait to encode/decode gamma
 pub trait Gamma {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self;
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self;
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self;
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self;
 }
 
-impl Gamma for f64 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
-        if self <= 0.0 {
-            0.0
-        } else if self < 0.003_130_8 {
-            self * 12.92
-        } else if self < 1.0 {
-            self.powf(1.0 / 2.4) * 1.055 - 0.055
-        } else {
-            1.0
-        }
+impl Gamma for u8 {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        ENCODE_SRGB_U8[usize::from(self)]
     }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
-        if self <= 0.0 {
-            0.0
-        } else if self < 0.04045 {
-            self / 12.92
-        } else if self < 1.0 {
-            ((self + 0.055) / 1.055).powf(2.4)
-        } else {
-            1.0
-        }
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        DECODE_SRGB_U8[usize::from(self)]
     }
 }
 
-/// Look-up table to decode 8-bit gamma to linear
-const DECODE_LUT_U8: &[u8] = &[
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
-    0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-    0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
-    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, // 32
-    0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05,
-    0x05, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07,
-    0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x0A,
-    0x0A, 0x0A, 0x0B, 0x0B, 0x0C, 0x0C, 0x0C, 0x0D, // 64
-    0x0D, 0x0D, 0x0E, 0x0E, 0x0F, 0x0F, 0x10, 0x10,
-    0x11, 0x11, 0x11, 0x12, 0x12, 0x13, 0x13, 0x14,
-    0x14, 0x15, 0x16, 0x16, 0x17, 0x17, 0x18, 0x18,
-    0x19, 0x19, 0x1A, 0x1B, 0x1B, 0x1C, 0x1D, 0x1D, // 96
-    0x1E, 0x1E, 0x1F, 0x20, 0x20, 0x21, 0x22, 0x23,
-    0x23, 0x24, 0x25, 0x25, 0x26, 0x27, 0x28, 0x29,
-    0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2D, 0x2E, 0x2F,
-    0x30, 0x31, 0x32, 0x33, 0x33, 0x34, 0x35, 0x36, // 128
-    0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E,
-    0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
-    0x47, 0x48, 0x49, 0x4A, 0x4C, 0x4D, 0x4E, 0x4F,
-    0x50, 0x51, 0x52, 0x54, 0x55, 0x56, 0x57, 0x58, // 160
-    0x5A, 0x5B, 0x5C, 0x5D, 0x5F, 0x60, 0x61, 0x63,
-    0x64, 0x65, 0x67, 0x68, 0x69, 0x6B, 0x6C, 0x6D,
-    0x6F, 0x70, 0x72, 0x73, 0x74, 0x76, 0x77, 0x79,
-    0x7A, 0x7C, 0x7D, 0x7F, 0x80, 0x82, 0x83, 0x85, // 192
-    0x86, 0x88, 0x8A, 0x8B, 0x8D, 0x8E, 0x90, 0x92,
-    0x93, 0x95, 0x97, 0x98, 0x9A, 0x9C, 0x9D, 0x9F,
-    0xA1, 0xA3, 0xA4, 0xA6, 0xA8, 0xAA, 0xAB, 0xAD,
-    0xAF, 0xB1, 0xB3, 0xB5, 0xB7, 0xB8, 0xBA, 0xBC, // 224
-    0xBE, 0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC,
-    0xCE, 0xD0, 0xD2, 0xD4, 0xD6, 0xD8, 0xDA, 0xDC,
-    0xDE, 0xE0, 0xE2, 0xE5, 0xE7, 0xE9, 0xEB, 0xED,
-    0xEF, 0xF2, 0xF4, 0xF6, 0xF8, 0xFA, 0xFD, 0xFF, // 256
-];
-
-/// Look-up table to encode 8-bit linear to gamma
-const ENCODE_LUT_U8: &[u8] = &[
+/// Look-up table to encode 8-bit linear to sRGB gamma
+const ENCODE_SRGB_U8: &[u8] = &[
     0x00, 0x0D, 0x16, 0x1C, 0x22, 0x26, 0x2A, 0x2E,
     0x32, 0x35, 0x38, 0x3B, 0x3D, 0x40, 0x42, 0x45,
     0x47, 0x49, 0x4B, 0x4D, 0x4F, 0x51, 0x53, 0x55,
@@ -110,33 +59,80 @@ const ENCODE_LUT_U8: &[u8] = &[
     0xFC, 0xFC, 0xFD, 0xFD, 0xFE, 0xFE, 0xFF, 0xFF, // 256
 ];
 
-impl Gamma for u8 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
-        ENCODE_LUT_U8[usize::from(self)]
+/// Look-up table to decode 8-bit sRGB gamma to linear
+const DECODE_SRGB_U8: &[u8] = &[
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+    0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+    0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+    0x02, 0x02, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, // 32
+    0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05,
+    0x05, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07,
+    0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x0A,
+    0x0A, 0x0A, 0x0B, 0x0B, 0x0C, 0x0C, 0x0C, 0x0D, // 64
+    0x0D, 0x0D, 0x0E, 0x0E, 0x0F, 0x0F, 0x10, 0x10,
+    0x11, 0x11, 0x11, 0x12, 0x12, 0x13, 0x13, 0x14,
+    0x14, 0x15, 0x16, 0x16, 0x17, 0x17, 0x18, 0x18,
+    0x19, 0x19, 0x1A, 0x1B, 0x1B, 0x1C, 0x1D, 0x1D, // 96
+    0x1E, 0x1E, 0x1F, 0x20, 0x20, 0x21, 0x22, 0x23,
+    0x23, 0x24, 0x25, 0x25, 0x26, 0x27, 0x28, 0x29,
+    0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2D, 0x2E, 0x2F,
+    0x30, 0x31, 0x32, 0x33, 0x33, 0x34, 0x35, 0x36, // 128
+    0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E,
+    0x3F, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
+    0x47, 0x48, 0x49, 0x4A, 0x4C, 0x4D, 0x4E, 0x4F,
+    0x50, 0x51, 0x52, 0x54, 0x55, 0x56, 0x57, 0x58, // 160
+    0x5A, 0x5B, 0x5C, 0x5D, 0x5F, 0x60, 0x61, 0x63,
+    0x64, 0x65, 0x67, 0x68, 0x69, 0x6B, 0x6C, 0x6D,
+    0x6F, 0x70, 0x72, 0x73, 0x74, 0x76, 0x77, 0x79,
+    0x7A, 0x7C, 0x7D, 0x7F, 0x80, 0x82, 0x83, 0x85, // 192
+    0x86, 0x88, 0x8A, 0x8B, 0x8D, 0x8E, 0x90, 0x92,
+    0x93, 0x95, 0x97, 0x98, 0x9A, 0x9C, 0x9D, 0x9F,
+    0xA1, 0xA3, 0xA4, 0xA6, 0xA8, 0xAA, 0xAB, 0xAD,
+    0xAF, 0xB1, 0xB3, 0xB5, 0xB7, 0xB8, 0xBA, 0xBC, // 224
+    0xBE, 0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC,
+    0xCE, 0xD0, 0xD2, 0xD4, 0xD6, 0xD8, 0xDA, 0xDC,
+    0xDE, 0xE0, 0xE2, 0xE5, 0xE7, 0xE9, 0xEB, 0xED,
+    0xEF, 0xF2, 0xF4, 0xF6, 0xF8, 0xFA, 0xFD, 0xFF, // 256
+];
+
+impl Gamma for Ch8 {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        Self::new(u8::from(self).encode_srgb())
     }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
-        DECODE_LUT_U8[usize::from(self)]
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        Self::new(u8::from(self).decode_srgb())
     }
 }
 
 impl Gamma for u16 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
         let s = f32::from(self) / 65535.0;
-        (s.encode_gamma() * 65535.0).round() as u16
+        (s.encode_srgb() * 65535.0).round() as u16
     }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
         let s = f32::from(self) / 65535.0;
-        (s.decode_gamma() * 65535.0).round() as u16
+        (s.decode_srgb() * 65535.0).round() as u16
+    }
+}
+
+impl Gamma for Ch16 {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        Self::new(u16::from(self).encode_srgb())
+    }
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        Self::new(u16::from(self).decode_srgb())
     }
 }
 
 impl Gamma for f32 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
         if self <= 0.0 {
             0.0
         } else if self < 0.003_130_8 {
@@ -147,8 +143,8 @@ impl Gamma for f32 {
             1.0
         }
     }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
         if self <= 0.0 {
             0.0
         } else if self < 0.04045 {
@@ -161,6 +157,94 @@ impl Gamma for f32 {
     }
 }
 
+impl Gamma for Ch32 {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        Self::new(f32::from(self).encode_srgb())
+    }
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        Self::new(f32::from(self).decode_srgb())
+    }
+}
+
+impl Gamma for f64 {
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        if self <= 0.0 {
+            0.0
+        } else if self < 0.003_130_8 {
+            self * 12.92
+        } else if self < 1.0 {
+            self.powf(1.0 / 2.4) * 1.055 - 0.055
+        } else {
+            1.0
+        }
+    }
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        if self <= 0.0 {
+            0.0
+        } else if self < 0.04045 {
+            self / 12.92
+        } else if self < 1.0 {
+            ((self + 0.055) / 1.055).powf(2.4)
+        } else {
+            1.0
+        }
+    }
+}
+
+/// Mode for handling gamma correction
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum GammaMode {
+    /// No gamma correction applied
+    Linear,
+    /// Gamma correction using the sRGB formula
+    Srgb,
+    /// Gamma correction with a specified value
+    PowerLaw(f32),
+}
+
+impl GammaMode {
+    /// Encode one channel using the gamma mode
+    pub fn encode<C>(self, c: C) -> C
+        where C: Channel
+    {
+        match self {
+            GammaMode::Linear => c,
+            GammaMode::Srgb => encode_srgb(c),
+            GammaMode::PowerLaw(g) => encode_power_law(c, g),
+        }
+    }
+    /// Decode one channel using the gamma mode
+    pub fn decode<C>(self, c: C) -> C
+        where C: Channel
+    {
+        match self {
+            GammaMode::Linear => c,
+            GammaMode::Srgb => decode_srgb(c),
+            GammaMode::PowerLaw(g) => decode_power_law(c, g),
+        }
+    }
+}
+
+fn encode_srgb<C: Channel>(c: C) -> C {
+    c.encode_srgb()
+}
+
+fn decode_srgb<C: Channel>(c: C) -> C {
+    c.decode_srgb()
+}
+
+fn encode_power_law<C: Channel>(c: C, g: f32) -> C {
+    c.powf(g)
+}
+
+fn decode_power_law<C: Channel>(c: C, g: f32) -> C {
+    c.powf(1.0 / g)
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -168,16 +252,16 @@ mod test {
     fn lut_decode_u8() {
         for i in 0..256 {
             let s = i as f64 / 255.0;
-            let v = (s.decode_gamma() * 255.0).round() as u8;
-            assert_eq!(v, DECODE_LUT_U8[i]);
+            let v = (s.decode_srgb() * 255.0).round() as u8;
+            assert_eq!(v, DECODE_SRGB_U8[i]);
         }
     }
     #[test]
     fn lut_encode_u8() {
         for i in 0..256 {
             let s = i as f64 / 255.0;
-            let v = (s.encode_gamma() * 255.0).round() as u8;
-            assert_eq!(v, ENCODE_LUT_U8[i]);
+            let v = (s.encode_srgb() * 255.0).round() as u8;
+            assert_eq!(v, ENCODE_SRGB_U8[i]);
         }
     }
 }

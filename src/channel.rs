@@ -21,6 +21,9 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
 
     /// Maximum intensity (*one*)
     const MAX: Self;
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -144,17 +147,6 @@ impl Div<f32> for Ch8 {
     }
 }
 
-impl Gamma for Ch8 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
-        Ch8 { 0: self.0.encode_gamma() }
-    }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
-        Ch8 { 0: self.0.decode_gamma() }
-    }
-}
-
 impl Channel for Ch8 {
 
     /// Minimum intensity (*zero*)
@@ -162,6 +154,12 @@ impl Channel for Ch8 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch8 = Ch8 { 0: 0xFF };
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self {
+        let v = f32::from(Ch32::from(self)).powf(g);
+        Ch32::new(v).into()
+    }
 }
 
 impl Ch16 {
@@ -242,17 +240,6 @@ impl Div<f32> for Ch16 {
     }
 }
 
-impl Gamma for Ch16 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
-        Ch16 { 0: self.0.encode_gamma() }
-    }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
-        Ch16 { 0: self.0.decode_gamma() }
-    }
-}
-
 impl Channel for Ch16 {
 
     /// Minimum intensity (*zero*)
@@ -260,6 +247,12 @@ impl Channel for Ch16 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch16 = Ch16 { 0: 0xFFFF };
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self {
+        let v = f32::from(Ch32::from(self)).powf(g);
+        Ch32::new(v).into()
+    }
 }
 
 impl Ch32 {
@@ -355,17 +348,6 @@ impl Div for Ch32 {
     }
 }
 
-impl Gamma for Ch32 {
-    /// Encode a gamma value from linear intensity
-    fn encode_gamma(self) -> Self {
-        Ch32 { 0: self.0.encode_gamma() }
-    }
-    /// Decode a gamma value into linear intensity
-    fn decode_gamma(self) -> Self {
-        Ch32 { 0: self.0.decode_gamma() }
-    }
-}
-
 impl Channel for Ch32 {
 
     /// Minimum intensity (*zero*)
@@ -373,6 +355,11 @@ impl Channel for Ch32 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch32 = Ch32 { 0: 1.0 };
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self {
+        Ch32::new(self.0.powf(g))
+    }
 }
 
 #[cfg(test)]

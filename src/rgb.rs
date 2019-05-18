@@ -2,7 +2,9 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, Translucent};
+use crate::{
+    Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, PixModes, Translucent,
+};
 
 /// RGB pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -16,6 +18,8 @@ pub struct Rgb<C: Channel, A: Alpha> {
     blue: C,
     alpha: A,
 }
+
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A> { }
 
 impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
     type Item = Self;
@@ -42,62 +46,12 @@ impl<C, A> From<Rgb<C, A>> for i32
     }
 }
 
-/// Convert an Rgb to another Rgb with a different Channel
-macro_rules! from_impl_rgb {
-    ( $c:tt, $h:tt ) => {
-        impl<A, B> From<Rgb<$h, B>> for Rgb<$c, A>
-            where A: Alpha, B: Alpha, A: From<B>
-        {
-            fn from(c: Rgb<$h, B>) -> Self {
-                let red = c.red().into();
-                let green = c.green().into();
-                let blue = c.blue().into();
-                let alpha = c.alpha().into();
-                Rgb { red, green, blue, alpha }
-            }
-        }
-    };
-}
-
-from_impl_rgb!(Ch8, Ch16);
-from_impl_rgb!(Ch8, Ch32);
-from_impl_rgb!(Ch16, Ch8);
-from_impl_rgb!(Ch16, Ch32);
-from_impl_rgb!(Ch32, Ch8);
-from_impl_rgb!(Ch32, Ch16);
-
-/// Convert an Rgb to another Rgb with a different Alpha
-macro_rules! from_impl_alpha {
-    ( $c:tt, $s:tt, $d:tt ) => {
-        impl From<Rgb<$c, $s<$c>>> for Rgb<$c, $d<$c>> {
-            fn from(c: Rgb<$c, $s<$c>>) -> Self {
-                let red = c.red().into();
-                let green = c.green().into();
-                let blue = c.blue().into();
-                let alpha = c.alpha().into();
-                Rgb { red, green, blue, alpha }
-            }
-        }
-    };
-}
-
-from_impl_alpha!(Ch8, Translucent, Opaque);
-from_impl_alpha!(Ch16, Translucent, Opaque);
-from_impl_alpha!(Ch32, Translucent, Opaque);
-from_impl_alpha!(Ch8, Opaque, Translucent);
-from_impl_alpha!(Ch16, Opaque, Translucent);
-from_impl_alpha!(Ch32, Opaque, Translucent);
-
 impl<C: Channel, A: Alpha> Rgb<C, A> {
-    /// Build a color by specifying red, green and blue values.
+    /// Create a color by specifying red, green and blue values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
     {
-        let red = C::from(red);
-        let green = C::from(green);
-        let blue = C::from(blue);
-        let alpha = A::from(Opaque::default());
-        Rgb { red, green, blue, alpha }
+        Self::with_alpha(red, green, blue, Opaque::default())
     }
     /// Create a color by specifying red, green, blue and alpha values.
     pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
@@ -107,7 +61,6 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
         let green = C::from(green);
         let blue = C::from(blue);
         let alpha = A::from(alpha);
-        // FIXME: do alpha properly and premultiply if necessary
         Rgb { red, green, blue, alpha }
     }
     /// Get the red channel.
@@ -128,8 +81,24 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha> Format for Rgb<C, A> {
+impl<C, A> Format for Rgb<C, A>
+    where C: Channel, A: Alpha<Chan=C> + From<C>
+{
     type Chan = C;
+
+    /// Get [red, green, blue, alpha] channels
+    fn rgba(self) -> [Self::Chan; 4] {
+        [self.red, self.green, self.blue, self.alpha.value()]
+    }
+
+    /// Make a pixel with given RGBA channels
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        let red = rgba[0];
+        let green = rgba[1];
+        let blue = rgba[2];
+        let alpha = rgba[3];
+        Rgb::with_alpha(red, green, blue, alpha)
+    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel

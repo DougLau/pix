@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Gray, Rgb, Translucent};
+use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, PixModes, Translucent};
 use std::marker::PhantomData;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
@@ -14,6 +14,8 @@ pub struct Mask<C: Channel, A: Alpha> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha> PixModes for Mask<C, A> { }
+
 impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
     type Item = Self;
 
@@ -23,115 +25,39 @@ impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
 }
 
 impl<C, A> From<u8> for Mask<C, A>
-    where C: Channel, A: Alpha, A: From<Ch8>
+    where C: Channel + From<u8>, A: Alpha + From<C>
 {
     /// Get a Mask from a u8
     fn from(c: u8) -> Self {
-        Mask::new(Ch8::new(c))
+        Mask::new(c)
     }
 }
 
 impl<C, A> From<u16> for Mask<C, A>
-    where C: Channel, A: Alpha, A: From<Ch16>
+    where C: Channel + From<u16>, A: Alpha + From<C>
 {
     /// Get a Mask from a u16
     fn from(c: u16) -> Self {
-        Mask::new(Ch16::new(c))
-    }
-}
-
-impl<A: Alpha> From<i32> for Mask<Ch8, A>
-    where A: From<Ch8>
-{
-    /// Get a Mask<Ch8, A> from an i32
-    fn from(c: i32) -> Self {
-        Mask::new(Ch8::new(c as u8))
-    }
-}
-
-impl<A: Alpha> From<i32> for Mask<Ch16, A>
-    where A: From<Ch16>
-{
-    /// Get a Mask<Ch16, A> from an i32
-    fn from(c: i32) -> Self {
-        Mask::new(Ch16::new(c as u16))
+        Mask::new(c)
     }
 }
 
 impl<C, A> From<f32> for Mask<C, A>
-    where C: Channel, A: Alpha, A: From<Ch32>
+    where C: Channel + From<f32>, A: Alpha + From<C>
 {
     /// Get a Mask from an f32
     fn from(c: f32) -> Self {
-        Mask::new(Ch32::new(c))
-    }
-}
-
-macro_rules! from_impl_mask {
-    ( $c:tt, $h:tt ) => {
-        impl<A, B> From<Mask<$h, B>> for Mask<$c, A>
-            where A: Alpha, B: Alpha, A: From<B>
-        {
-            fn from(c: Mask<$h, B>) -> Self {
-                Mask::new(c.alpha().into())
-            }
-        }
-    }
-}
-
-from_impl_mask!(Ch8, Ch16);
-from_impl_mask!(Ch8, Ch32);
-from_impl_mask!(Ch16, Ch8);
-from_impl_mask!(Ch16, Ch32);
-from_impl_mask!(Ch32, Ch8);
-from_impl_mask!(Ch32, Ch16);
-
-impl<C, H, A, B> From<Rgb<H, B>> for Mask<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get a Mask from an Rgb
-    fn from(c: Rgb<H, B>) -> Self {
-        Mask::new(c.alpha())
-    }
-}
-
-impl<C, H, A, B> From<Mask<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get an Rgb from a Mask
-    fn from(c: Mask<H, B>) -> Self {
-        let v = C::MAX;
-        let a = A::from(c.alpha());
-        Rgb::with_alpha(v, v, v, a)
-    }
-}
-
-impl<C, H, A, B> From<Gray<H, B>> for Mask<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get a Mask from a Gray
-    fn from(c: Gray<H, B>) -> Self {
-        let a = A::from(c.alpha());
-        Mask::new(a)
-    }
-}
-
-impl<C, H, A, B> From<Mask<H, B>> for Gray<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get a Gray from a Mask
-    fn from(c: Mask<H, B>) -> Self {
-        let v = C::MAX;
-        let a = A::from(c.alpha());
-        Gray::with_alpha(v, a)
+        Mask::new(c)
     }
 }
 
 impl<C: Channel, A: Alpha> Mask<C, A> {
     /// Create a new Mask value.
-    pub fn new<V>(alpha: V) -> Self where A: From<V> {
+    pub fn new<B>(alpha: B) -> Self
+        where C: From<B>, A: From<C>
+    {
         let value = PhantomData;
-        let alpha = A::from(alpha);
+        let alpha = A::from(C::from(alpha));
         Mask { value, alpha }
     }
     /// Get the alpha value.
@@ -140,8 +66,21 @@ impl<C: Channel, A: Alpha> Mask<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha> Format for Mask<C, A> {
+impl<C, A> Format for Mask<C, A>
+    where C: Channel, A: Alpha<Chan=C> + From<C>
+{
     type Chan = C;
+
+    /// Get [red, green, blue, alpha] channels
+    fn rgba(self) -> [Self::Chan; 4] {
+        [C::MAX, C::MAX, C::MAX, self.alpha.value()]
+    }
+
+    /// Make a pixel with given RGBA channels
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        let alpha = rgba[3];
+        Mask::new(alpha)
+    }
 }
 
 /// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)

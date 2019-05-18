@@ -2,7 +2,9 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, Rgb, Translucent};
+use crate::{
+    Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, PixModes, Translucent,
+};
 
 /// Gray pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -16,6 +18,8 @@ pub struct Gray<C: Channel, A: Alpha> {
     value: C,
     alpha: A,
 }
+
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A> { }
 
 impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
     type Item = Self;
@@ -34,32 +38,6 @@ impl<C, A> From<u8> for Gray<C, A>
     }
 }
 
-impl<C, H, A, B> From<Rgb<H, B>> for Gray<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get a Gray from an Rgb
-    fn from(c: Rgb<H, B>) -> Self {
-        let red = C::from(c.red());
-        let green = C::from(c.green());
-        let blue = C::from(c.blue());
-        let a = A::from(c.alpha());
-        // FIXME: adjust luminance based on channels
-        let v: C = red.max(green).max(blue);
-        Gray::with_alpha(v, a)
-    }
-}
-
-impl<C, H, A, B> From<Gray<H, B>> for Rgb<C, A>
-    where C: Channel, C: From<H>, H: Channel, A: Alpha, A: From<B>, B: Alpha
-{
-    /// Get an Rgb from a Gray
-    fn from(c: Gray<H, B>) -> Self {
-        let v = C::from(c.value());
-        let a = A::from(c.alpha());
-        Rgb::with_alpha(v, v, v, a)
-    }
-}
-
 impl<C: Channel, A: Alpha> Gray<C, A> {
     /// Create an opaque gray value.
     pub fn new<H>(value: H) -> Self
@@ -70,11 +48,11 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
         Gray { value, alpha }
     }
     /// Create a gray value with alpha.
-    pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
-        where C: From<H>, A: From<B>
+    pub fn with_alpha<H>(value: H, alpha: H) -> Self
+        where C: From<H>, A: From<C>
     {
         let value = C::from(value);
-        let alpha = A::from(alpha);
+        let alpha = A::from(C::from(alpha));
         Gray { value, alpha }
     }
     /// Get the gray value.
@@ -87,8 +65,22 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha> Format for Gray<C, A> {
+impl<C, A> Format for Gray<C, A>
+    where C: Channel, A: Alpha<Chan=C> + From<C>
+{
     type Chan = C;
+
+    /// Get [red, green, blue, alpha] channels
+    fn rgba(self) -> [Self::Chan; 4] {
+        [self.value, self.value, self.value, self.alpha.value()]
+    }
+
+    /// Make a pixel with given RGBA channels
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
+        let alpha = rgba[3];
+        Gray::with_alpha(value, alpha)
+    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel
@@ -127,17 +119,5 @@ mod test {
         assert_eq!(std::mem::size_of::<GrayAlpha8>(), 2);
         assert_eq!(std::mem::size_of::<GrayAlpha16>(), 4);
         assert_eq!(std::mem::size_of::<GrayAlpha32>(), 8);
-    }
-
-    #[test]
-    fn conversions() {
-        assert_eq!(Gray8::new(64), Rgb8::new(16, 32, 64).into());
-        assert_eq!(Gray8::new(32), Rgb16::new(4096, 8200, 0).into());
-        assert_eq!(Gray8::new(128), Rgb32::new(0.25, 0.5, 0.1).into());
-        assert_eq!(Gray16::new(16448), Rgb8::new(16, 32, 64).into());
-        assert_eq!(Gray16::new(8200), Rgb16::new(4096, 8200, 0).into());
-        assert_eq!(Gray16::new(32768), Rgb32::new(0.25, 0.5, 0.1).into());
-        assert_eq!(Gray32::new(0.5), Rgb32::new(0.25, 0.5, 0.1).into());
-        assert_eq!(Gray8::new(32), Rgba8::with_alpha(16, 32, 24, 128).into());
     }
 }

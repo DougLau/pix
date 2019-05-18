@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::Channel;
+use crate::{AlphaMode, Channel, GammaMode};
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -15,10 +15,25 @@ use crate::Channel;
 /// * [Rgb](struct.Rgb.html): [Rgb8](type.Rgb8.html), [Rgb16](type.Rgb16.html),
 ///   [Rgb32](type.Rgb32.html), [Rgba8](type.Rgba8.html),
 ///   [Rgba16](type.Rgba16.html), [Rgba32](type.Rgba32.html)
-/// * [Srgb](struct.Srgb.html)
 ///
 pub trait Format: Clone + Copy + Default {
 
     /// Channel type
     type Chan: Channel;
+
+    /// Get red, green, blue and alpha channels
+    fn rgba(self) -> [Self::Chan; 4];
+
+    /// Make a pixel with given RGBA channels
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self;
+}
+
+/// Pixel modes are settings for alpha and gamma mode.
+pub trait PixModes {
+
+    /// Get the pixel format alpha mode
+    fn alpha_mode(&self) -> Option<AlphaMode> { None }
+
+    /// Get the pixel format gamma mode
+    fn gamma_mode(&self) -> Option<GammaMode> { None }
 }
