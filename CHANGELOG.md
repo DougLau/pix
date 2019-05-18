@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.5.0] - 2019-05-18
 ### Added
 * RasterBuilder
 * Raster::region, region_iter, set_region, to_raster methods
