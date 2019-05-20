@@ -32,14 +32,14 @@ impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
 impl<C, A> From<u8> for Gray<C, A>
     where C: Channel, C: From<Ch8>, A: Alpha, A: From<Opaque<C>>
 {
-    /// Convert from a u8 value.
+    /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
         Gray::new(Ch8::new(c))
     }
 }
 
 impl<C: Channel, A: Alpha> Gray<C, A> {
-    /// Create an opaque gray value.
+    /// Create an [Opaque](struct.Opaque.html) gray value.
     pub fn new<H>(value: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
     {
@@ -47,7 +47,7 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
         let alpha = A::from(Opaque::default());
         Gray { value, alpha }
     }
-    /// Create a gray value with alpha.
+    /// Create a [Translucent](struct.Translucent.html) gray value.
     pub fn with_alpha<H>(value: H, alpha: H) -> Self
         where C: From<H>, A: From<C>
     {
@@ -70,12 +70,12 @@ impl<C, A> Format for Gray<C, A>
 {
     type Chan = C;
 
-    /// Get [red, green, blue, alpha] channels
+    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
         [self.value, self.value, self.value, self.alpha.value()]
     }
 
-    /// Make a pixel with given RGBA channels
+    /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
         let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
         let alpha = rgba[3];

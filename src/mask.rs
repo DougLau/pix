@@ -27,7 +27,7 @@ impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
 impl<C, A> From<u8> for Mask<C, A>
     where C: Channel + From<u8>, A: Alpha + From<C>
 {
-    /// Get a Mask from a u8
+    /// Get a `Mask` from a `u8`
     fn from(c: u8) -> Self {
         Mask::new(c)
     }
@@ -36,7 +36,7 @@ impl<C, A> From<u8> for Mask<C, A>
 impl<C, A> From<u16> for Mask<C, A>
     where C: Channel + From<u16>, A: Alpha + From<C>
 {
-    /// Get a Mask from a u16
+    /// Get a `Mask` from a `u16`
     fn from(c: u16) -> Self {
         Mask::new(c)
     }
@@ -45,14 +45,14 @@ impl<C, A> From<u16> for Mask<C, A>
 impl<C, A> From<f32> for Mask<C, A>
     where C: Channel + From<f32>, A: Alpha + From<C>
 {
-    /// Get a Mask from an f32
+    /// Get a `Mask` from an `f32`
     fn from(c: f32) -> Self {
         Mask::new(c)
     }
 }
 
 impl<C: Channel, A: Alpha> Mask<C, A> {
-    /// Create a new Mask value.
+    /// Create a new `Mask` value.
     pub fn new<B>(alpha: B) -> Self
         where C: From<B>, A: From<C>
     {
@@ -71,12 +71,12 @@ impl<C, A> Format for Mask<C, A>
 {
     type Chan = C;
 
-    /// Get [red, green, blue, alpha] channels
+    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
         [C::MAX, C::MAX, C::MAX, self.alpha.value()]
     }
 
-    /// Make a pixel with given RGBA channels
+    /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
         let alpha = rgba[3];
         Mask::new(alpha)

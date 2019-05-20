@@ -10,10 +10,10 @@ use std::marker::PhantomData;
 /// It is the inverse of translucency.
 pub trait Alpha: Copy + Default {
 
-    /// Channel type
+    /// `Channel` type
     type Chan: Channel;
 
-    /// Get the alpha channel value.
+    /// Get the alpha `Channel` value.
     ///
     /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
     /// transparent, and
@@ -22,10 +22,10 @@ pub trait Alpha: Copy + Default {
     fn value(&self) -> Self::Chan;
 }
 
-/// [Alpha](trait.Alpha.html) channel for fully opaque pixels and
+/// [Alpha](trait.Alpha.html) `Channel` for fully opaque pixels and
 /// [Raster](struct.Raster.html)s.
 ///
-/// Pixel [Format](trait.Format.html)s with opaque alpha channels take less
+/// Pixel [Format](trait.Format.html)s with `Opaque` alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Opaque<C> {
@@ -56,7 +56,7 @@ impl<C: Channel> From<Opaque<C>> for Ch32 {
 }
 
 impl<C, A> From<Translucent<A>> for Opaque<C> where C: Channel, A: Channel {
-    /// Convert from a translucent value.
+    /// Convert from a `Translucent` value.
     fn from(_: Translucent<A>) -> Self {
         Opaque::default()
     }
@@ -65,7 +65,7 @@ impl<C, A> From<Translucent<A>> for Opaque<C> where C: Channel, A: Channel {
 impl<C: Channel> Alpha for Opaque<C> {
     type Chan = C;
 
-    /// Get the alpha channel value.
+    /// Get the alpha `Channel` value.
     ///
     /// Always returns
     /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) (fully
@@ -92,7 +92,7 @@ impl<C, H> From<H> for Translucent<C>
 }
 
 impl<C: Channel> Translucent<C> {
-    /// Create a new translucent alpha value.
+    /// Create a new `Translucent` alpha value.
     pub fn new(value: C) -> Self {
         Translucent { value }
     }
@@ -101,7 +101,7 @@ impl<C: Channel> Translucent<C> {
 impl<C, A> From<Opaque<A>> for Translucent<C>
     where C: Channel, A: Channel
 {
-    /// Convert from an opaque value.
+    /// Convert from an `Opaque` value.
     fn from(_: Opaque<A>) -> Self {
         Self::new(C::MAX)
     }
@@ -110,7 +110,7 @@ impl<C, A> From<Opaque<A>> for Translucent<C>
 impl<C: Channel> Alpha for Translucent<C> {
     type Chan = C;
 
-    /// Get the alpha channel value.
+    /// Get the alpha `Channel` value.
     ///
     /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
     /// transparent, and
@@ -121,16 +121,17 @@ impl<C: Channel> Alpha for Translucent<C> {
     }
 }
 
-/// Mode for handling alpha
+/// Mode for handling associated alpha.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AlphaMode {
-    /// Each channel is associated, or premultiplied, with alpha
+    /// Each `Channel` is associated, or premultiplied, with alpha
     Associated,
-    /// Each channel is separated from alpha (not premultiplied)
+    /// Each `Channel` is separated from alpha (not premultiplied)
     Separated,
 }
 
 impl AlphaMode {
+    /// Encode a `Channel` value using the alpha mode.
     pub fn encode<C>(self, c: C, a: C) -> C
         where C: Channel
     {
@@ -139,6 +140,7 @@ impl AlphaMode {
             AlphaMode::Separated => c,
         }
     }
+    /// Decode a `Channel` value using the alpha mode.
     pub fn decode<C>(self, c: C, a: C) -> C
         where C: Channel
     {

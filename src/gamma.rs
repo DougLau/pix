@@ -195,7 +195,7 @@ impl Gamma for f64 {
     }
 }
 
-/// Mode for handling gamma correction
+/// Mode for handling gamma encoding / decoding.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum GammaMode {
     /// No gamma correction applied
@@ -207,7 +207,7 @@ pub enum GammaMode {
 }
 
 impl GammaMode {
-    /// Encode one channel using the gamma mode
+    /// Encode one `Channel` using the gamma mode.
     pub fn encode<C>(self, c: C) -> C
         where C: Channel
     {
@@ -217,7 +217,7 @@ impl GammaMode {
             GammaMode::PowerLaw(g) => encode_power_law(c, g),
         }
     }
-    /// Decode one channel using the gamma mode
+    /// Decode one `Channel` using the gamma mode.
     pub fn decode<C>(self, c: C) -> C
         where C: Channel
     {

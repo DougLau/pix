@@ -18,17 +18,18 @@ use crate::{AlphaMode, Channel, GammaMode};
 ///
 pub trait Format: Clone + Copy + Default {
 
-    /// Channel type
+    /// `Channel` type
     type Chan: Channel;
 
-    /// Get red, green, blue and alpha channels
+    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4];
 
-    /// Make a pixel with given RGBA channels
+    /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self;
 }
 
-/// Pixel modes are settings for alpha and gamma mode.
+/// Pixel modes are settings for [AlphaMode](enum.AlphaMode.html) and
+/// [GammaMode](enum.GammaMode.html).
 pub trait PixModes {
 
     /// Get the pixel format alpha mode

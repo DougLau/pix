@@ -2,9 +2,9 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-//! Pixel and [Raster](struct.Raster.html) image manipulation crate.
+//! Pixel and [Raster](struct.Raster.html) image crate.
 //!
-//! Rasters are made up of pixels in one of many possible
+//! `Raster`s are made up of pixels in one of many possible
 //! [Format](trait.Format.html)s.
 //!
 mod alpha;

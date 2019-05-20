@@ -9,7 +9,7 @@ use crate::{
 /// RGB pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
 ///
-/// The channels are *red*, *green* and *blue*.
+/// The `Channel`s are *red*, *green* and *blue*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Rgb<C: Channel, A: Alpha> {
@@ -32,7 +32,7 @@ impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
 impl<C, A> From<Rgb<C, A>> for i32
     where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
 {
-    /// Get an i32 from an Rgb
+    /// Get an `i32` from an `Rgb`
     fn from(c: Rgb<C, A>) -> i32 {
         let red: u8 = Ch8::from(c.red()).into();
         let red = i32::from(red);
@@ -47,13 +47,15 @@ impl<C, A> From<Rgb<C, A>> for i32
 }
 
 impl<C: Channel, A: Alpha> Rgb<C, A> {
-    /// Create a color by specifying red, green and blue values.
+    /// Create an [Opaque](struct.Opaque.html) color by specifying *red*,
+    /// *green* and *blue* values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
     {
         Self::with_alpha(red, green, blue, Opaque::default())
     }
-    /// Create a color by specifying red, green, blue and alpha values.
+    /// Create a [Translucent](struct.Translucent.html) color by specifying
+    /// *red*, *green*, *blue* and *alpha* values.
     pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
         where C: From<H>, A: From<B>
     {
@@ -63,19 +65,19 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
         let alpha = A::from(alpha);
         Rgb { red, green, blue, alpha }
     }
-    /// Get the red channel.
+    /// Get the red `Channel`.
     pub fn red(self) -> C {
         self.red
     }
-    /// Get the green channel.
+    /// Get the green `Channel`.
     pub fn green(self) -> C {
         self.green
     }
-    /// Get the blue channel.
+    /// Get the blue `Channel`.
     pub fn blue(self) -> C {
         self.blue
     }
-    /// Get the alpha channel.
+    /// Get the alpha `Channel`.
     pub fn alpha(self) -> A {
         self.alpha
     }
@@ -86,12 +88,12 @@ impl<C, A> Format for Rgb<C, A>
 {
     type Chan = C;
 
-    /// Get [red, green, blue, alpha] channels
+    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
         [self.red, self.green, self.blue, self.alpha.value()]
     }
 
-    /// Make a pixel with given RGBA channels
+    /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
         let red = rgba[0];
         let green = rgba[1];

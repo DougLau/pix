@@ -9,9 +9,9 @@ use crate::gamma::Gamma;
 /// One *component* of a pixel [Format](trait.Format.html).
 ///
 /// For example, in [Rgb](struct.Rgb.html) there are *red*, *green* and *blue*
-/// channels.
+/// `Channel`s.
 ///
-/// Defined channels are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
+/// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
 pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
     Gamma
@@ -28,8 +28,8 @@ pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
 
 /// 8-bit color [Channel](trait.Channel.html).
 ///
-/// The channel is represented by a u8, but multiplication and division treat
-/// the values as though they range between 0 and 1.
+/// The `Channel` is represented by a `u8`, but multiplication and division
+/// treat values as though they range between 0 and 1.
 ///
 /// ```
 /// # use pix::*;
@@ -47,8 +47,8 @@ pub struct Ch8(u8);
 
 /// 16-bit color [Channel](trait.Channel.html)
 ///
-/// The channel is represented by a u16, but multiplication and division treat
-/// the values as though they range between 0 and 1.
+/// The `Channel` is represented by a `u16`, but multiplication and division
+/// treat values as though they range between 0 and 1.
 ///
 /// ```
 /// # use pix::*;
@@ -66,7 +66,7 @@ pub struct Ch16(u16);
 
 /// 32-bit color [Channel](trait.Channel.html)
 ///
-/// The channel is represented by an f32, but the value is guaranteed to be
+/// The `Channel` is represented by an `f32`, but values are guaranteed to be
 /// between 0 and 1, inclusive.
 ///
 /// ```
@@ -84,7 +84,7 @@ pub struct Ch16(u16);
 pub struct Ch32(f32);
 
 impl Ch8 {
-    /// Create a new 8-bit channel value.
+    /// Create a new 8-bit `Channel` value.
     pub fn new(value: u8) -> Self {
         Ch8 { 0: value }
     }
@@ -163,7 +163,7 @@ impl Channel for Ch8 {
 }
 
 impl Ch16 {
-    /// Create a new 16-bit channel value.
+    /// Create a new 16-bit `Channel` value.
     pub fn new(value: u16) -> Self {
         Ch16 { 0: value }
     }
@@ -256,10 +256,10 @@ impl Channel for Ch16 {
 }
 
 impl Ch32 {
-    /// Create a new 32-bit channel value.
+    /// Create a new 32-bit `Channel` value.
     ///
     /// Returns [MIN](trait.Channel.html#associatedconstant.MIN) if value is
-    ///         less than 0.0, or NaN.
+    ///         less than 0.0, or `NaN`.
     /// Returns [MAX](trait.Channel.html#associatedconstant.MAX) if value is
     ///         greater than 1.0.
     pub fn new(value: f32) -> Self {
