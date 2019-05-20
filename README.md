@@ -1,5 +1,5 @@
 # pix
-Rust crate for pixel and raster image manipulation.
+Rust crate for pixel and raster images.
 Currently a work-in-progress.
 
 ## Documentation
@@ -16,6 +16,3 @@ Currently a work-in-progress.
 * LAB, LCH
 * XYZ: tristimulus
 * White point
-
-### Alpha Handling
-See https://github.com/LuaDist/libpng/blob/master/png.h#L1170-L1223

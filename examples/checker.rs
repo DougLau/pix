@@ -3,11 +3,11 @@ extern crate pix;
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use pix::{Gray8, Raster};
+use pix::{Gray8, Raster, RasterBuilder};
 
 fn main() -> Result<(), io::Error> {
     let v = Gray8::from(255);
-    let mut r = Raster::<Gray8>::new(16, 16).with_empty();
+    let mut r = RasterBuilder::<Gray8>::new().with_clear(16, 16);
     for y in 0..16 {
         for x in 0..16 {
             if x + y & 1 != 0 {

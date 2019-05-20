@@ -8,20 +8,21 @@ use std::marker::PhantomData;
 
 /// Builder for [Raster](struct.Raster.html) images.
 ///
-/// ### Create with [Raster::new](struct.Raster.html#method.new)
-/// ```
-/// # use pix::*;
-/// let rb = Raster::<Rgb8>::new(100, 100);
-/// ```
-///
-/// To build a `Raster`, use one of the *with_* methods:
-/// * [with_empty](struct.RasterBuilder.html#method.with_empty)
+/// After creating a `RasterBuilder`, the [AlphaMode](enum.AlphaMode.html) and
+/// [GammaMode](enum.GammaMode.html) can be configured.  To finish building a
+/// `Raster`, use one of the *with_* methods:
+/// * [with_clear](struct.RasterBuilder.html#method.with_clear)
+/// * [with_raster](struct.RasterBuilder.html#method.with_raster)
 /// * [with_pixels](struct.RasterBuilder.html#method.with_pixels)
 /// * [with_u8_buffer](struct.RasterBuilder.html#method.with_u8_buffer)
 /// * [with_u16_buffer](struct.RasterBuilder.html#method.with_u16_buffer)
+///
+/// ### Create a `Raster`
+/// ```
+/// # use pix::*;
+/// let r = RasterBuilder::<Rgb8>::new().with_clear(100, 100);
+/// ```
 pub struct RasterBuilder<F: Format> {
-    width     : u32,
-    height    : u32,
     alpha_mode: AlphaMode,
     gamma_mode: GammaMode,
     _format   : PhantomData<F>,
@@ -29,29 +30,29 @@ pub struct RasterBuilder<F: Format> {
 
 /// `Raster` image representing a two-dimensional array of pixels.
 ///
+/// ### Create a `Raster` with a solid color rectangle
 /// ```
 /// # use pix::*;
-/// let clr = Rgb8::new(0xFF, 0x88, 0x00);
-/// let mut raster = Raster::<Rgb8>::new(10, 10).with_empty();
-/// raster.set_region((2, 4, 3, 3), clr);
+/// let mut raster = RasterBuilder::<Rgb8>::new().with_clear(10, 10);
+/// raster.set_region((2, 4, 3, 3), Rgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<F: Format> {
-    width     : u32,
-    height    : u32,
     alpha_mode: AlphaMode,
     gamma_mode: GammaMode,
+    width     : u32,
+    height    : u32,
     pixels    : Box<[F]>,
 }
 
 /// `Iterator` for pixels within a [Raster](struct.Raster.html).
 ///
-/// Use Raster::[region_iter](struct.Raster.html#method.region_iter) to
+/// Use `Raster`::[region_iter](struct.Raster.html#method.region_iter) to
 /// create.
 ///
 /// ### All pixels in a `Raster`
 /// ```
 /// # use pix::*;
-/// let mut mask = Raster::<Mask8>::new(32, 32).with_empty();
+/// let mut mask = RasterBuilder::<Mask8>::new().with_clear(32, 32);
 /// // ... set mask data
 /// let it = mask.region_iter(mask.region());
 /// ```
@@ -59,7 +60,7 @@ pub struct Raster<F: Format> {
 /// ### `Iterator` of `Region` within a `Raster`
 /// ```
 /// # use pix::*;
-/// let mut gray = Raster::<GrayAlpha16>::new(40, 40).with_empty();
+/// let mut gray = RasterBuilder::<GrayAlpha16>::new().with_clear(40, 40);
 /// // ... load raster data
 /// let region = gray.region().intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
@@ -84,7 +85,7 @@ pub struct RasterIter<'a, F: Format> {
 /// ### Create from Raster
 /// ```
 /// # use pix::*;
-/// let r = Raster::<Rgb8>::new(100, 100).with_empty();
+/// let r = RasterBuilder::<Rgb8>::new().with_clear(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -111,11 +112,13 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
 
 impl<F: Format> RasterBuilder<F> {
     /// Create a new raster builder.
-    fn new(width: u32, height: u32) -> Self {
+    ///
+    /// * `F` Pixel [Format](trait.Format.html).
+    pub fn new() -> Self {
         let alpha_mode = AlphaMode::Separated;
         let gamma_mode = GammaMode::Srgb;
         let _format = PhantomData;
-        RasterBuilder { width, height, alpha_mode, gamma_mode, _format }
+        RasterBuilder { alpha_mode, gamma_mode, _format }
     }
     /// Set the alpha mode.  The default value is
     /// [Separated](enum.AlphaMode.html#variant.Separated).
@@ -129,21 +132,52 @@ impl<F: Format> RasterBuilder<F> {
         self.gamma_mode = gamma_mode;
         self
     }
-    /// Build a [Raster](struct.Raster.html) with empty pixel data.
-    pub fn with_empty(self) -> Raster<F> {
-        let width = self.width;
-        let height = self.height;
+    /// Build a `Raster` with all pixels clear.
+    ///
+    /// ## Examples
+    /// ```
+    /// use pix::*;
+    /// let r1 = RasterBuilder::<Gray8>::new().with_clear(20, 20);
+    /// let r2 = RasterBuilder::<Mask8>::new().with_clear(64, 64);
+    /// let r3 = RasterBuilder::<Rgb16>::new().with_clear(10, 10);
+    /// let r4 = RasterBuilder::<GrayAlpha32>::new().with_clear(100, 250);
+    /// ```
+    pub fn with_clear(self, width: u32, height: u32) -> Raster<F> {
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let len = (width * height) as usize;
         let pixels = vec![F::default(); len].into_boxed_slice();
-        Raster { width, height, alpha_mode, gamma_mode, pixels }
+        Raster { alpha_mode, gamma_mode, width, height, pixels }
+    }
+    /// Build a `Raster` by copying another `Raster`.
+    ///
+    /// * `C` Destination `Channel`.
+    /// * `H` Source `Channel`.
+    /// * `P` Source `Format`.
+    ///
+    /// ### Convert from Rgb8 to Rgba16
+    /// ```
+    /// # use pix::*;
+    /// let mut r0 = RasterBuilder::<Rgb8>::new().with_clear(50, 50);
+    /// // load pixels into raster
+    /// let r1 = RasterBuilder::<Rgba16>::new().with_raster(&r0);
+    /// ```
+    pub fn with_raster<C, H, P>(self, o: &Raster<P>) -> Raster<F>
+        where C: Channel + From<H>, H: Channel, F: Format<Chan=C>,
+              P: Format<Chan=H>
+    {
+        let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
+        let reg = o.region();
+        r.set_region(reg, o.region_iter(reg));
+        r
     }
     /// Build a `Raster` with owned pixel data.  You can get ownership of the
     /// pixel data back from the `Raster` as either a `Vec<F>` or a `Box<[F]>`
     /// by calling `into()`.
     ///
-    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `B` Owned pixed type (`Vec` or boxed slice).
+    /// * `width` Width of `Raster`.
+    /// * `height` Height of `Raster`.
     /// * `pixels` Pixel data.
     ///
     /// # Panics
@@ -154,16 +188,15 @@ impl<F: Format> RasterBuilder<F> {
     /// ```
     /// use pix::*;
     /// let p = vec![Rgb8::new(255, 0, 255); 16];     // vec of magenta pix
-    /// let mut r = Raster::new(4, 4).with_pixels(p); // convert to raster
+    /// let mut r = RasterBuilder::new()              // convert to raster
+    ///                           .with_pixels(4, 4, p);
     /// let clr = Rgb8::new(0x00, 0xFF, 0x00);        // green
     /// r.set_region((2, 0, 1, 3), clr);              // make stripe
     /// let p2 = Into::<Vec<Rgb8>>::into(r);          // convert back to vec
     /// ```
-    pub fn with_pixels<B>(self, pixels: B) -> Raster<F>
+    pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<F>
         where B: Into<Box<[F]>>
     {
-        let width = self.width;
-        let height = self.height;
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let len = (width * height) as usize;
@@ -171,20 +204,20 @@ impl<F: Format> RasterBuilder<F> {
         assert_eq!(len, pixels.len());
         Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
-    /// Build a `Raster` from a u8 buffer.
+    /// Build a `Raster` from a `u8` buffer.
     ///
-    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `B` Owned pixed type (`Vec` or boxed slice).
+    /// * `width` Width of `Raster`.
+    /// * `height` Height of `Raster`.
     /// * `buffer` Buffer of pixel data.
     ///
     /// # Panics
     ///
     /// Panics if `buffer` length is not equal to `width` * `height` *
     /// `std::mem::size_of::<F>()`.
-    pub fn with_u8_buffer<B>(self, buffer: B) -> Raster<F>
-        where B: Into<Box<[u8]>>, F: Format<Chan=Ch8>
+    pub fn with_u8_buffer<B>(self, width: u32, height: u32, buffer: B)
+        -> Raster<F> where B: Into<Box<[u8]>>, F: Format<Chan=Ch8>
     {
-        let width = self.width;
-        let height = self.height;
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let len = (width * height) as usize;
@@ -199,20 +232,20 @@ impl<F: Format> RasterBuilder<F> {
         };
         Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
-    /// Build a `Raster` from a u16 buffer.
+    /// Build a `Raster` from a `u16` buffer.
     ///
-    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `B` Owned pixed type (`Vec` or boxed slice).
+    /// * `width` Width of `Raster`.
+    /// * `height` Height of `Raster`.
     /// * `buffer` Buffer of pixel data (in native-endian byte order).
     ///
     /// # Panics
     ///
     /// Panics if `buffer` length is not equal to `width` * `height` *
     /// `std::mem::size_of::<F>()`.
-    pub fn with_u16_buffer<B>(self, buffer: B) -> Raster<F>
-        where B: Into<Box<[u16]>>, F: Format<Chan=Ch16>
+    pub fn with_u16_buffer<B>(self, width: u32, height: u32, buffer: B)
+        -> Raster<F> where B: Into<Box<[u16]>>, F: Format<Chan=Ch16>
     {
-        let width = self.width;
-        let height = self.height;
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let len = (width * height) as usize;
@@ -231,28 +264,11 @@ impl<F: Format> RasterBuilder<F> {
 }
 
 impl<F: Format> Raster<F> {
-    /// Create a new raster builder.
-    ///
-    /// * `F` Pixel [Format](trait.Format.html).
-    /// * `width` Width in pixels.
-    /// * `height` Height in pixels.
-    ///
-    /// ## Examples
-    /// ```
-    /// use pix::*;
-    /// let rb1 = Raster::<Gray8>::new(20, 20);
-    /// let rb2 = Raster::<Mask8>::new(64, 64);
-    /// let rb3 = Raster::<Rgb16>::new(10, 10);
-    /// let rb4 = Raster::<GrayAlpha32>::new(100, 150);
-    /// ```
-    pub fn new(width: u32, height: u32) -> RasterBuilder<F> {
-        RasterBuilder::new(width, height)
-    }
-    /// Get raster width.
+    /// Get width of `Raster`.
     pub fn width(&self) -> u32 {
         self.width
     }
-    /// Get raster height.
+    /// Get height of `Raster`.
     pub fn height(&self) -> u32 {
         self.height
     }
@@ -278,7 +294,7 @@ impl<F: Format> Raster<F> {
     pub fn region(&self) -> Region {
         Region::new(0, 0, self.width(), self.height())
     }
-    /// Get an iterator of pixels.
+    /// Get an `Iterator` of pixels within a `Region`.
     ///
     /// * `reg` Region within `Raster`.
     pub fn region_iter<R>(&self, reg: R) -> RasterIter<F>
@@ -286,23 +302,22 @@ impl<F: Format> Raster<F> {
     {
         RasterIter::new(self, reg.into())
     }
-    /// Set a `Region` using a pixel iterator.
+    /// Set a `Region` using a pixel `Iterator`.
     ///
-    /// * `reg` Region within raster.
-    /// * `it` Iterator of pixels in region.
+    /// * `reg` Region within `Raster`.
+    /// * `it` `Iterator` of pixels in `Region`.
     ///
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
-    /// let mut raster = Raster::<Rgb8>::new(100, 100).with_empty();
-    /// let clr = Rgb8::new(0xDD, 0x96, 0x70);
-    /// raster.set_region((20, 40, 25, 50), clr);
+    /// let mut raster = RasterBuilder::<Rgb8>::new().with_clear(100, 100);
+    /// raster.set_region((20, 40, 25, 50), Rgb8::new(0xDD, 0x96, 0x70));
     /// ```
     /// ### Copy part of one `Raster` to another, converting pixel format
     /// ```
     /// # use pix::*;
-    /// let mut rgb = Raster::<Rgb8>::new(100, 100).with_empty();
-    /// let mut gray = Raster::<Gray16>::new(50, 50).with_empty();
+    /// let mut rgb = RasterBuilder::<Rgb8>::new().with_clear(100, 100);
+    /// let mut gray = RasterBuilder::<Gray16>::new().with_clear(50, 50);
     /// // ... load image data
     /// let src = gray.region().intersection((20, 10, 25, 25));
     /// let dst = rgb.region().intersection((40, 40, 25, 25));
@@ -415,53 +430,33 @@ impl<F: Format> Raster<F> {
         let t = s + self.width as usize;
         &mut self.pixels[s..t]
     }
-    /// Get view of a row of pixels as a u8 slice.
+    /// Get view of a row of pixels as a `u8` slice.
     pub fn as_u8_slice_row(&self, y: u32) -> &[u8] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         Self::u8_slice(&self.pixels[s..t])
     }
-    /// Get view of a pixel slice as a u8 slice.
+    /// Get view of a pixel slice as a `u8` slice.
     fn u8_slice(pix: &[F]) -> &[u8] {
         unsafe { pix.align_to::<u8>().1 }
     }
-    /// Get view of pixels as a u8 slice.
+    /// Get view of pixels as a `u8` slice.
     pub fn as_u8_slice(&self) -> &[u8] {
         Self::u8_slice(&self.pixels)
     }
-    /// Get view of pixels as a mutable u8 slice.
+    /// Get view of pixels as a mutable `u8` slice.
     pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
         Self::u8_slice_mut(&mut self.pixels)
     }
-    /// Get view of a pixel slice as a mutable u8 slice.
+    /// Get view of a pixel slice as a mutable `u8` slice.
     fn u8_slice_mut(pix: &mut [F]) -> &mut [u8] {
         unsafe { pix.align_to_mut::<u8>().1 }
-    }
-    /// Make a copy with a specified pixel format.
-    ///
-    /// * `P` Pixel format of new Raster.
-    ///
-    /// ### Convert from Rgb8 to Rgba16
-    /// ```
-    /// # use pix::*;
-    /// let mut r0 = Raster::<Rgb8>::new(50, 50).with_empty();
-    /// // load pixels into raster
-    /// let r1: Raster<Rgba16> = r0.to_raster();
-    /// ```
-    pub fn to_raster<C, H, P>(&self) -> Raster<P>
-        where P: Format<Chan=C>, C: Channel + From<H>, H: Channel,
-              F: Format<Chan=H>
-    {
-        let mut r = Raster::new(self.width(), self.height()).with_empty();
-        let reg = self.region();
-        r.set_region(reg, self.region_iter(reg));
-        r
     }
 }
 
 impl<'a, F: Format> RasterIter<'a, F> {
-    /// Create a new Raster pixel iterator
+    /// Create a new `Raster` pixel `Iterator`.
     ///
     /// * `region` Region of pixels to iterate.
     fn new(raster: &'a Raster<F>, region: Region) -> Self {
@@ -511,11 +506,11 @@ impl From<(i32, i32, u32, u32)> for Region {
 }
 
 impl Region {
-    /// Create a new Region
+    /// Create a new `Region`
     pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
         Region { x, y, width, height }
     }
-    /// Get intersection with another Region
+    /// Get intersection with another `Region`
     pub fn intersection<R>(self, rhs: R) -> Self
         where R: Into<Self>
     {
@@ -554,7 +549,7 @@ mod test {
     use super::super::*;
     #[test]
     fn mask8() {
-        let mut r = Raster::<Mask8>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
         r.set_pixel(0, 0, 0xFF);
         r.set_pixel(2, 0, 0x12);
         r.set_pixel(1, 1, 0x34);
@@ -569,7 +564,7 @@ mod test {
     }
     #[test]
     fn mask16() {
-        let mut r = Raster::<Mask16>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
         r.set_pixel(2, 0, 0x9ABC);
         r.set_pixel(1, 1, 0x5678);
         r.set_pixel(0, 2, 0x1234);
@@ -590,7 +585,7 @@ mod test {
             0.75, 0.65, 0.6, 0.4,
             1.0,  0.75, 0.5, 0.25,
         ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
-        let mut r = Raster::<Mask32>::new(4, 4).with_pixels(p);
+        let mut r = RasterBuilder::<Mask32>::new().with_pixels(4, 4, p);
         let clr = Mask32::new(Ch32::new(0.05));
         r.set_region((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
@@ -599,12 +594,12 @@ mod test {
             0.75, 0.05, 0.05, 0.4,
             1.0,  0.75, 0.5, 0.25,
         ].iter().map(|p| Mask::new(Ch32::new(*p))).collect();
-        let r2 = Raster::<Mask32>::new(4, 4).with_pixels(v);
+        let r2 = RasterBuilder::<Mask32>::new().with_pixels(4, 4, v);
         assert_eq!(r.as_slice(), r2.as_slice());
     }
     #[test]
     fn rgb8() {
-        let mut r = Raster::<Rgb8>::new(4, 4).with_empty();
+        let mut r = RasterBuilder::<Rgb8>::new().with_clear(4, 4);
         let rgb = Rgb8::new(0xCC, 0xAA, 0xBB);
         r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
@@ -617,7 +612,7 @@ mod test {
     }
     #[test]
     fn gray8() {
-        let mut r = Raster::<Gray8>::new(4, 4).with_empty();
+        let mut r = RasterBuilder::<Gray8>::new().with_clear(4, 4);
         r.set_region((0, 0, 1, 1), Gray8::from(0x23));
         r.set_region((10, 10, 1, 1), Gray8::from(0x45));
         r.set_region((2, 2, 10, 10), Gray8::from(0xBB));
@@ -636,7 +631,7 @@ mod test {
             0x00,0xBB,0x00, 0x66,0x77,0x88, 0x99,0xAA,0xBB,
             0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
         ];
-        let mut r = Raster::<Rgb8>::new(3, 3).with_u8_buffer(b);
+        let mut r = RasterBuilder::<Rgb8>::new().with_u8_buffer(3, 3, b);
         let rgb = Rgb8::new(0x12, 0x34, 0x56);
         r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
@@ -653,7 +648,7 @@ mod test {
             0x2002,0x6006, 0x9008,0xB00A, 0xD00C,0xF00E,
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
-        let mut r = Raster::<GrayAlpha16>::new(3, 3).with_u16_buffer(b);
+        let mut r = RasterBuilder::<GrayAlpha16>::new().with_u16_buffer(3, 3, b);
         r.set_region((1, 0, 2, 2), GrayAlpha16::new(0x4444));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
@@ -665,10 +660,10 @@ mod test {
     }
     #[test]
     fn gray_to_rgb() {
-        let mut r = Raster::<Gray8>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<Gray8>::new().with_clear(3, 3);
         r.set_region((2, 0, 4, 2), Gray8::new(0x45));
         r.set_region((0, 2, 2, 10), Gray8::new(0xDA));
-        let r: Raster<Rgb8> = r.to_raster();
+        let r = RasterBuilder::<Rgb8>::new().with_raster(&r);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
@@ -678,10 +673,10 @@ mod test {
     }
     #[test]
     fn rgb_to_gray() {
-        let mut r = Raster::<Rgb16>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<Rgb16>::new().with_clear(3, 3);
         r.set_region((1, 0, 4, 2), Rgb16::new(0x4321, 0x9085, 0x5543));
         r.set_region((0, 1, 1, 10), Rgb16::new(0x5768, 0x4091, 0x5000));
-        let r: Raster<Gray8> = r.to_raster();
+        let r = RasterBuilder::<Gray8>::new().with_raster(&r);
         let v = vec![
             0x00, 0x90, 0x90,
             0x56, 0x90, 0x90,
@@ -691,10 +686,10 @@ mod test {
     }
     #[test]
     fn gray_to_mask() {
-        let mut r = Raster::<GrayAlpha8>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<GrayAlpha8>::new().with_clear(3, 3);
         r.set_region((0, 1, 2, 8), GrayAlpha8::with_alpha(0x67, 0x94));
         r.set_region((2, 0, 1, 10), GrayAlpha8::with_alpha(0xBA, 0xA2));
-        let r: Raster<Mask16> = r.to_raster();
+        let r = RasterBuilder::<Mask16>::new().with_raster(&r);
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0xA2, 0xA2,
             0x94, 0x94, 0x94, 0x94, 0xA2, 0xA2,
@@ -704,10 +699,10 @@ mod test {
     }
     #[test]
     fn mask_to_gray() {
-        let mut r = Raster::<Mask16>::new(3, 3).with_empty();
+        let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
         r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
         r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
-        let r: Raster<GrayAlpha8> = r.to_raster();
+        let r = RasterBuilder::<GrayAlpha8>::new().with_raster(&r);
         let v = vec![
             0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x98,
             0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
@@ -717,10 +712,10 @@ mod test {
     }
     #[test]
     fn copy_region_gray() {
-        let mut g0 = Raster::<Gray16>::new(3, 3).with_empty();
-        let mut g1 = Raster::<Gray16>::new(3, 3)
+        let mut g0 = RasterBuilder::<Gray16>::new().with_clear(3, 3);
+        let mut g1 = RasterBuilder::<Gray16>::new()
             .gamma_mode(GammaMode::Linear)
-            .with_empty();
+            .with_clear(3, 3);
         g0.set_region((0, 2, 2, 5), Gray16::new(0x4455));
         g0.set_region((2, 0, 3, 2), Gray8::new(0x33));
         g1.set_region(g1.region(), g0.region_iter(g0.region()));
@@ -733,40 +728,40 @@ mod test {
     }
     #[test]
     fn from_rgb8() {
-        let r = Raster::<Rgb8>::new(50, 50).with_empty();
-        let _: Raster<Rgb16> = r.to_raster();
-        let _: Raster<Rgb32> = r.to_raster();
-        let _: Raster<Rgba8> = r.to_raster();
-        let _: Raster<Rgba16> = r.to_raster();
-        let _: Raster<Rgba32> = r.to_raster();
-        let _: Raster<Gray8> = r.to_raster();
-        let _: Raster<Gray16> = r.to_raster();
-        let _: Raster<Gray32> = r.to_raster();
-        let _: Raster<GrayAlpha8> = r.to_raster();
-        let _: Raster<GrayAlpha16> = r.to_raster();
-        let _: Raster<GrayAlpha32> = r.to_raster();
-        let _: Raster<Mask8> = r.to_raster();
-        let _: Raster<Mask16> = r.to_raster();
-        let _: Raster<Mask32> = r.to_raster();
+        let r = RasterBuilder::<Rgb8>::new().with_clear(50, 50);
+        let _ = RasterBuilder::<Rgb16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgb32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray32>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha8>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha16>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
     }
     #[test]
     fn from_mask8() {
-        let r = Raster::<Mask8>::new(50, 50).with_empty();
-        let _: Raster<Rgb8> = r.to_raster();
-        let _: Raster<Rgb16> = r.to_raster();
-        let _: Raster<Rgb32> = r.to_raster();
-        let _: Raster<Rgba8> = r.to_raster();
-        let _: Raster<Rgba16> = r.to_raster();
-        let _: Raster<Rgba32> = r.to_raster();
-        let _: Raster<Gray8> = r.to_raster();
-        let _: Raster<Gray16> = r.to_raster();
-        let _: Raster<Gray32> = r.to_raster();
-        let _: Raster<GrayAlpha8> = r.to_raster();
-        let _: Raster<GrayAlpha16> = r.to_raster();
-        let _: Raster<GrayAlpha32> = r.to_raster();
-        let _: Raster<Mask8> = r.to_raster();
-        let _: Raster<Mask16> = r.to_raster();
-        let _: Raster<Mask32> = r.to_raster();
+        let r = RasterBuilder::<Mask8>::new().with_clear(50, 50);
+        let _ = RasterBuilder::<Rgb8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgb16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgb32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Rgba32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Gray32>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha8>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha16>::new().with_raster(&r);
+        let _ = RasterBuilder::<GrayAlpha32>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
+        let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
     }
     #[test]
     fn region_size() {

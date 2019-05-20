@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+### Changed
+* RasterBuilder methods reworked to be more consistent
+### Removed
+* Raster::to_raster (use RasterBuilder.with_raster instead)
+
 ## [0.5.0] - 2019-05-18
 ### Added
 * RasterBuilder
