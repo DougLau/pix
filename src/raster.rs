@@ -12,6 +12,7 @@ use std::marker::PhantomData;
 /// [GammaMode](enum.GammaMode.html) can be configured.  To finish building a
 /// `Raster`, use one of the *with_* methods:
 /// * [with_clear](struct.RasterBuilder.html#method.with_clear)
+/// * [with_color](struct.RasterBuilder.html#method.with_color)
 /// * [with_raster](struct.RasterBuilder.html#method.with_raster)
 /// * [with_pixels](struct.RasterBuilder.html#method.with_pixels)
 /// * [with_u8_buffer](struct.RasterBuilder.html#method.with_u8_buffer)
@@ -136,17 +137,28 @@ impl<F: Format> RasterBuilder<F> {
     ///
     /// ## Examples
     /// ```
-    /// use pix::*;
+    /// # use pix::*;
     /// let r1 = RasterBuilder::<Gray8>::new().with_clear(20, 20);
     /// let r2 = RasterBuilder::<Mask8>::new().with_clear(64, 64);
     /// let r3 = RasterBuilder::<Rgb16>::new().with_clear(10, 10);
     /// let r4 = RasterBuilder::<GrayAlpha32>::new().with_clear(100, 250);
     /// ```
     pub fn with_clear(self, width: u32, height: u32) -> Raster<F> {
+        self.with_color(width, height, F::default())
+    }
+    /// Build a `Raster` with all pixels set to one color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let clr = Rgb8::new(0x40, 0xAA, 0xBB);
+    /// let r = RasterBuilder::<Rgb8>::new().with_clear(15, 15);
+    /// ```
+    pub fn with_color(self, width: u32, height: u32, clr: F) -> Raster<F> {
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let len = (width * height) as usize;
-        let pixels = vec![F::default(); len].into_boxed_slice();
+        let pixels = vec![clr; len].into_boxed_slice();
         Raster { alpha_mode, gamma_mode, width, height, pixels }
     }
     /// Build a `Raster` by copying another `Raster`.
@@ -186,7 +198,7 @@ impl<F: Format> RasterBuilder<F> {
     ///
     /// ## Example
     /// ```
-    /// use pix::*;
+    /// # use pix::*;
     /// let p = vec![Rgb8::new(255, 0, 255); 16];     // vec of magenta pix
     /// let mut r = RasterBuilder::new()              // convert to raster
     ///                           .with_pixels(4, 4, p);
@@ -307,6 +319,12 @@ impl<F: Format> Raster<F> {
     /// * `reg` Region within `Raster`.
     /// * `it` `Iterator` of pixels in `Region`.
     ///
+    /// ### Set entire raster to one color
+    /// ```
+    /// # use pix::*;
+    /// let mut r = RasterBuilder::<Rgb32>::new().with_clear(360, 240);
+    /// r.set_region(r.region(), Rgb32::new(0.5, 0.2, 0.8));
+    /// ```
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
@@ -321,13 +339,13 @@ impl<F: Format> Raster<F> {
     /// // ... load image data
     /// let src = gray.region().intersection((20, 10, 25, 25));
     /// let dst = rgb.region().intersection((40, 40, 25, 25));
+    /// // Regions must have the same shape!
     /// rgb.set_region(dst, gray.region_iter(src));
     /// ```
     pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
         where F: Format<Chan=C>, C: Channel + From<H>, H: Channel,
               P: Format<Chan=H>, R: Into<Region>, I: Iterator<Item=P> + PixModes
     {
-        // FIXME: src/dst regions must have same shape!
         let reg = reg.into();
         let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;

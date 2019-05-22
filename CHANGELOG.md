@@ -2,6 +2,7 @@
 
 ### Added
 * Implemented From<i32> for Rgb
+* RasterBuilder::with_color
 ### Changed
 * RasterBuilder methods reworked to be more consistent
 ### Removed
