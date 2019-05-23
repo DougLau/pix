@@ -3,6 +3,7 @@
 ### Added
 * Implemented From<i32> for Rgb
 * RasterBuilder::with_color
+* Palette struct
 ### Changed
 * RasterBuilder methods reworked to be more consistent
 ### Removed
