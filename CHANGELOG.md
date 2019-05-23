@@ -4,6 +4,7 @@
 * Implemented From<i32> for Rgb
 * RasterBuilder::with_color
 * Palette struct
+* Format::difference / within_threshold methods
 ### Changed
 * RasterBuilder methods reworked to be more consistent
 ### Removed

@@ -26,6 +26,12 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 
     /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self;
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self;
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool;
 }
 
 /// Pixel modes are settings for [AlphaMode](enum.AlphaMode.html) and

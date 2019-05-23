@@ -114,6 +114,30 @@ impl<C, A> Format for Rgb<C, A>
         let alpha = rgba[3];
         Rgb::with_alpha(red, green, blue, alpha)
     }
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self {
+        let r = if self.red > rhs.red { self.red - rhs.red }
+                else { rhs.red - self.red };
+        let g = if self.green > rhs.green { self.green - rhs.green }
+                else { rhs.green - self.green };
+        let b = if self.blue > rhs.blue { self.blue - rhs.blue }
+                else { rhs.blue - self.blue };
+        let a = if self.alpha.value() > rhs.alpha.value() {
+            self.alpha.value() - rhs.alpha.value()
+        } else {
+            rhs.alpha.value() - self.alpha.value()
+        };
+        Rgb::with_alpha(r, g, b, a)
+    }
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool {
+        self.red <= rhs.red &&
+        self.green <= rhs.green &&
+        self.blue <= rhs.blue &&
+        self.alpha.value() <= rhs.alpha.value()
+    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel

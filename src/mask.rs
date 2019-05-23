@@ -81,6 +81,21 @@ impl<C, A> Format for Mask<C, A>
         let alpha = rgba[3];
         Mask::new(alpha)
     }
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self {
+        let a = if self.alpha.value() > rhs.alpha.value() {
+            self.alpha.value() - rhs.alpha.value()
+        } else {
+            rhs.alpha.value() - self.alpha.value()
+        };
+        Mask::new(a)
+    }
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool {
+        self.alpha.value() <= rhs.alpha.value()
+    }
 }
 
 /// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)

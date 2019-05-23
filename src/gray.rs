@@ -81,6 +81,24 @@ impl<C, A> Format for Gray<C, A>
         let alpha = rgba[3];
         Gray::with_alpha(value, alpha)
     }
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self {
+        let v = if self.value > rhs.value { self.value - rhs.value }
+                else { rhs.value - self.value };
+        let a = if self.alpha.value() > rhs.alpha.value() {
+            self.alpha.value() - rhs.alpha.value()
+        } else {
+            rhs.alpha.value() - self.alpha.value()
+        };
+        Gray::with_alpha(v, a)
+    }
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool {
+        self.value <= rhs.value &&
+        self.alpha.value() <= rhs.alpha.value()
+    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel

@@ -3,7 +3,7 @@
 // Copyright (c) 2019  Douglas P Lau
 //
 use std::cmp::Ordering;
-use std::ops::{Div, Mul};
+use std::ops::{Div, Mul, Sub};
 use crate::gamma::Gamma;
 
 /// One *component* of a pixel [Format](trait.Format.html).
@@ -13,8 +13,8 @@ use crate::gamma::Gamma;
 ///
 /// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
-pub trait Channel: Copy + Default + Ord + Mul<Output=Self> + Div<Output=Self> +
-    Gamma
+pub trait Channel: Copy + Default + Ord + Sub<Output=Self> + Mul<Output=Self> +
+    Div<Output=Self> + Gamma
 {
     /// Minimum intensity (*zero*)
     const MIN: Self;
@@ -99,6 +99,15 @@ impl From<u8> for Ch8 {
 impl From<Ch8> for u8 {
     fn from(c: Ch8) -> u8 {
         c.0
+    }
+}
+
+impl<R> Sub<R> for Ch8 where Self: From<R> {
+    type Output = Self;
+    fn sub(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0 - rhs.0;
+        Ch8 { 0: value }
     }
 }
 
@@ -192,6 +201,15 @@ impl From<Ch16> for u16 {
 impl From<Ch16> for Ch8 {
     fn from(c: Ch16) -> Self {
         Ch8::new((c.0 >> 8) as u8)
+    }
+}
+
+impl<R> Sub<R> for Ch16 where Self: From<R> {
+    type Output = Self;
+    fn sub(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0 - rhs.0;
+        Ch16 { 0: value }
     }
 }
 
@@ -325,6 +343,15 @@ impl Eq for Ch32 { }
 impl Ord for Ch32 {
     fn cmp(&self, other: &Ch32) -> Ordering {
         self.partial_cmp(other).unwrap()
+    }
+}
+
+impl<R> Sub<R> for Ch32 where Self: From<R> {
+    type Output = Self;
+    fn sub(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0 - rhs.0;
+        Ch32 { 0: value }
     }
 }
 

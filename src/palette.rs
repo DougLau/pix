@@ -9,8 +9,8 @@ use crate::{Ch8, Format};
 pub struct Palette<F>
     where F: Format<Chan = Ch8>
 {
-    capacity: usize,
     table: Vec<F>,
+    threshold_fn: fn(usize) -> F,
 }
 
 impl<F> Palette<F>
@@ -21,7 +21,17 @@ impl<F> Palette<F>
     /// * `capacity` Maximum number of entries.
     pub fn new(capacity: usize) -> Self {
         let table = Vec::with_capacity(capacity);
-        Palette { capacity, table }
+        let threshold_fn = |_| F::default();
+        Palette { table, threshold_fn }
+    }
+    /// Set the threshold function for matching entries.
+    ///
+    /// * `threshold_fn` Called when checking whether a color matches an
+    ///                  existing entry.  The parameter is the palette table
+    ///                  size.  Returns the maximum `Channel`-wise difference
+    ///                  to match.
+    pub fn set_threshold_fn(&mut self, threshold_fn: fn(usize) -> F) {
+        self.threshold_fn = threshold_fn;
     }
     /// Get view of a color slice as a `u8` slice.
     fn u8_slice(colors: &[F]) -> &[u8] {
@@ -43,27 +53,44 @@ impl<F> Palette<F>
     }
     /// Set a `Palette` entry.
     ///
-    /// The table is searched for a matching color.  If not found, a new entry
-    /// is added.
+    /// The table is searched for the best matching color within the threshold.
+    /// If none found, a new entry is added.
     ///
     /// * `clr` Color to lookup or add.
     ///
     /// # Returns
-    /// An index is returned if matching color is found or an entry is added.
-    /// Otherwise, when the table is full, `None` is returned.
+    /// Index of best matching or added entry if successful.  Otherwise, when
+    /// no matches are found and the table is full, `None` is returned.
     pub fn set_entry(&mut self, clr: F) -> Option<usize> {
-        for (i, c) in self.table.iter().enumerate() {
-            if clr == *c {
+        if let Some((i, dif)) = self.best_match(clr) {
+            if dif.within_threshold((self.threshold_fn)(self.table.len())) {
                 return Some(i);
             }
         }
         let i = self.table.len();
-        if i < self.capacity {
+        if i < self.table.capacity() {
             self.table.push(clr);
             Some(i)
         } else {
             None
         }
+    }
+    /// Find the best match for a color.
+    ///
+    /// The first of equal matches will be returned.
+    fn best_match(&self, clr: F) -> Option<(usize, F)> {
+        let mut best = None;
+        for (i, c) in self.table.iter().enumerate() {
+            let dif = clr.difference(*c);
+            if {
+                if let Some((_, d)) = best {
+                    dif.within_threshold(d) && dif != d // better
+                } else { true }
+            } {
+                best = Some((i, dif));
+            }
+        }
+        best
     }
     /// Replace a `Palette` entry.
     ///
@@ -141,5 +168,17 @@ mod test {
             0x00,0x00,0x00,0x02,0x02,0x04,0x01,0x00,0x00,0x00,0x02,0x04,
         ];
         assert_eq!(p.histogram(&v[..]), Some(vec![18, 6, 10, 4, 8, 0, 2]));
+    }
+    #[test]
+    fn matching() {
+        let mut p = Palette::new(8);
+        assert_eq!(p.set_entry(Rgb8::new(10, 10, 10)), Some(0));
+        assert_eq!(p.set_entry(Rgb8::new(20, 20, 20)), Some(1));
+        assert_eq!(p.set_entry(Rgb8::new(30, 30, 30)), Some(2));
+        assert_eq!(p.set_entry(Rgb8::new(40, 40, 40)), Some(3));
+        p.set_threshold_fn(|_| Rgb8::new(4, 5, 6));
+        assert_eq!(p.set_entry(Rgb8::new(15, 15, 15)), Some(4));
+        p.set_threshold_fn(|_| Rgb8::new(5, 5, 5));
+        assert_eq!(p.set_entry(Rgb8::new(35, 35, 35)), Some(2));
     }
 }
