@@ -16,7 +16,7 @@ use crate::{AlphaMode, Channel, GammaMode};
 ///   [Rgb32](type.Rgb32.html), [Rgba8](type.Rgba8.html),
 ///   [Rgba16](type.Rgba16.html), [Rgba32](type.Rgba32.html)
 ///
-pub trait Format: Clone + Copy + Default {
+pub trait Format: Clone + Copy + Default + PartialEq {
 
     /// `Channel` type
     type Chan: Channel;

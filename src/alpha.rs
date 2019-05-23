@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
-pub trait Alpha: Copy + Default {
+pub trait Alpha: Copy + Default + PartialEq {
 
     /// `Channel` type
     type Chan: Channel;
