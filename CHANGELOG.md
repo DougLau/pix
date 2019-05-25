@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.6.0] - 2019-05-24
 ### Added
 * Implemented From<i32> for Rgb
 * RasterBuilder::with_color
