@@ -24,6 +24,10 @@ impl<F> Palette<F>
         let threshold_fn = |_| F::default();
         Palette { table, threshold_fn }
     }
+    /// Get the number of entries.
+    pub fn len(&self) -> usize {
+        self.table.len()
+    }
     /// Set the threshold function for matching entries.
     ///
     /// * `threshold_fn` Called when checking whether a color matches an
