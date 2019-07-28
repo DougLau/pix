@@ -2,7 +2,9 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Alpha, Channel, Ch8, Ch16, Ch32, Format, PixModes, Translucent};
+use crate::{
+    Alpha, Channel, Ch8, Ch16, Ch32, Format, PixModes, Rgb, Translucent
+};
 use std::marker::PhantomData;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
@@ -48,6 +50,19 @@ impl<C, A> From<f32> for Mask<C, A>
     /// Get a `Mask` from an `f32`
     fn from(c: f32) -> Self {
         Mask::new(c)
+    }
+}
+
+impl<C, A> From<Mask<C, A>> for Rgb<C, A>
+    where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
+{
+    /// Get an `Rgb` from a `Mask`
+    fn from(c: Mask<C, A>) -> Self {
+        let red = C::MAX;
+        let green = C::MAX;
+        let blue = C::MAX;
+        let alpha = c.alpha().into();
+        Rgb::with_alpha(red, green, blue, alpha)
     }
 }
 
