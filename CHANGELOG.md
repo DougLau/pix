@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.6.1] - 2019-07-28
+### Added
+* Allow converting from Mask to Rgb
+
 ## [0.6.0] - 2019-05-24
 ### Added
 * Implemented From<i32> for Rgb
