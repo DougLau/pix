@@ -62,7 +62,7 @@ impl<C, A> From<Mask<C, A>> for Rgb<C, A>
         let green = C::MAX;
         let blue = C::MAX;
         let alpha = c.alpha().into();
-        Rgb::with_alpha(red, green, blue, alpha)
+        Rgb::with_values(red, green, blue, alpha)
     }
 }
 

@@ -41,12 +41,12 @@ impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
     where C: Channel
 {
     fn from(c: Rgb<C, Opaque<C>>) -> Self {
-        Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
+        Self::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
     }
 }
 
-impl<C, A> From<i32> for Rgb<C, A>
-    where C: Channel + From<Ch8>, A: Alpha<Chan=C> + From<Translucent<Ch8>>
+impl<C, B> From<i32> for Rgb<C, Translucent<B>>
+    where C: Channel + From<Ch8>, B: Channel + From<Ch8>
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
@@ -54,7 +54,7 @@ impl<C, A> From<i32> for Rgb<C, A>
         let green = Ch8::from((c >> 8) as u8);
         let blue = Ch8::from((c >> 16) as u8);
         let alpha = Ch8::from((c >> 24) as u8);
-        Rgb::with_alpha(red, green, blue, Translucent::new(alpha))
+        Self::with_alpha(red, green, blue, alpha)
     }
 }
 
@@ -81,11 +81,12 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
     pub fn new<H>(red: H, green: H, blue: H) -> Self
         where C: From<H>, A: From<Opaque<C>>
     {
-        Self::with_alpha(red, green, blue, Opaque::default())
+        Self::with_values(red, green, blue, Opaque::default())
     }
-    /// Create a [Translucent](struct.Translucent.html) color by specifying
-    /// *red*, *green*, *blue* and *alpha* values.
-    pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
+    /// Create a [Translucent](struct.Translucent.html) or
+    /// [Opaque](struct.Opaque.html) color by specifying *red*, *green*, *blue*
+    /// and *alpha* values.
+    pub fn with_values<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
         where C: From<H>, A: From<B>
     {
         let red = C::from(red);
@@ -93,6 +94,13 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
         let blue = C::from(blue);
         let alpha = A::from(alpha);
         Rgb { red, green, blue, alpha }
+    }
+    /// Create a [Translucent](struct.Translucent.html) color by specifying
+    /// *red*, *green*, *blue* and *alpha* values.
+    pub fn with_alpha<H, B, D>(red: H, green: H, blue: H, alpha: B) -> Rgb<C, Translucent<D>>
+        where C: From<H>, D: From<B> + Channel
+    {
+        Rgb::<C, Translucent<D>>::with_values(red, green, blue, Translucent::new(D::from(alpha)))
     }
     /// Get the red `Channel`.
     pub fn red(self) -> C {
@@ -128,7 +136,7 @@ impl<C, A> Format for Rgb<C, A>
         let green = rgba[1];
         let blue = rgba[2];
         let alpha = rgba[3];
-        Rgb::with_alpha(red, green, blue, alpha)
+        Rgb::with_values(red, green, blue, alpha)
     }
 
     /// Get channel-wise difference
@@ -144,7 +152,7 @@ impl<C, A> Format for Rgb<C, A>
         } else {
             rhs.alpha.value() - self.alpha.value()
         };
-        Rgb::with_alpha(r, g, b, a)
+        Rgb::with_values(r, g, b, a)
     }
 
     /// Check if all `Channel`s are within threshold
