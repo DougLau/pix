@@ -29,6 +29,22 @@ impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
     }
 }
 
+impl<C> From<Rgb<C, Translucent<C>>> for Rgb<C, Opaque<C>>
+    where C: Channel
+{
+    fn from(c: Rgb<C, Translucent<C>>) -> Self {
+        Rgb::new(c.red(), c.green(), c.blue())
+    }
+}
+
+impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
+    where C: Channel
+{
+    fn from(c: Rgb<C, Opaque<C>>) -> Self {
+        Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
+    }
+}
+
 impl<C, A> From<i32> for Rgb<C, A>
     where C: Channel + From<Ch8>, A: Alpha<Chan=C> + From<Translucent<Ch8>>
 {
