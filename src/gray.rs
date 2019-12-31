@@ -29,6 +29,24 @@ impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
     }
 }
 
+impl<C> From<Gray<C, Translucent<C>>> for Gray<C, Opaque<C>>
+where
+    C: Channel,
+{
+    fn from(c: Gray<C, Translucent<C>>) -> Self {
+        Gray::new(c.value())
+    }
+}
+
+impl<C> From<Gray<C, Opaque<C>>> for Gray<C, Translucent<C>>
+where
+    C: Channel,
+{
+    fn from(c: Gray<C, Opaque<C>>) -> Self {
+        Gray::with_alpha(c.value(), C::MAX)
+    }
+}
+
 impl<C, A> From<u8> for Gray<C, A>
 where
     C: Channel,
@@ -54,13 +72,13 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
         Gray { value, alpha }
     }
     /// Create a [Translucent](struct.Translucent.html) gray value.
-    pub fn with_alpha<H>(value: H, alpha: H) -> Self
+    pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
     where
         C: From<H>,
-        A: From<C>,
+        A: From<B>,
     {
         let value = C::from(value);
-        let alpha = A::from(C::from(alpha));
+        let alpha = A::from(alpha);
         Gray { value, alpha }
     }
     /// Get the gray value.

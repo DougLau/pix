@@ -3,7 +3,7 @@
 // Copyright (c) 2019  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent,
 };
 use std::marker::PhantomData;
 
@@ -62,7 +62,6 @@ where
 impl<C, A> From<Mask<C, A>> for Rgb<C, A>
 where
     C: Channel,
-    Ch8: From<C>,
     A: Alpha<Chan = C>,
 {
     /// Get an `Rgb` from a `Mask`
@@ -72,6 +71,19 @@ where
         let blue = C::MAX;
         let alpha = c.alpha().into();
         Rgb::with_alpha(red, green, blue, alpha)
+    }
+}
+
+impl<C, A> From<Mask<C, A>> for Gray<C, A>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    /// Get a `Gray` from a `Mask`
+    fn from(c: Mask<C, A>) -> Self {
+        let value = C::MAX;
+        let alpha = c.alpha().into();
+        Gray::with_alpha(value, alpha)
     }
 }
 
