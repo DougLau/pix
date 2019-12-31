@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2019  Douglas P Lau
 //
 use crate::{
-    Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, PixModes, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
 };
 
 /// RGB pixel [Format](trait.Format.html), with optional
@@ -19,7 +19,7 @@ pub struct Rgb<C: Channel, A: Alpha> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Rgb<C, A> { }
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A> {}
 
 impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
     type Item = Self;
@@ -30,7 +30,8 @@ impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
 }
 
 impl<C> From<Rgb<C, Translucent<C>>> for Rgb<C, Opaque<C>>
-    where C: Channel
+where
+    C: Channel,
 {
     fn from(c: Rgb<C, Translucent<C>>) -> Self {
         Rgb::new(c.red(), c.green(), c.blue())
@@ -38,7 +39,8 @@ impl<C> From<Rgb<C, Translucent<C>>> for Rgb<C, Opaque<C>>
 }
 
 impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
-    where C: Channel
+where
+    C: Channel,
 {
     fn from(c: Rgb<C, Opaque<C>>) -> Self {
         Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
@@ -46,7 +48,9 @@ impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
 }
 
 impl<C, A> From<i32> for Rgb<C, A>
-    where C: Channel + From<Ch8>, A: Alpha<Chan=C> + From<Translucent<Ch8>>
+where
+    C: Channel + From<Ch8>,
+    A: Alpha<Chan = C> + From<Translucent<Ch8>>,
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
@@ -59,7 +63,10 @@ impl<C, A> From<i32> for Rgb<C, A>
 }
 
 impl<C, A> From<Rgb<C, A>> for i32
-    where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
+where
+    C: Channel,
+    Ch8: From<C>,
+    A: Alpha<Chan = C>,
 {
     /// Get an `i32` from an `Rgb`
     fn from(c: Rgb<C, A>) -> i32 {
@@ -79,20 +86,29 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
     /// Create an [Opaque](struct.Opaque.html) color by specifying *red*,
     /// *green* and *blue* values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
-        where C: From<H>, A: From<Opaque<C>>
+    where
+        C: From<H>,
+        A: From<Opaque<C>>,
     {
         Self::with_alpha(red, green, blue, Opaque::default())
     }
     /// Create a [Translucent](struct.Translucent.html) color by specifying
     /// *red*, *green*, *blue* and *alpha* values.
     pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
-        where C: From<H>, A: From<B>
+    where
+        C: From<H>,
+        A: From<B>,
     {
         let red = C::from(red);
         let green = C::from(green);
         let blue = C::from(blue);
         let alpha = A::from(alpha);
-        Rgb { red, green, blue, alpha }
+        Rgb {
+            red,
+            green,
+            blue,
+            alpha,
+        }
     }
     /// Get the red `Channel`.
     pub fn red(self) -> C {
@@ -113,7 +129,9 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
 }
 
 impl<C, A> Format for Rgb<C, A>
-    where C: Channel, A: Alpha<Chan=C> + From<C>
+where
+    C: Channel,
+    A: Alpha<Chan = C> + From<C>,
 {
     type Chan = C;
 
@@ -133,12 +151,21 @@ impl<C, A> Format for Rgb<C, A>
 
     /// Get channel-wise difference
     fn difference(self, rhs: Self) -> Self {
-        let r = if self.red > rhs.red { self.red - rhs.red }
-                else { rhs.red - self.red };
-        let g = if self.green > rhs.green { self.green - rhs.green }
-                else { rhs.green - self.green };
-        let b = if self.blue > rhs.blue { self.blue - rhs.blue }
-                else { rhs.blue - self.blue };
+        let r = if self.red > rhs.red {
+            self.red - rhs.red
+        } else {
+            rhs.red - self.red
+        };
+        let g = if self.green > rhs.green {
+            self.green - rhs.green
+        } else {
+            rhs.green - self.green
+        };
+        let b = if self.blue > rhs.blue {
+            self.blue - rhs.blue
+        } else {
+            rhs.blue - self.blue
+        };
         let a = if self.alpha.value() > rhs.alpha.value() {
             self.alpha.value() - rhs.alpha.value()
         } else {
@@ -149,10 +176,10 @@ impl<C, A> Format for Rgb<C, A>
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
-        self.red <= rhs.red &&
-        self.green <= rhs.green &&
-        self.blue <= rhs.blue &&
-        self.alpha.value() <= rhs.alpha.value()
+        self.red <= rhs.red
+            && self.green <= rhs.green
+            && self.blue <= rhs.blue
+            && self.alpha.value() <= rhs.alpha.value()
     }
 }
 

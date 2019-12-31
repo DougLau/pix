@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2019  Douglas P Lau
 //
 use crate::{
-    Alpha, Channel, Ch8, Ch16, Ch32, Format, Opaque, PixModes, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
 };
 
 /// Gray pixel [Format](trait.Format.html), with optional
@@ -19,7 +19,7 @@ pub struct Gray<C: Channel, A: Alpha> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A> { }
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A> {}
 
 impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
     type Item = Self;
@@ -30,7 +30,11 @@ impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
 }
 
 impl<C, A> From<u8> for Gray<C, A>
-    where C: Channel, C: From<Ch8>, A: Alpha, A: From<Opaque<C>>
+where
+    C: Channel,
+    C: From<Ch8>,
+    A: Alpha,
+    A: From<Opaque<C>>,
 {
     /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
@@ -41,7 +45,9 @@ impl<C, A> From<u8> for Gray<C, A>
 impl<C: Channel, A: Alpha> Gray<C, A> {
     /// Create an [Opaque](struct.Opaque.html) gray value.
     pub fn new<H>(value: H) -> Self
-        where C: From<H>, A: From<Opaque<C>>
+    where
+        C: From<H>,
+        A: From<Opaque<C>>,
     {
         let value = C::from(value);
         let alpha = A::from(Opaque::default());
@@ -49,7 +55,9 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
     }
     /// Create a [Translucent](struct.Translucent.html) gray value.
     pub fn with_alpha<H>(value: H, alpha: H) -> Self
-        where C: From<H>, A: From<C>
+    where
+        C: From<H>,
+        A: From<C>,
     {
         let value = C::from(value);
         let alpha = A::from(C::from(alpha));
@@ -66,7 +74,9 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
 }
 
 impl<C, A> Format for Gray<C, A>
-    where C: Channel, A: Alpha<Chan=C> + From<C>
+where
+    C: Channel,
+    A: Alpha<Chan = C> + From<C>,
 {
     type Chan = C;
 
@@ -84,8 +94,11 @@ impl<C, A> Format for Gray<C, A>
 
     /// Get channel-wise difference
     fn difference(self, rhs: Self) -> Self {
-        let v = if self.value > rhs.value { self.value - rhs.value }
-                else { rhs.value - self.value };
+        let v = if self.value > rhs.value {
+            self.value - rhs.value
+        } else {
+            rhs.value - self.value
+        };
         let a = if self.alpha.value() > rhs.alpha.value() {
             self.alpha.value() - rhs.alpha.value()
         } else {
@@ -96,8 +109,7 @@ impl<C, A> Format for Gray<C, A>
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
-        self.value <= rhs.value &&
-        self.alpha.value() <= rhs.alpha.value()
+        self.value <= rhs.value && self.alpha.value() <= rhs.alpha.value()
     }
 }
 

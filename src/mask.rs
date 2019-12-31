@@ -3,7 +3,7 @@
 // Copyright (c) 2019  Douglas P Lau
 //
 use crate::{
-    Alpha, Channel, Ch8, Ch16, Ch32, Format, PixModes, Rgb, Translucent
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Translucent,
 };
 use std::marker::PhantomData;
 
@@ -16,7 +16,7 @@ pub struct Mask<C: Channel, A: Alpha> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Mask<C, A> { }
+impl<C: Channel, A: Alpha> PixModes for Mask<C, A> {}
 
 impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
     type Item = Self;
@@ -27,7 +27,9 @@ impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
 }
 
 impl<C, A> From<u8> for Mask<C, A>
-    where C: Channel + From<u8>, A: Alpha + From<C>
+where
+    C: Channel + From<u8>,
+    A: Alpha + From<C>,
 {
     /// Get a `Mask` from a `u8`
     fn from(c: u8) -> Self {
@@ -36,7 +38,9 @@ impl<C, A> From<u8> for Mask<C, A>
 }
 
 impl<C, A> From<u16> for Mask<C, A>
-    where C: Channel + From<u16>, A: Alpha + From<C>
+where
+    C: Channel + From<u16>,
+    A: Alpha + From<C>,
 {
     /// Get a `Mask` from a `u16`
     fn from(c: u16) -> Self {
@@ -45,7 +49,9 @@ impl<C, A> From<u16> for Mask<C, A>
 }
 
 impl<C, A> From<f32> for Mask<C, A>
-    where C: Channel + From<f32>, A: Alpha + From<C>
+where
+    C: Channel + From<f32>,
+    A: Alpha + From<C>,
 {
     /// Get a `Mask` from an `f32`
     fn from(c: f32) -> Self {
@@ -54,7 +60,10 @@ impl<C, A> From<f32> for Mask<C, A>
 }
 
 impl<C, A> From<Mask<C, A>> for Rgb<C, A>
-    where C: Channel, Ch8: From<C>, A: Alpha<Chan=C>
+where
+    C: Channel,
+    Ch8: From<C>,
+    A: Alpha<Chan = C>,
 {
     /// Get an `Rgb` from a `Mask`
     fn from(c: Mask<C, A>) -> Self {
@@ -69,7 +78,9 @@ impl<C, A> From<Mask<C, A>> for Rgb<C, A>
 impl<C: Channel, A: Alpha> Mask<C, A> {
     /// Create a new `Mask` value.
     pub fn new<B>(alpha: B) -> Self
-        where C: From<B>, A: From<C>
+    where
+        C: From<B>,
+        A: From<C>,
     {
         let value = PhantomData;
         let alpha = A::from(C::from(alpha));
@@ -82,7 +93,9 @@ impl<C: Channel, A: Alpha> Mask<C, A> {
 }
 
 impl<C, A> Format for Mask<C, A>
-    where C: Channel, A: Alpha<Chan=C> + From<C>
+where
+    C: Channel,
+    A: Alpha<Chan = C> + From<C>,
 {
     type Chan = C;
 

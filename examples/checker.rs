@@ -1,9 +1,9 @@
 extern crate pix;
 
+use pix::{Gray8, Raster, RasterBuilder};
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use pix::{Gray8, Raster, RasterBuilder};
 
 fn main() -> Result<(), io::Error> {
     let v = Gray8::from(255);
@@ -22,8 +22,9 @@ fn write_pgm(raster: &Raster<Gray8>, filename: &str) -> io::Result<()> {
     let fl = File::create(filename)?;
     let mut bw = io::BufWriter::new(fl);
     let w = bw.get_mut();
-    w.write_all(format!("P5\n{} {}\n255\n", raster.width(), raster.height())
-     .as_bytes())?;
+    w.write_all(
+        format!("P5\n{} {}\n255\n", raster.width(), raster.height()).as_bytes(),
+    )?;
     w.write_all(&raster.as_u8_slice())?;
     w.flush()?;
     Ok(())

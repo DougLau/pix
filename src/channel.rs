@@ -2,9 +2,9 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
+use crate::gamma::Gamma;
 use std::cmp::Ordering;
 use std::ops::{Div, Mul, Sub};
-use crate::gamma::Gamma;
 
 /// One *component* of a pixel [Format](trait.Format.html).
 ///
@@ -13,8 +13,14 @@ use crate::gamma::Gamma;
 ///
 /// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
-pub trait Channel: Copy + Default + Ord + Sub<Output=Self> + Mul<Output=Self> +
-    Div<Output=Self> + Gamma
+pub trait Channel:
+    Copy
+    + Default
+    + Ord
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
+    + Gamma
 {
     /// Minimum intensity (*zero*)
     const MIN: Self;
@@ -102,7 +108,10 @@ impl From<Ch8> for u8 {
     }
 }
 
-impl<R> Sub<R> for Ch8 where Self: From<R> {
+impl<R> Sub<R> for Ch8
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
@@ -111,7 +120,10 @@ impl<R> Sub<R> for Ch8 where Self: From<R> {
     }
 }
 
-impl<R> Mul<R> for Ch8 where Self: From<R> {
+impl<R> Mul<R> for Ch8
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
@@ -132,7 +144,10 @@ impl Mul<f32> for Ch8 {
     }
 }
 
-impl<R> Div<R> for Ch8 where Self: From<R> {
+impl<R> Div<R> for Ch8
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn div(self, rhs: R) -> Self {
         #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
@@ -157,7 +172,6 @@ impl Div<f32> for Ch8 {
 }
 
 impl Channel for Ch8 {
-
     /// Minimum intensity (*zero*)
     const MIN: Ch8 = Ch8 { 0: 0 };
 
@@ -204,7 +218,10 @@ impl From<Ch16> for Ch8 {
     }
 }
 
-impl<R> Sub<R> for Ch16 where Self: From<R> {
+impl<R> Sub<R> for Ch16
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
@@ -213,7 +230,10 @@ impl<R> Sub<R> for Ch16 where Self: From<R> {
     }
 }
 
-impl<R> Mul<R> for Ch16 where Self: From<R> {
+impl<R> Mul<R> for Ch16
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
@@ -234,7 +254,10 @@ impl Mul<f32> for Ch16 {
     }
 }
 
-impl<R> Div<R> for Ch16 where Self: From<R> {
+impl<R> Div<R> for Ch16
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn div(self, rhs: R) -> Self {
         #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
@@ -259,7 +282,6 @@ impl Div<f32> for Ch16 {
 }
 
 impl Channel for Ch16 {
-
     /// Minimum intensity (*zero*)
     const MIN: Ch16 = Ch16 { 0: 0 };
 
@@ -338,7 +360,7 @@ impl From<Ch16> for Ch32 {
     }
 }
 
-impl Eq for Ch32 { }
+impl Eq for Ch32 {}
 
 impl Ord for Ch32 {
     fn cmp(&self, other: &Ch32) -> Ordering {
@@ -346,7 +368,10 @@ impl Ord for Ch32 {
     }
 }
 
-impl<R> Sub<R> for Ch32 where Self: From<R> {
+impl<R> Sub<R> for Ch32
+where
+    Self: From<R>,
+{
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
@@ -376,7 +401,6 @@ impl Div for Ch32 {
 }
 
 impl Channel for Ch32 {
-
     /// Minimum intensity (*zero*)
     const MIN: Ch32 = Ch32 { 0: 0.0 };
 

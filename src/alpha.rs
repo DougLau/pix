@@ -2,14 +2,13 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use crate::{Channel, Ch8, Ch16, Ch32};
+use crate::{Ch16, Ch32, Ch8, Channel};
 use std::marker::PhantomData;
 
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
 pub trait Alpha: Copy + Default + PartialEq {
-
     /// `Channel` type
     type Chan: Channel;
 
@@ -33,7 +32,9 @@ pub struct Opaque<C> {
 }
 
 impl<C, H> From<H> for Opaque<C>
-    where C: Channel + From<H>, H: Channel
+where
+    C: Channel + From<H>,
+    H: Channel,
 {
     fn from(_value: H) -> Self {
         Opaque::default()
@@ -55,7 +56,11 @@ impl<C: Channel> From<Opaque<C>> for Ch32 {
     }
 }
 
-impl<C, A> From<Translucent<A>> for Opaque<C> where C: Channel, A: Channel {
+impl<C, A> From<Translucent<A>> for Opaque<C>
+where
+    C: Channel,
+    A: Channel,
+{
     /// Convert from a `Translucent` value.
     fn from(_: Translucent<A>) -> Self {
         Opaque::default()
@@ -83,7 +88,9 @@ pub struct Translucent<C: Channel> {
 }
 
 impl<C, H> From<H> for Translucent<C>
-    where C: Channel + From<H>, H: Channel
+where
+    C: Channel + From<H>,
+    H: Channel,
 {
     fn from(value: H) -> Self {
         let value = value.into();
@@ -99,7 +106,9 @@ impl<C: Channel> Translucent<C> {
 }
 
 impl<C, A> From<Opaque<A>> for Translucent<C>
-    where C: Channel, A: Channel
+where
+    C: Channel,
+    A: Channel,
 {
     /// Convert from an `Opaque` value.
     fn from(_: Opaque<A>) -> Self {
@@ -133,7 +142,8 @@ pub enum AlphaMode {
 impl AlphaMode {
     /// Encode a `Channel` value using the alpha mode.
     pub fn encode<C>(self, c: C, a: C) -> C
-        where C: Channel
+    where
+        C: Channel,
     {
         match self {
             AlphaMode::Associated => c * a,
@@ -142,11 +152,12 @@ impl AlphaMode {
     }
     /// Decode a `Channel` value using the alpha mode.
     pub fn decode<C>(self, c: C, a: C) -> C
-        where C: Channel
+    where
+        C: Channel,
     {
         match self {
             AlphaMode::Associated => c / a,
-            AlphaMode::Separated=> c,
+            AlphaMode::Separated => c,
         }
     }
 }
