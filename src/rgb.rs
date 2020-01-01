@@ -1,6 +1,6 @@
 // rgb.rs       RGB pixel format.
 //
-// Copyright (c) 2018-2019  Douglas P Lau
+// Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
@@ -55,7 +55,7 @@ where
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
-        let red = Ch8::from((c >> 0) as u8);
+        let red = Ch8::from(c as u8);
         let green = Ch8::from((c >> 8) as u8);
         let blue = Ch8::from((c >> 16) as u8);
         let alpha = Ch8::from((c >> 24) as u8);

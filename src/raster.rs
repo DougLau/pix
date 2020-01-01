@@ -1,6 +1,6 @@
 // raster.rs    Raster images.
 //
-// Copyright (c) 2017-2019  Douglas P Lau
+// Copyright (c) 2017-2020  Douglas P Lau
 //
 use crate::{AlphaMode, Ch16, Ch8, Channel, Format, GammaMode, PixModes};
 use std::convert::TryFrom;
@@ -108,6 +108,12 @@ impl<F: Format> Into<Vec<F>> for Raster<F> {
     /// Get internal pixel data as `Vec` of pixels.
     fn into(self) -> Vec<F> {
         self.pixels.into()
+    }
+}
+
+impl<F: Format> Default for RasterBuilder<F> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

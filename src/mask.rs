@@ -1,6 +1,6 @@
 // mask.rs      Alpha mask pixel format.
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Translucent,
@@ -71,7 +71,7 @@ where
         let red = C::MAX;
         let green = C::MAX;
         let blue = C::MAX;
-        let alpha = c.alpha().into();
+        let alpha = c.alpha();
         Rgb::with_alpha(red, green, blue, alpha)
     }
 }
