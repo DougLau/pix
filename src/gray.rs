@@ -1,10 +1,11 @@
 // gray.rs      Grayscale pixel format.
 //
-// Copyright (c) 2018-2019  Douglas P Lau
+// Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
 };
+use std::ops::Mul;
 
 /// Gray pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -57,6 +58,15 @@ where
     /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
         Gray::new(Ch8::new(c))
+    }
+}
+
+impl<C: Channel, A: Alpha> Mul<Self> for Gray<C, A> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let value = self.value * rhs.value;
+        let alpha = self.alpha * rhs.alpha;
+        Gray { value, alpha }
     }
 }
 
