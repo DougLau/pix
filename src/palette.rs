@@ -1,6 +1,6 @@
 // palette.rs   Color palette
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{Ch8, Format};
 
@@ -32,6 +32,10 @@ where
     /// Get the number of entries.
     pub fn len(&self) -> usize {
         self.table.len()
+    }
+    /// Check if the palette is empty.
+    pub fn is_empty(&self) -> bool {
+        self.table.is_empty()
     }
     /// Set the threshold function for matching entries.
     ///
@@ -91,12 +95,9 @@ where
         let mut best = None;
         for (i, c) in self.table.iter().enumerate() {
             let dif = clr.difference(*c);
-            if {
-                if let Some((_, d)) = best {
-                    dif.within_threshold(d) && dif != d // better
-                } else {
-                    true
-                }
+            if match best {
+                Some((_, d)) => dif.within_threshold(d) && dif != d,
+                _ => true,
             } {
                 best = Some((i, dif));
             }

@@ -3,12 +3,16 @@
 // Copyright (c) 2019  Douglas P Lau
 //
 use crate::{Ch16, Ch32, Ch8, Channel};
+use std::fmt::Debug;
 use std::marker::PhantomData;
+use std::ops::Mul;
 
 /// [Channel](trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
-pub trait Alpha: Copy + Default + PartialEq {
+pub trait Alpha:
+    Copy + Debug + Default + PartialEq + Mul<Output = Self>
+{
     /// `Channel` type
     type Chan: Channel;
 
@@ -67,6 +71,13 @@ where
     }
 }
 
+impl<C: Channel> Mul<Self> for Opaque<C> {
+    type Output = Self;
+    fn mul(self, _rhs: Self) -> Self {
+        self
+    }
+}
+
 impl<C: Channel> Alpha for Opaque<C> {
     type Chan = C;
 
@@ -94,6 +105,29 @@ where
 {
     fn from(value: H) -> Self {
         let value = value.into();
+        Translucent { value }
+    }
+}
+impl From<u8> for Translucent<Ch8> {
+    fn from(value: u8) -> Self {
+        Ch8::new(value).into()
+    }
+}
+impl From<u16> for Translucent<Ch16> {
+    fn from(value: u16) -> Self {
+        Ch16::new(value).into()
+    }
+}
+impl From<f32> for Translucent<Ch32> {
+    fn from(value: f32) -> Self {
+        Ch32::new(value).into()
+    }
+}
+
+impl<C: Channel> Mul<Self> for Translucent<C> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self {
+        let value = self.value * rhs.value;
         Translucent { value }
     }
 }

@@ -1,11 +1,12 @@
 // mask.rs      Alpha mask pixel format.
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent,
 };
 use std::marker::PhantomData;
+use std::ops::Mul;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
 /// [Format](trait.Format.html).
@@ -69,7 +70,7 @@ where
         let red = C::MAX;
         let green = C::MAX;
         let blue = C::MAX;
-        let alpha = c.alpha().into();
+        let alpha = c.alpha();
         Rgb::with_alpha(red, green, blue, alpha)
     }
 }
@@ -84,6 +85,15 @@ where
         let value = C::MAX;
         let alpha = c.alpha().into();
         Gray::with_alpha(value, alpha)
+    }
+}
+
+impl<C: Channel, A: Alpha> Mul<Self> for Mask<C, A> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let value = PhantomData;
+        let alpha = self.alpha * rhs.alpha;
+        Mask { value, alpha }
     }
 }
 

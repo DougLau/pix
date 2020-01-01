@@ -1,10 +1,11 @@
 // rgb.rs       RGB pixel format.
 //
-// Copyright (c) 2018-2019  Douglas P Lau
+// Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
 };
+use std::ops::Mul;
 
 /// RGB pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -54,7 +55,7 @@ where
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
-        let red = Ch8::from((c >> 0) as u8);
+        let red = Ch8::from(c as u8);
         let green = Ch8::from((c >> 8) as u8);
         let blue = Ch8::from((c >> 16) as u8);
         let alpha = Ch8::from((c >> 24) as u8);
@@ -79,6 +80,22 @@ where
         let alpha: u8 = Ch8::from(c.alpha().value()).into();
         let alpha = i32::from(alpha) << 24;
         red | green | blue | alpha
+    }
+}
+
+impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let red = self.red * rhs.red;
+        let green = self.green * rhs.green;
+        let blue = self.blue * rhs.blue;
+        let alpha = self.alpha * rhs.alpha;
+        Rgb {
+            red,
+            green,
+            blue,
+            alpha,
+        }
     }
 }
 
