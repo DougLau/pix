@@ -94,13 +94,13 @@ pub struct Ch32(f32);
 impl Ch8 {
     /// Create a new 8-bit `Channel` value.
     pub fn new(value: u8) -> Self {
-        Ch8 { 0: value }
+        Ch8(value)
     }
 }
 
 impl From<u8> for Ch8 {
     fn from(value: u8) -> Self {
-        Ch8 { 0: value }
+        Ch8(value)
     }
 }
 
@@ -118,7 +118,7 @@ where
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
         let value = self.0 - rhs.0;
-        Ch8 { 0: value }
+        Ch8(value)
     }
 }
 
@@ -134,7 +134,7 @@ where
         let r = u32::from(rhs.0);
         let r = (r << 4) | (r >> 4);
         let value = ((l * r) >> 16) as u8;
-        Ch8 { 0: value }
+        Ch8(value)
     }
 }
 
@@ -190,7 +190,7 @@ impl Channel for Ch8 {
 impl Ch16 {
     /// Create a new 16-bit `Channel` value.
     pub fn new(value: u16) -> Self {
-        Ch16 { 0: value }
+        Ch16(value)
     }
 }
 
@@ -198,13 +198,13 @@ impl From<Ch8> for Ch16 {
     fn from(c: Ch8) -> Self {
         let value = u16::from(c.0);
         let value = value << 8 | value;
-        Ch16 { 0: value }
+        Ch16(value)
     }
 }
 
 impl From<u16> for Ch16 {
     fn from(value: u16) -> Self {
-        Ch16 { 0: value }
+        Ch16(value)
     }
 }
 
@@ -228,7 +228,7 @@ where
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
         let value = self.0 - rhs.0;
-        Ch16 { 0: value }
+        Ch16(value)
     }
 }
 
@@ -244,7 +244,7 @@ where
         let r = u64::from(rhs.0);
         let r = (r << 8) | (r >> 8);
         let value = ((l * r) >> 32) as u16;
-        Ch16 { 0: value }
+        Ch16(value)
     }
 }
 
@@ -312,14 +312,14 @@ impl Ch32 {
         } else {
             value
         };
-        Ch32 { 0: v }
+        Ch32(v)
     }
 }
 
 impl From<Ch8> for Ch32 {
     fn from(c: Ch8) -> Self {
         let value = f32::from(c.0) / 255.0;
-        Ch32 { 0: value }
+        Ch32(value)
     }
 }
 
@@ -358,7 +358,7 @@ impl From<Ch32> for Ch16 {
 impl From<Ch16> for Ch32 {
     fn from(c: Ch16) -> Self {
         let value = f32::from(c.0) / 65535.0;
-        Ch32 { 0: value }
+        Ch32(value)
     }
 }
 
@@ -378,14 +378,14 @@ where
     fn sub(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
         let value = self.0 - rhs.0;
-        Ch32 { 0: value }
+        Ch32(value)
     }
 }
 
 impl Mul for Ch32 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
-        Ch32 { 0: self.0 * rhs.0 }
+        Ch32(self.0 * rhs.0)
     }
 }
 
@@ -395,19 +395,19 @@ impl Div for Ch32 {
         let v = rhs.0;
         if v > 0.0 {
             let value = (self.0 / v).min(1.0);
-            Ch32 { 0: value }
+            Ch32(value)
         } else {
-            Ch32 { 0: 0.0 }
+            Ch32(0.0)
         }
     }
 }
 
 impl Channel for Ch32 {
     /// Minimum intensity (*zero*)
-    const MIN: Ch32 = Ch32 { 0: 0.0 };
+    const MIN: Ch32 = Ch32(0.0);
 
     /// Maximum intensity (*one*)
-    const MAX: Ch32 = Ch32 { 0: 1.0 };
+    const MAX: Ch32 = Ch32(1.0);
 
     /// Raise to given power
     fn powf(self, g: f32) -> Self {
