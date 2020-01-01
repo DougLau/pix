@@ -218,12 +218,12 @@ impl<F: Format> RasterBuilder<F> {
     /// ## Example
     /// ```
     /// # use pix::*;
-    /// let p = vec![Rgb8::new(255, 0, 255); 16];     // vec of magenta pix
-    /// let mut r = RasterBuilder::new()              // convert to raster
-    ///                           .with_pixels(4, 4, p);
-    /// let clr = Rgb8::new(0x00, 0xFF, 0x00);        // green
-    /// r.set_region((2, 0, 1, 3), clr);              // make stripe
-    /// let p2 = Into::<Vec<Rgb8>>::into(r);          // convert back to vec
+    /// let p = vec![Rgb8::new(255, 0, 255); 16]; // vec of magenta pix
+    /// let mut r = RasterBuilder::new()          // convert to raster
+    ///     .with_pixels(4, 4, p);
+    /// let clr = Rgb8::new(0x00, 0xFF, 0x00);    // green
+    /// r.set_region((2, 0, 1, 3), clr);          // make stripe
+    /// let p2 = Into::<Vec<Rgb8>>::into(r);      // convert back to vec
     /// ```
     pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<F>
     where
