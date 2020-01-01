@@ -158,9 +158,9 @@ where
             let ss = u32::from(self.0) << 8;
             let rr = u32::from(rhs.0);
             let value = (ss / rr).min(255) as u8;
-            Ch8 { 0: value }
+            Ch8(value)
         } else {
-            Ch8 { 0: 0 }
+            Ch8(0)
         }
     }
 }
@@ -175,10 +175,10 @@ impl Div<f32> for Ch8 {
 
 impl Channel for Ch8 {
     /// Minimum intensity (*zero*)
-    const MIN: Ch8 = Ch8 { 0: 0 };
+    const MIN: Ch8 = Ch8(0);
 
     /// Maximum intensity (*one*)
-    const MAX: Ch8 = Ch8 { 0: 0xFF };
+    const MAX: Ch8 = Ch8(0xFF);
 
     /// Raise to given power
     fn powf(self, g: f32) -> Self {
@@ -268,9 +268,9 @@ where
             let ss = u64::from(self.0) << 16;
             let rr = u64::from(rhs.0);
             let value = (ss / rr).min(65535) as u16;
-            Ch16 { 0: value }
+            Ch16(value)
         } else {
-            Ch16 { 0: 0 }
+            Ch16(0)
         }
     }
 }
@@ -285,10 +285,10 @@ impl Div<f32> for Ch16 {
 
 impl Channel for Ch16 {
     /// Minimum intensity (*zero*)
-    const MIN: Ch16 = Ch16 { 0: 0 };
+    const MIN: Ch16 = Ch16(0);
 
     /// Maximum intensity (*one*)
-    const MAX: Ch16 = Ch16 { 0: 0xFFFF };
+    const MAX: Ch16 = Ch16(0xFFFF);
 
     /// Raise to given power
     fn powf(self, g: f32) -> Self {
