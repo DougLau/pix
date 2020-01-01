@@ -1,4 +1,8 @@
 ## [Unreleased]
+## [0.7.0] - 2020-01-01
+* Added Debug + Mul to Alpha, Channel
+* Implemented From u8, u16, f32 for Translucent
+* Added From for Translucent <=> Opaque
 
 ## [0.6.1] - 2019-07-28
 ### Added

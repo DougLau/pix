@@ -1,6 +1,6 @@
 [package]
 name = "pix"
-version = "0.6.1"
+version = "0.7.0"
 authors = ["Douglas Lau <doug.p.lau@gmail.com>"]
 description = "Pixel / raster image library"
 license = "MIT OR Apache-2.0"
