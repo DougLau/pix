@@ -108,6 +108,21 @@ where
         Translucent { value }
     }
 }
+impl From<u8> for Translucent<Ch8> {
+    fn from(value: u8) -> Self {
+        Ch8::new(value).into()
+    }
+}
+impl From<u16> for Translucent<Ch16> {
+    fn from(value: u16) -> Self {
+        Ch16::new(value).into()
+    }
+}
+impl From<f32> for Translucent<Ch32> {
+    fn from(value: f32) -> Self {
+        Ch32::new(value).into()
+    }
+}
 
 impl<C: Channel> Mul<Self> for Translucent<C> {
     type Output = Self;
