@@ -4,6 +4,7 @@
 //
 use crate::gamma::Gamma;
 use std::cmp::Ordering;
+use std::fmt::Debug;
 use std::ops::{Div, Mul, Sub};
 
 /// One *component* of a pixel [Format](trait.Format.html).
@@ -15,6 +16,7 @@ use std::ops::{Div, Mul, Sub};
 /// and [Ch32](struct.Ch32.html).
 pub trait Channel:
     Copy
+    + Debug
     + Default
     + Ord
     + Sub<Output = Self>

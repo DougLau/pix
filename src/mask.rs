@@ -6,6 +6,7 @@ use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Translucent,
 };
 use std::marker::PhantomData;
+use std::ops::Mul;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
 /// [Format](trait.Format.html).
@@ -72,6 +73,15 @@ where
         let blue = C::MAX;
         let alpha = c.alpha().into();
         Rgb::with_alpha(red, green, blue, alpha)
+    }
+}
+
+impl<C: Channel, A: Alpha> Mul<Self> for Mask<C, A> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let value = PhantomData;
+        let alpha = self.alpha * rhs.alpha;
+        Mask { value, alpha }
     }
 }
 

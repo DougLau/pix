@@ -5,6 +5,7 @@
 use crate::{
     Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
 };
+use std::ops::Mul;
 
 /// RGB pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -79,6 +80,22 @@ where
         let alpha: u8 = Ch8::from(c.alpha().value()).into();
         let alpha = i32::from(alpha) << 24;
         red | green | blue | alpha
+    }
+}
+
+impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let red = self.red * rhs.red;
+        let green = self.green * rhs.green;
+        let blue = self.blue * rhs.blue;
+        let alpha = self.alpha * rhs.alpha;
+        Rgb {
+            red,
+            green,
+            blue,
+            alpha,
+        }
     }
 }
 
