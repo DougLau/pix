@@ -118,7 +118,7 @@ where
     type Output = Self;
     fn add(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
-        let value = self.0 + rhs.0;
+        let value = self.0.saturating_add(rhs.0);
         Ch8(value)
     }
 }
@@ -240,7 +240,7 @@ where
     type Output = Self;
     fn add(self, rhs: R) -> Self {
         let rhs: Self = rhs.into();
-        let value = self.0 + rhs.0;
+        let value = self.0.saturating_add(rhs.0);
         Ch16(value)
     }
 }

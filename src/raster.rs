@@ -338,6 +338,14 @@ impl<F: Format> Raster<F> {
     pub fn height(&self) -> u32 {
         self.height
     }
+    /// Get alpha mode of `Raster`.
+    pub fn alpha_mode(&self) -> AlphaMode {
+        self.alpha_mode
+    }
+    /// Get gamma mode of `Raster`.
+    pub fn gamma_mode(&self) -> GammaMode {
+        self.gamma_mode
+    }
     /// Get one pixel value.
     pub fn pixel(&self, x: u32, y: u32) -> F {
         let row = &self.as_slice_row(y);
