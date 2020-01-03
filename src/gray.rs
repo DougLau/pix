@@ -3,9 +3,10 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, PowerLaw, AlphaMode2, GammaMode2,
 };
 use std::ops::Mul;
+use std::marker::PhantomData;
 
 /// Gray pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -15,18 +16,20 @@ use std::ops::Mul;
 /// [GrayAlpha16](type.GrayAlpha16.html), [GrayAlpha32](type.GrayAlpha32.html)
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Gray<C: Channel, A: Alpha> {
+pub struct Gray<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
+    mode: PhantomData<M>,
+    gamma: PhantomData<G>,
     value: C,
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> PixModes for Gray<C, A, M, G> {
     fn alpha_mode(&self) -> Option<AlphaMode> {
         None // FIXME
     }
 }
 
-impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Iterator for Gray<C, A, M, G> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -34,25 +37,25 @@ impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
     }
 }
 
-impl<C> From<Gray<C, Translucent<C>>> for Gray<C, Opaque<C>>
+impl<C, M: AlphaMode2, G: GammaMode2> From<Gray<C, Translucent<C>, M, G>> for Gray<C, Opaque<C>, M, G>
 where
     C: Channel,
 {
-    fn from(c: Gray<C, Translucent<C>>) -> Self {
+    fn from(c: Gray<C, Translucent<C>, M, G>) -> Self {
         Gray::new(c.value())
     }
 }
 
-impl<C> From<Gray<C, Opaque<C>>> for Gray<C, Translucent<C>>
+impl<C, M: AlphaMode2, G: GammaMode2> From<Gray<C, Opaque<C>, M, G>> for Gray<C, Translucent<C>, M, G>
 where
     C: Channel,
 {
-    fn from(c: Gray<C, Opaque<C>>) -> Self {
+    fn from(c: Gray<C, Opaque<C>, M, G>) -> Self {
         Gray::with_alpha(c.value(), C::MAX)
     }
 }
 
-impl<C, A> From<u8> for Gray<C, A>
+impl<C, A, M: AlphaMode2, G: GammaMode2> From<u8> for Gray<C, A, M, G>
 where
     C: Channel,
     C: From<Ch8>,
@@ -65,16 +68,16 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha> Mul<Self> for Gray<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Mul<Self> for Gray<C, A, M, G> {
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let value = self.value * rhs.value;
-        let alpha = self.alpha * rhs.alpha;
-        Gray { value, alpha }
+    fn mul(mut self, rhs: Self) -> Self::Output {
+        self.value = self.value * rhs.value;
+        self.alpha = self.alpha * rhs.alpha;
+        self
     }
 }
 
-impl<C: Channel, A: Alpha> Gray<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Gray<C, A, M, G> {
     /// Create an [Opaque](struct.Opaque.html) gray value.
     pub fn new<H>(value: H) -> Self
     where
@@ -83,7 +86,9 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
     {
         let value = C::from(value);
         let alpha = A::from(Opaque::default());
-        Gray { value, alpha }
+        let gamma = PhantomData;
+        let mode = PhantomData;
+        Gray { value, alpha, gamma, mode }
     }
     /// Create a [Translucent](struct.Translucent.html) gray value.
     pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
@@ -93,7 +98,9 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
     {
         let value = C::from(value);
         let alpha = A::from(alpha);
-        Gray { value, alpha }
+        let gamma = PhantomData;
+        let mode = PhantomData;
+        Gray { value, alpha, gamma, mode }
     }
     /// Get the gray value.
     pub fn value(self) -> C {
@@ -105,7 +112,7 @@ impl<C: Channel, A: Alpha> Gray<C, A> {
     }
 }
 
-impl<C, A> Format for Gray<C, A>
+impl<C, A, M: AlphaMode2, G: GammaMode2> Format for Gray<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,
@@ -159,27 +166,27 @@ where
 
 /// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type Gray8 = Gray<Ch8, Opaque<Ch8>>;
+pub type Gray8 = Gray<Ch8, Opaque<Ch8>, Separated, Srgb>;
 
 /// [Opaque](struct.Opaque.html) 16-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type Gray16 = Gray<Ch16, Opaque<Ch16>>;
+pub type Gray16 = Gray<Ch16, Opaque<Ch16>, Separated, Srgb>;
 
 /// [Opaque](struct.Opaque.html) 32-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type Gray32 = Gray<Ch32, Opaque<Ch32>>;
+pub type Gray32 = Gray<Ch32, Opaque<Ch32>, Separated, Srgb>;
 
 /// [Translucent](struct.Translucent.html) 8-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type GrayAlpha8 = Gray<Ch8, Translucent<Ch8>>;
+pub type GrayAlpha8 = Gray<Ch8, Translucent<Ch8>, Separated, Srgb>;
 
 /// [Translucent](struct.Translucent.html) 16-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type GrayAlpha16 = Gray<Ch16, Translucent<Ch16>>;
+pub type GrayAlpha16 = Gray<Ch16, Translucent<Ch16>, Separated, Srgb>;
 
 /// [Translucent](struct.Translucent.html) 32-bit [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type GrayAlpha32 = Gray<Ch32, Translucent<Ch32>>;
+pub type GrayAlpha32 = Gray<Ch32, Translucent<Ch32>, Separated, Srgb>;
 
 #[cfg(test)]
 mod test {

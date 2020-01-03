@@ -81,7 +81,7 @@ where
     }
 }
 
-impl<C, A> From<Mask<C, A>> for Gray<C, A>
+impl<C, A, M: AlphaMode2, G: GammaMode2> From<Mask<C, A>> for Gray<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
