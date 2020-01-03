@@ -72,7 +72,7 @@ where
         let green = AlphaMode::Associated.encode::<C, A>(c.green, c.alpha);
         let blue = AlphaMode::Associated.encode::<C, A>(c.blue, c.alpha);
 
-        Rgb::with_alpha(c.red(), c.green(), c.blue(), c.alpha())
+        Rgb::with_alpha(red, green, blue, c.alpha())
     }
 }
 
@@ -86,7 +86,7 @@ where
         let green = AlphaMode::Associated.decode::<C, A>(c.green, c.alpha);
         let blue = AlphaMode::Associated.decode::<C, A>(c.blue, c.alpha);
 
-        Rgb::with_alpha(c.red(), c.green(), c.blue(), c.alpha())
+        Rgb::with_alpha(red, green, blue, c.alpha())
     }
 }
 
@@ -147,10 +147,10 @@ impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A, Separated> {
 impl<C: Channel, A: Alpha<Chan = C>> Mul<Self> for Rgb<C, A, Associated> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
-        let a: Rgb<C, A, Separated> = self.into();
-        let b: Rgb<C, A, Separated> = self.into();
+        let this: Rgb<C, A, Separated> = self.into();
+        let other: Rgb<C, A, Separated> = rhs.into();
 
-        (a * b).into()
+        (this * other).into()
     }
 }
 
