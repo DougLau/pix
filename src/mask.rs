@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode2
 };
 use std::marker::PhantomData;
 use std::ops::Mul;
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<C, A, M> From<Mask<C, A>> for Rgb<C, A, M>
+impl<C, A, M, G: GammaMode2> From<Mask<C, A>> for Rgb<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,

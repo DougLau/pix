@@ -2,6 +2,7 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
+use std::fmt::Debug;
 use crate::{Ch16, Ch32, Ch8, Channel};
 
 /// Trait to encode/decode gamma
@@ -178,6 +179,25 @@ impl Gamma for f64 {
         }
     }
 }
+
+/// No gamma correction applied
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Linear;
+
+/// Gamma correction using the sRGB formula
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Srgb;
+
+/// Gamma correction with a specified value
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct PowerLaw(f32);
+
+/// Trait for handling associated versus separated alpha
+pub trait GammaMode2: Copy + Clone + Debug + PartialEq + Default {}
+
+impl GammaMode2 for Linear {}
+impl GammaMode2 for Srgb {}
+impl GammaMode2 for PowerLaw {}
 
 /// Mode for handling gamma encoding / decoding.
 #[derive(Clone, Copy, Debug, PartialEq)]
