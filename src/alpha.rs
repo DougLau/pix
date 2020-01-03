@@ -164,6 +164,20 @@ impl<C: Channel> Alpha for Translucent<C> {
     }
 }
 
+/// Each `Channel` is associated, or premultiplied, with alpha
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Associated;
+
+/// Each `Channel` is separated from alpha (not premultiplied)
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Separated;
+
+/// Trait for handling associated versus separated alpha
+pub trait AlphaMode2: Copy + Clone + Debug + PartialEq + Default {}
+
+impl AlphaMode2 for Associated {}
+impl AlphaMode2 for Separated {}
+
 /// Mode for handling associated alpha.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AlphaMode {
@@ -175,22 +189,24 @@ pub enum AlphaMode {
 
 impl AlphaMode {
     /// Encode a `Channel` value using the alpha mode.
-    pub fn encode<C>(self, c: C, a: C) -> C
+    pub fn encode<C, A>(self, c: C, a: A) -> C
     where
         C: Channel,
+        A: Alpha<Chan = C>,
     {
         match self {
-            AlphaMode::Associated => c * a,
+            AlphaMode::Associated => c * a.value(),
             AlphaMode::Separated => c,
         }
     }
     /// Decode a `Channel` value using the alpha mode.
-    pub fn decode<C>(self, c: C, a: C) -> C
+    pub fn decode<C, A>(self, c: C, a: A) -> C
     where
         C: Channel,
+        A: Alpha<Chan = C>,
     {
         match self {
-            AlphaMode::Associated => c / a,
+            AlphaMode::Associated => c / a.value(),
             AlphaMode::Separated => c,
         }
     }

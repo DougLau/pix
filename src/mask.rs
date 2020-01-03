@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode
 };
 use std::marker::PhantomData;
 use std::ops::Mul;
@@ -17,7 +17,12 @@ pub struct Mask<C: Channel, A: Alpha> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Mask<C, A> {}
+impl<C: Channel, A: Alpha> PixModes for Mask<C, A> {
+    fn alpha_mode(&self) -> Option<AlphaMode> {
+        // Alpha Mode is a no-op on Mask
+        None
+    }
+}
 
 impl<C: Channel, A: Alpha> Iterator for Mask<C, A> {
     type Item = Self;
@@ -60,10 +65,11 @@ where
     }
 }
 
-impl<C, A> From<Mask<C, A>> for Rgb<C, A>
+impl<C, A, M> From<Mask<C, A>> for Rgb<C, A, M>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    M: AlphaMode2
 {
     /// Get an `Rgb` from a `Mask`
     fn from(c: Mask<C, A>) -> Self {
@@ -145,6 +151,16 @@ where
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
         self.alpha.value() <= rhs.alpha.value()
+    }
+
+    /// Encode into associated alpha from separate alpha.
+    fn encode(self) -> Self {
+        self
+    }
+
+    /// Decode into separate alpha from associated alpha.
+    fn decode(self) -> Self {
+        self
     }
 }
 

@@ -3,9 +3,10 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated
 };
 use std::ops::Mul;
+use std::marker::PhantomData;
 
 /// RGB pixel [Format](trait.Format.html), with optional
 /// [Alpha](trait.Alpha.html) channel.
@@ -13,16 +14,27 @@ use std::ops::Mul;
 /// The `Channel`s are *red*, *green* and *blue*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Rgb<C: Channel, A: Alpha> {
+pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2> {
+    mode: PhantomData<M>,
     red: C,
     green: C,
     blue: C,
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Rgb<C, A> {}
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated> {
+    fn alpha_mode(&self) -> Option<AlphaMode> {
+        Some(AlphaMode::Associated)
+    }
+}
 
-impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated> {
+    fn alpha_mode(&self) -> Option<AlphaMode> {
+        Some(AlphaMode::Separated)
+    }
+}
+
+impl<C: Channel, A: Alpha, M: AlphaMode2> Iterator for Rgb<C, A, M> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -30,28 +42,31 @@ impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
     }
 }
 
-impl<C> From<Rgb<C, Translucent<C>>> for Rgb<C, Opaque<C>>
+impl<C, M> From<Rgb<C, Translucent<C>, M>> for Rgb<C, Opaque<C>, M>
 where
     C: Channel,
+    M: AlphaMode2
 {
-    fn from(c: Rgb<C, Translucent<C>>) -> Self {
+    fn from(c: Rgb<C, Translucent<C>, M>) -> Self {
         Rgb::new(c.red(), c.green(), c.blue())
     }
 }
 
-impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
+impl<C, M> From<Rgb<C, Opaque<C>, M>> for Rgb<C, Translucent<C>, M>
 where
     C: Channel,
+    M: AlphaMode2
 {
-    fn from(c: Rgb<C, Opaque<C>>) -> Self {
+    fn from(c: Rgb<C, Opaque<C>, M>) -> Self {
         Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
     }
 }
 
-impl<C, A> From<i32> for Rgb<C, A>
+impl<C, A, M> From<i32> for Rgb<C, A, M>
 where
     C: Channel + From<Ch8>,
     A: Alpha<Chan = C> + From<Translucent<Ch8>>,
+    M: AlphaMode2
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
@@ -63,14 +78,15 @@ where
     }
 }
 
-impl<C, A> From<Rgb<C, A>> for i32
+impl<C, A, M> From<Rgb<C, A, M>> for i32
 where
     C: Channel,
     Ch8: From<C>,
     A: Alpha<Chan = C>,
+    M: AlphaMode2
 {
     /// Get an `i32` from an `Rgb`
-    fn from(c: Rgb<C, A>) -> i32 {
+    fn from(c: Rgb<C, A, M>) -> i32 {
         let red: u8 = Ch8::from(c.red()).into();
         let red = i32::from(red);
         let green: u8 = Ch8::from(c.green()).into();
@@ -83,7 +99,7 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2> Mul<Self> for Rgb<C, A, M> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let red = self.red * rhs.red;
@@ -91,6 +107,7 @@ impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
         let blue = self.blue * rhs.blue;
         let alpha = self.alpha * rhs.alpha;
         Rgb {
+            mode: std::marker::PhantomData,
             red,
             green,
             blue,
@@ -99,7 +116,7 @@ impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha> Rgb<C, A> {
+impl<C: Channel, A: Alpha, M: AlphaMode2> Rgb<C, A, M> {
     /// Create an [Opaque](struct.Opaque.html) color by specifying *red*,
     /// *green* and *blue* values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
@@ -121,6 +138,7 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
         let blue = C::from(blue);
         let alpha = A::from(alpha);
         Rgb {
+            mode: std::marker::PhantomData,
             red,
             green,
             blue,
@@ -145,10 +163,11 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
     }
 }
 
-impl<C, A> Format for Rgb<C, A>
+impl<C, A, M> Format for Rgb<C, A, M>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,
+    M: AlphaMode2
 {
     type Chan = C;
 
@@ -198,31 +217,47 @@ where
             && self.blue <= rhs.blue
             && self.alpha.value() <= rhs.alpha.value()
     }
+
+    /// Encode into associated alpha from separate alpha.
+    fn encode(mut self) -> Self {
+        self.red = AlphaMode::Associated.encode(self.red, self.alpha);
+        self.green = AlphaMode::Associated.encode(self.green, self.alpha);
+        self.blue = AlphaMode::Associated.encode(self.blue, self.alpha);
+        self
+    }
+
+    /// Decode into separate alpha from associated alpha.
+    fn decode(mut self) -> Self {
+        self.red = AlphaMode::Associated.decode(self.red, self.alpha);
+        self.green = AlphaMode::Associated.decode(self.green, self.alpha);
+        self.blue = AlphaMode::Associated.decode(self.blue, self.alpha);
+        self
+    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>>;
+pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, Associated>;
 
 /// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>>;
+pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, Associated>;
 
 /// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>>;
+pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, Associated>;
 
 /// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>>;
+pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, Associated>;
 
 /// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>>;
+pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, Associated>;
 
 /// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>>;
+pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, Associated>;
 
 #[cfg(test)]
 mod test {

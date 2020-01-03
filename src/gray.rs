@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode
 };
 use std::ops::Mul;
 
@@ -20,7 +20,11 @@ pub struct Gray<C: Channel, A: Alpha> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A> {}
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A> {
+    fn alpha_mode(&self) -> Option<AlphaMode> {
+        None // FIXME
+    }
+}
 
 impl<C: Channel, A: Alpha> Iterator for Gray<C, A> {
     type Item = Self;
@@ -138,6 +142,18 @@ where
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
         self.value <= rhs.value && self.alpha.value() <= rhs.alpha.value()
+    }
+
+    /// Encode into associated alpha from separate alpha.
+    fn encode(mut self) -> Self {
+        self.value = AlphaMode::Associated.encode(self.value, self.alpha);
+        self
+    }
+
+    /// Decode into separate alpha from associated alpha.
+    fn decode(mut self) -> Self {
+        self.value = AlphaMode::Associated.decode(self.value, self.alpha);
+        self
     }
 }
 

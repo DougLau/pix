@@ -17,7 +17,7 @@ mod palette;
 mod raster;
 mod rgb;
 
-pub use crate::alpha::{Alpha, AlphaMode, Opaque, Translucent};
+pub use crate::alpha::{Alpha, AlphaMode, AlphaMode2, Opaque, Translucent, Associated, Separated};
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::format::{Format, PixModes};
 pub use crate::gamma::GammaMode;

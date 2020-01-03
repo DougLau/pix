@@ -31,15 +31,19 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool;
+
+    /// Encode into associated alpha from separate alpha.
+    fn encode(self) -> Self;
+
+    /// Decode into separate alpha from associated alpha.
+    fn decode(self) -> Self;
 }
 
 /// Pixel modes are settings for [AlphaMode](enum.AlphaMode.html) and
 /// [GammaMode](enum.GammaMode.html).
 pub trait PixModes {
     /// Get the pixel format alpha mode
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        None
-    }
+    fn alpha_mode(&self) -> Option<AlphaMode>;
 
     /// Get the pixel format gamma mode
     fn gamma_mode(&self) -> Option<GammaMode> {

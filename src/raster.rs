@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2017-2020  Douglas P Lau
 //
-use crate::{AlphaMode, Ch16, Ch8, Channel, Format, GammaMode, PixModes};
+use crate::{AlphaMode, Ch16, Ch8, Channel, Format, GammaMode, PixModes, Translucent};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -476,9 +476,9 @@ impl<F: Format> Raster<F> {
         // Remove associated alpha
         let rgba = match m.alpha_mode() {
             Some(m) => [
-                m.decode(rgba[0], rgba[3]),
-                m.decode(rgba[1], rgba[3]),
-                m.decode(rgba[2], rgba[3]),
+                m.decode(rgba[0], Translucent::new(rgba[3])),
+                m.decode(rgba[1], Translucent::new(rgba[3])),
+                m.decode(rgba[2], Translucent::new(rgba[3])),
                 rgba[3],
             ],
             None => rgba,
@@ -492,9 +492,9 @@ impl<F: Format> Raster<F> {
         // Apply alpha (only if source alpha mode was set)
         let rgba = match m.alpha_mode() {
             Some(_) => [
-                alpha_mode.encode(red, alpha),
-                alpha_mode.encode(green, alpha),
-                alpha_mode.encode(blue, alpha),
+                alpha_mode.encode(red, Translucent::new(alpha)),
+                alpha_mode.encode(green, Translucent::new(alpha)),
+                alpha_mode.encode(blue, Translucent::new(alpha)),
                 alpha,
             ],
             None => rgba,
