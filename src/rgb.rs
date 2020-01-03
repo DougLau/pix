@@ -62,6 +62,34 @@ where
     }
 }
 
+impl<C, A> From<Rgb<C, A, Separated>> for Rgb<C, A, Associated>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Rgb<C, A, Separated>) -> Self {
+        let red = AlphaMode::Associated.encode::<C, A>(c.red, c.alpha);
+        let green = AlphaMode::Associated.encode::<C, A>(c.green, c.alpha);
+        let blue = AlphaMode::Associated.encode::<C, A>(c.blue, c.alpha);
+
+        Rgb::with_alpha(c.red(), c.green(), c.blue(), c.alpha())
+    }
+}
+
+impl<C, A> From<Rgb<C, A, Associated>> for Rgb<C, A, Separated>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Rgb<C, A, Associated>) -> Self {
+        let red = AlphaMode::Associated.decode::<C, A>(c.red, c.alpha);
+        let green = AlphaMode::Associated.decode::<C, A>(c.green, c.alpha);
+        let blue = AlphaMode::Associated.decode::<C, A>(c.blue, c.alpha);
+
+        Rgb::with_alpha(c.red(), c.green(), c.blue(), c.alpha())
+    }
+}
+
 impl<C, A, M> From<i32> for Rgb<C, A, M>
 where
     C: Channel + From<Ch8>,
@@ -99,7 +127,7 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2> Mul<Self> for Rgb<C, A, M> {
+impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A, Separated> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let red = self.red * rhs.red;
@@ -113,6 +141,16 @@ impl<C: Channel, A: Alpha, M: AlphaMode2> Mul<Self> for Rgb<C, A, M> {
             blue,
             alpha,
         }
+    }
+}
+
+impl<C: Channel, A: Alpha<Chan = C>> Mul<Self> for Rgb<C, A, Associated> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let a: Rgb<C, A, Separated> = self.into();
+        let b: Rgb<C, A, Separated> = self.into();
+
+        (a * b).into()
     }
 }
 
@@ -237,27 +275,27 @@ where
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, Associated>;
+pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, Separated>;
 
 /// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, Associated>;
+pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, Separated>;
 
 /// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, Associated>;
+pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, Separated>;
 
 /// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, Associated>;
+pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, Separated>;
 
 /// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, Associated>;
+pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, Separated>;
 
 /// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, Associated>;
+pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, Separated>;
 
 #[cfg(test)]
 mod test {
