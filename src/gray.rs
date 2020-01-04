@@ -23,9 +23,15 @@ pub struct Gray<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> PixModes for Gray<C, A, M, G> {
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        None // FIXME
+impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Gray<C, A, Associated, G> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Associated
+    }
+}
+
+impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Gray<C, A, Separated, G> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Separated
     }
 }
 

@@ -416,7 +416,6 @@ impl<F: Format> Raster<F> {
         I: Iterator<Item = P> + PixModes,
     {
         let reg = reg.into();
-        let alpha_mode = self.alpha_mode;
         let gamma_mode = self.gamma_mode;
         let x0 = if reg.x >= 0 {
             reg.x as u32
@@ -437,7 +436,7 @@ impl<F: Format> Raster<F> {
                 for x in x0..x1 {
                     if let Some(p) = it.next() {
                         row[x] =
-                            Self::convert_pixel(p, &it, alpha_mode, gamma_mode);
+                            Self::convert_pixel(p, &it, gamma_mode);
                     }
                 }
             }
@@ -452,7 +451,6 @@ impl<F: Format> Raster<F> {
     fn convert_pixel<C, P, H, M>(
         p: P,
         m: &M,
-        alpha_mode: AlphaMode,
         gamma_mode: GammaMode,
     ) -> F
     where
@@ -474,31 +472,24 @@ impl<F: Format> Raster<F> {
             None => rgba,
         };
         // Remove associated alpha
-        let rgba = match m.alpha_mode() {
-            Some(m) => [
-                m.decode(rgba[0], Translucent::new(rgba[3])),
-                m.decode(rgba[1], Translucent::new(rgba[3])),
-                m.decode(rgba[2], Translucent::new(rgba[3])),
-                rgba[3],
-            ],
-            None => rgba,
-        };
+        let rgba = [
+            m.alpha_mode().decode(rgba[0], Translucent::new(rgba[3])),
+            m.alpha_mode().decode(rgba[1], Translucent::new(rgba[3])),
+            m.alpha_mode().decode(rgba[2], Translucent::new(rgba[3])),
+            rgba[3],
+        ];
         // Convert bit depth
         let red = C::from(rgba[0]);
         let green = C::from(rgba[1]);
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
-        let rgba = [red, green, blue, alpha];
         // Apply alpha (only if source alpha mode was set)
-        let rgba = match m.alpha_mode() {
-            Some(_) => [
-                alpha_mode.encode(red, Translucent::new(alpha)),
-                alpha_mode.encode(green, Translucent::new(alpha)),
-                alpha_mode.encode(blue, Translucent::new(alpha)),
-                alpha,
-            ],
-            None => rgba,
-        };
+        let rgba = [
+            m.alpha_mode().encode(red, Translucent::new(alpha)),
+            m.alpha_mode().encode(green, Translucent::new(alpha)),
+            m.alpha_mode().encode(blue, Translucent::new(alpha)),
+            alpha,
+        ];
         // Encode gamma (only if source gamma mode was set)
         let rgba = match m.gamma_mode() {
             Some(_) => [
@@ -581,8 +572,8 @@ impl<'a, F: Format> RasterIter<'a, F> {
 
 impl<'a, F: Format> PixModes for RasterIter<'a, F> {
     /// Get the pixel format alpha mode
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        Some(self.raster.alpha_mode)
+    fn alpha_mode(&self) -> AlphaMode {
+        self.raster.alpha_mode
     }
 
     /// Get the pixel format gamma mode

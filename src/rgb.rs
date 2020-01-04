@@ -24,14 +24,14 @@ pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
 }
 
 impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Rgb<C, A, Associated, G> {
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        Some(AlphaMode::Associated)
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Associated
     }
 }
 
 impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Rgb<C, A, Separated, G> {
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        Some(AlphaMode::Separated)
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Separated
     }
 }
 
