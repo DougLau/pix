@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, PowerLaw, AlphaMode2, GammaMode2, Linear, Associated, GammaMode,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, AlphaMode2, GammaMode2, Linear, Associated, GammaMode,
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
