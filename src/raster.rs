@@ -495,7 +495,7 @@ impl<F: Format> Raster<F> {
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
         // Apply alpha (only if source alpha mode was set)
-        let rgba = if m.alpha_mode() != alpha_mode {
+        let rgba = if m.alpha_mode() != alpha_mode && m.alpha_mode() != AlphaMode::UnknownAlpha {
             [
                 alpha_mode.encode(red, Translucent::new(alpha)),
                 alpha_mode.encode(green, Translucent::new(alpha)),

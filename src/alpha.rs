@@ -172,11 +172,16 @@ pub struct Associated;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Separated;
 
+/// Unknown
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct UnknownAlpha;
+
 /// Trait for handling associated versus separated alpha
 pub trait AlphaMode2: Copy + Clone + Debug + PartialEq + Default {}
 
 impl AlphaMode2 for Associated {}
 impl AlphaMode2 for Separated {}
+impl AlphaMode2 for UnknownAlpha {}
 
 /// Mode for handling associated alpha.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -185,6 +190,8 @@ pub enum AlphaMode {
     Associated,
     /// Each `Channel` is separated from alpha (not premultiplied)
     Separated,
+    /// Unknown
+    UnknownAlpha,
 }
 
 impl AlphaMode {
@@ -196,7 +203,7 @@ impl AlphaMode {
     {
         match self {
             AlphaMode::Associated => c * a.value(),
-            AlphaMode::Separated => c,
+            AlphaMode::Separated | AlphaMode::UnknownAlpha => c,
         }
     }
     /// Decode a `Channel` value using the alpha mode.
@@ -207,7 +214,7 @@ impl AlphaMode {
     {
         match self {
             AlphaMode::Associated => c / a.value(),
-            AlphaMode::Separated => c,
+            AlphaMode::Separated | AlphaMode::UnknownAlpha => c,
         }
     }
 }
