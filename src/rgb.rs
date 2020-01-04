@@ -24,41 +24,41 @@ pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
 }
 
 impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Srgb> {
-    fn alpha_mode(&self) -> AlphaMode {
+    fn alpha_mode() -> AlphaMode {
         AlphaMode::Associated
     }
 
-    fn gamma_mode(&self) -> GammaMode {
+    fn gamma_mode() -> GammaMode {
         GammaMode::Srgb
     }
 }
 
 impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Srgb> {
-    fn alpha_mode(&self) -> AlphaMode {
+    fn alpha_mode() -> AlphaMode {
         AlphaMode::Separated
     }
 
-    fn gamma_mode(&self) -> GammaMode {
+    fn gamma_mode() -> GammaMode {
         GammaMode::Srgb
     }
 }
 
 impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Linear> {
-    fn alpha_mode(&self) -> AlphaMode {
+    fn alpha_mode() -> AlphaMode {
         AlphaMode::Associated
     }
 
-    fn gamma_mode(&self) -> GammaMode {
+    fn gamma_mode() -> GammaMode {
         GammaMode::Linear
     }
 }
 
 impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Linear> {
-    fn alpha_mode(&self) -> AlphaMode {
+    fn alpha_mode() -> AlphaMode {
         AlphaMode::Separated
     }
 
-    fn gamma_mode(&self) -> GammaMode {
+    fn gamma_mode() -> GammaMode {
         GammaMode::Linear
     }
 }

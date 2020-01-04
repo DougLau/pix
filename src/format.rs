@@ -43,8 +43,8 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 /// [GammaMode](enum.GammaMode.html).
 pub trait PixModes {
     /// Get the pixel format alpha mode
-    fn alpha_mode(&self) -> AlphaMode;
+    fn alpha_mode() -> AlphaMode;
 
     /// Get the pixel format gamma mode
-    fn gamma_mode(&self) -> GammaMode;
+    fn gamma_mode() -> GammaMode;
 }

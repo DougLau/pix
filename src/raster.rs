@@ -195,7 +195,7 @@ impl<F: Format> RasterBuilder<F> {
         C: Channel + From<H>,
         H: Channel,
         F: Format<Chan = C> + PixModes,
-        P: Format<Chan = H>,
+        P: Format<Chan = H> + PixModes,
     {
         let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
         let reg = o.region();
@@ -468,22 +468,22 @@ impl<F: Format> Raster<F> {
     {
         let rgba = p.rgba();
         // Decode gamma
-        let rgba = if m.gamma_mode() != gamma_mode {
+        let rgba = if M::gamma_mode() != gamma_mode {
             [
-                m.gamma_mode().decode(rgba[0]),
-                m.gamma_mode().decode(rgba[1]),
-                m.gamma_mode().decode(rgba[2]),
+                M::gamma_mode().decode(rgba[0]),
+                M::gamma_mode().decode(rgba[1]),
+                M::gamma_mode().decode(rgba[2]),
                 rgba[3],
             ]
         } else {
             rgba
         };
         // Remove associated alpha
-        let rgba = if m.alpha_mode() != alpha_mode {
+        let rgba = if M::alpha_mode() != alpha_mode {
             [
-                m.alpha_mode().decode(rgba[0], Translucent::new(rgba[3])),
-                m.alpha_mode().decode(rgba[1], Translucent::new(rgba[3])),
-                m.alpha_mode().decode(rgba[2], Translucent::new(rgba[3])),
+                M::alpha_mode().decode(rgba[0], Translucent::new(rgba[3])),
+                M::alpha_mode().decode(rgba[1], Translucent::new(rgba[3])),
+                M::alpha_mode().decode(rgba[2], Translucent::new(rgba[3])),
                 rgba[3],
             ]
         } else {
@@ -495,7 +495,7 @@ impl<F: Format> Raster<F> {
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
         // Apply alpha (only if source alpha mode was set)
-        let rgba = if m.alpha_mode() != alpha_mode && m.alpha_mode() != AlphaMode::UnknownAlpha {
+        let rgba = if M::alpha_mode() != alpha_mode && M::alpha_mode() != AlphaMode::UnknownAlpha {
             [
                 alpha_mode.encode(red, Translucent::new(alpha)),
                 alpha_mode.encode(green, Translucent::new(alpha)),
@@ -506,7 +506,7 @@ impl<F: Format> Raster<F> {
             [red, green, blue, alpha]
         };
         // Encode gamma (only if source gamma mode was set)
-        let rgba = if m.gamma_mode() != gamma_mode && m.gamma_mode() != GammaMode::UnknownGamma {
+        let rgba = if M::gamma_mode() != gamma_mode && M::gamma_mode() != GammaMode::UnknownGamma {
             [
                 gamma_mode.encode(rgba[0]),
                 gamma_mode.encode(rgba[1]),
@@ -586,15 +586,15 @@ impl<'a, F: Format> RasterIter<'a, F> {
     }
 }
 
-impl<'a, F: Format> PixModes for RasterIter<'a, F> {
+impl<'a, F: Format + PixModes> PixModes for RasterIter<'a, F> {
     /// Get the pixel format alpha mode
-    fn alpha_mode(&self) -> AlphaMode {
-        self.raster.alpha_mode
+    fn alpha_mode() -> AlphaMode {
+        F::alpha_mode()
     }
 
     /// Get the pixel format gamma mode
-    fn gamma_mode(&self) -> GammaMode {
-        self.raster.gamma_mode
+    fn gamma_mode() -> GammaMode {
+        F::gamma_mode()
     }
 }
 

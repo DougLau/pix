@@ -16,12 +16,12 @@ pub struct Mask<A: Alpha> {
 }
 
 impl<A: Alpha> PixModes for Mask<A> {
-    fn alpha_mode(&self) -> AlphaMode {
+    fn alpha_mode() -> AlphaMode {
         // Alpha Mode is a no-op on Mask
         AlphaMode::UnknownAlpha
     }
 
-    fn gamma_mode(&self) -> GammaMode {
+    fn gamma_mode() -> GammaMode {
         // Gamma Mode is a no-op on Mask
         GammaMode::UnknownGamma
     }
