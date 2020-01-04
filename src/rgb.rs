@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode2, Srgb
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode2, Srgb, Linear
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -288,6 +288,18 @@ pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, Separated, Srgb>;
 /// [Format](trait.Format.html).
 pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, Separated, Srgb>;
 
+/// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb8 = Rgb<Ch8, Opaque<Ch8>, Separated, Linear>;
+
+/// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb16 = Rgb<Ch16, Opaque<Ch16>, Separated, Linear>;
+
+/// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb32 = Rgb<Ch32, Opaque<Ch32>, Separated, Linear>;
+
 /// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
 pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, Separated, Srgb>;
@@ -299,6 +311,42 @@ pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, Separated, Srgb>;
 /// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
 pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, Separated, Srgb>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba8 = Rgb<Ch8, Translucent<Ch8>, Separated, Linear>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba16 = Rgb<Ch16, Translucent<Ch16>, Separated, Linear>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba32 = Rgb<Ch32, Translucent<Ch32>, Separated, Linear>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba8 = Rgb<Ch8, Translucent<Ch8>, Associated, Srgb>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba16 = Rgb<Ch16, Translucent<Ch16>, Associated, Srgb>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba32 = Rgb<Ch32, Translucent<Ch32>, Associated, Srgb>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba8 = Rgb<Ch8, Translucent<Ch8>, Associated, Linear>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba16 = Rgb<Ch16, Translucent<Ch16>, Associated, Linear>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba32 = Rgb<Ch32, Translucent<Ch32>, Associated, Linear>;
 
 #[cfg(test)]
 mod test {
