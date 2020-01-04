@@ -46,7 +46,5 @@ pub trait PixModes {
     fn alpha_mode(&self) -> AlphaMode;
 
     /// Get the pixel format gamma mode
-    fn gamma_mode(&self) -> Option<GammaMode> {
-        None
-    }
+    fn gamma_mode(&self) -> GammaMode;
 }

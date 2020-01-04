@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, PowerLaw, AlphaMode2, GammaMode2, Linear, Associated,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, PowerLaw, AlphaMode2, GammaMode2, Linear, Associated, GammaMode,
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -23,15 +23,43 @@ pub struct Gray<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Gray<C, A, Associated, G> {
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Srgb> {
     fn alpha_mode(&self) -> AlphaMode {
         AlphaMode::Associated
     }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Srgb
+    }
 }
 
-impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Gray<C, A, Separated, G> {
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Srgb> {
     fn alpha_mode(&self) -> AlphaMode {
         AlphaMode::Separated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Srgb
+    }
+}
+
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Linear> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Associated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Linear
+    }
+}
+
+impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Linear> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Separated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Linear
     }
 }
 
@@ -132,7 +160,7 @@ where
 
     /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
+        let value = rgba[0].max(rgba[1]).max(rgba[2]);
         let alpha = rgba[3];
         Gray::with_alpha(value, alpha)
     }

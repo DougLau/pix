@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode2
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode2, GammaMode
 };
 use std::ops::Mul;
 
@@ -18,7 +18,12 @@ pub struct Mask<A: Alpha> {
 impl<A: Alpha> PixModes for Mask<A> {
     fn alpha_mode(&self) -> AlphaMode {
         // Alpha Mode is a no-op on Mask
-        AlphaMode::Separated
+        AlphaMode::Separated // FIXME
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        // Gamma Mode is a no-op on Mask
+        GammaMode::UnknownGamma
     }
 }
 

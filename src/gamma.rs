@@ -192,12 +192,17 @@ pub struct Srgb;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct PowerLaw(f32);
 
+/// No gamma correction - unknown.
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct UnknownGamma;
+
 /// Trait for handling associated versus separated alpha
 pub trait GammaMode2: Copy + Clone + Debug + PartialEq + Default {}
 
 impl GammaMode2 for Linear {}
 impl GammaMode2 for Srgb {}
 impl GammaMode2 for PowerLaw {}
+impl GammaMode2 for UnknownGamma {}
 
 /// Mode for handling gamma encoding / decoding.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -208,6 +213,8 @@ pub enum GammaMode {
     Srgb,
     /// Gamma correction with a specified value
     PowerLaw(f32),
+    /// Unknown Gamma
+    UnknownGamma,
 }
 
 impl GammaMode {
@@ -217,7 +224,7 @@ impl GammaMode {
         C: Channel,
     {
         match self {
-            GammaMode::Linear => c,
+            GammaMode::Linear | GammaMode::UnknownGamma => c,
             GammaMode::Srgb => encode_srgb(c),
             GammaMode::PowerLaw(g) => encode_power_law(c, g),
         }
@@ -228,7 +235,7 @@ impl GammaMode {
         C: Channel,
     {
         match self {
-            GammaMode::Linear => c,
+            GammaMode::Linear | GammaMode::UnknownGamma => c,
             GammaMode::Srgb => decode_srgb(c),
             GammaMode::PowerLaw(g) => decode_power_law(c, g),
         }

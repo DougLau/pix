@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode2, Srgb, Linear
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode2, Srgb, Linear, GammaMode
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -23,15 +23,43 @@ pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Rgb<C, A, Associated, G> {
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Srgb> {
     fn alpha_mode(&self) -> AlphaMode {
         AlphaMode::Associated
     }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Srgb
+    }
 }
 
-impl<C: Channel, A: Alpha, G: GammaMode2> PixModes for Rgb<C, A, Separated, G> {
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Srgb> {
     fn alpha_mode(&self) -> AlphaMode {
         AlphaMode::Separated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Srgb
+    }
+}
+
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Linear> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Associated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Linear
+    }
+}
+
+impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Linear> {
+    fn alpha_mode(&self) -> AlphaMode {
+        AlphaMode::Separated
+    }
+
+    fn gamma_mode(&self) -> GammaMode {
+        GammaMode::Linear
     }
 }
 
