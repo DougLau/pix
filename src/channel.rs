@@ -5,7 +5,7 @@
 use crate::gamma::Gamma;
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use std::ops::{Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// One *component* of a pixel [Format](trait.Format.html).
 ///
@@ -22,6 +22,7 @@ pub trait Channel:
     + Sub<Output = Self>
     + Mul<Output = Self>
     + Div<Output = Self>
+    + Add<Output = Self>
     + Gamma
 {
     /// Minimum intensity (*zero*)
@@ -107,6 +108,18 @@ impl From<u8> for Ch8 {
 impl From<Ch8> for u8 {
     fn from(c: Ch8) -> u8 {
         c.0
+    }
+}
+
+impl<R> Add<R> for Ch8
+where
+    Self: From<R>,
+{
+    type Output = Self;
+    fn add(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0.saturating_add(rhs.0);
+        Ch8(value)
     }
 }
 
@@ -217,6 +230,18 @@ impl From<Ch16> for u16 {
 impl From<Ch16> for Ch8 {
     fn from(c: Ch16) -> Self {
         Ch8::new((c.0 >> 8) as u8)
+    }
+}
+
+impl<R> Add<R> for Ch16
+where
+    Self: From<R>,
+{
+    type Output = Self;
+    fn add(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0.saturating_add(rhs.0);
+        Ch16(value)
     }
 }
 
@@ -367,6 +392,18 @@ impl Eq for Ch32 {}
 impl Ord for Ch32 {
     fn cmp(&self, other: &Ch32) -> Ordering {
         self.partial_cmp(other).unwrap()
+    }
+}
+
+impl<R> Add<R> for Ch32
+where
+    Self: From<R>,
+{
+    type Output = Self;
+    fn add(self, rhs: R) -> Self {
+        let rhs: Self = rhs.into();
+        let value = self.0 + rhs.0;
+        Ch32(value)
     }
 }
 

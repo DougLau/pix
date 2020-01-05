@@ -3,6 +3,7 @@
 // Copyright (c) 2019  Douglas P Lau
 //
 use crate::{Ch16, Ch32, Ch8, Channel};
+use std::fmt::Debug;
 
 /// Trait to encode/decode gamma
 pub trait Gamma {
@@ -179,40 +180,76 @@ impl Gamma for f64 {
     }
 }
 
+/// No gamma correction applied
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct LinearGamma;
+
+/// Gamma correction using the sRGB formula
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct SrgbGamma;
+
+/// Gamma correction with a specified value
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct PowerLawGamma(f32);
+
+/// Trait for handling associated versus separated alpha
+pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
+    const ID: GammaModeID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel>(c: C) -> C;
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel>(c: C) -> C;
+}
+
+impl GammaMode for LinearGamma {
+    const ID: GammaModeID = GammaModeID::Linear;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel>(c: C) -> C {
+        c
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel>(c: C) -> C {
+        c
+    }
+}
+
+impl GammaMode for SrgbGamma {
+    const ID: GammaModeID = GammaModeID::Srgb;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel>(c: C) -> C {
+        encode_srgb(c)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel>(c: C) -> C {
+        decode_srgb(c)
+    }
+}
+
+impl PowerLawGamma {
+    /// Encode one `Channel` using the gamma mode.
+    pub fn encode<C: Channel>(c: C, g: f32) -> C {
+        encode_power_law(c, g)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    pub fn decode<C: Channel>(c: C, g: f32) -> C {
+        decode_power_law(c, g)
+    }
+}
+
 /// Mode for handling gamma encoding / decoding.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum GammaMode {
+pub enum GammaModeID {
     /// No gamma correction applied
     Linear,
     /// Gamma correction using the sRGB formula
     Srgb,
     /// Gamma correction with a specified value
     PowerLaw(f32),
-}
-
-impl GammaMode {
-    /// Encode one `Channel` using the gamma mode.
-    pub fn encode<C>(self, c: C) -> C
-    where
-        C: Channel,
-    {
-        match self {
-            GammaMode::Linear => c,
-            GammaMode::Srgb => encode_srgb(c),
-            GammaMode::PowerLaw(g) => encode_power_law(c, g),
-        }
-    }
-    /// Decode one `Channel` using the gamma mode.
-    pub fn decode<C>(self, c: C) -> C
-    where
-        C: Channel,
-    {
-        match self {
-            GammaMode::Linear => c,
-            GammaMode::Srgb => decode_srgb(c),
-            GammaMode::PowerLaw(g) => decode_power_law(c, g),
-        }
-    }
+    /// Unknown Gamma
+    UnknownGamma,
 }
 
 fn encode_srgb<C: Channel>(c: C) -> C {

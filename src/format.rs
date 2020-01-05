@@ -16,7 +16,9 @@ use crate::{AlphaMode, Channel, GammaMode};
 ///   [Rgb32](type.Rgb32.html), [Rgba8](type.Rgba8.html),
 ///   [Rgba16](type.Rgba16.html), [Rgba32](type.Rgba32.html)
 ///
-pub trait Format: Clone + Copy + Default + PartialEq {
+pub trait Format:
+    Clone + Copy + Default + PartialEq + AlphaMode + GammaMode
+{
     /// `Channel` type
     type Chan: Channel;
 
@@ -31,18 +33,4 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool;
-}
-
-/// Pixel modes are settings for [AlphaMode](enum.AlphaMode.html) and
-/// [GammaMode](enum.GammaMode.html).
-pub trait PixModes {
-    /// Get the pixel format alpha mode
-    fn alpha_mode(&self) -> Option<AlphaMode> {
-        None
-    }
-
-    /// Get the pixel format gamma mode
-    fn gamma_mode(&self) -> Option<GammaMode> {
-        None
-    }
 }

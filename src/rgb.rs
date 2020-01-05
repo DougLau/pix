@@ -3,8 +3,11 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent,
+    Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,
+    Format, GammaMode, GammaModeID, LinearGamma, Opaque, SeparatedAlpha,
+    SrgbGamma, Translucent,
 };
+use std::marker::PhantomData;
 use std::ops::Mul;
 
 /// RGB pixel [Format](trait.Format.html), with optional
@@ -13,16 +16,48 @@ use std::ops::Mul;
 /// The `Channel`s are *red*, *green* and *blue*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Rgb<C: Channel, A: Alpha> {
+pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> {
+    mode: PhantomData<M>,
+    gamma: PhantomData<G>,
     red: C,
     green: C,
     blue: C,
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha> PixModes for Rgb<C, A> {}
+impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> GammaMode
+    for Rgb<C, A, M, G>
+{
+    const ID: GammaModeID = G::ID;
 
-impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel>(h: H) -> H {
+        G::encode::<H>(h)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel>(h: H) -> H {
+        G::decode::<H>(h)
+    }
+}
+
+impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> AlphaMode
+    for Rgb<C, A, M, G>
+{
+    const ID: AlphaModeID = M::ID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
+        M::encode::<H, B>(h, b)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
+        M::decode::<H, B>(h, b)
+    }
+}
+
+impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Iterator
+    for Rgb<C, A, M, G>
+{
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -30,28 +65,63 @@ impl<C: Channel, A: Alpha> Iterator for Rgb<C, A> {
     }
 }
 
-impl<C> From<Rgb<C, Translucent<C>>> for Rgb<C, Opaque<C>>
+impl<C, M, G: GammaMode> From<Rgb<C, Translucent<C>, M, G>>
+    for Rgb<C, Opaque<C>, M, G>
 where
     C: Channel,
+    M: AlphaMode,
 {
-    fn from(c: Rgb<C, Translucent<C>>) -> Self {
+    fn from(c: Rgb<C, Translucent<C>, M, G>) -> Self {
         Rgb::new(c.red(), c.green(), c.blue())
     }
 }
 
-impl<C> From<Rgb<C, Opaque<C>>> for Rgb<C, Translucent<C>>
+impl<C, M, G: GammaMode> From<Rgb<C, Opaque<C>, M, G>>
+    for Rgb<C, Translucent<C>, M, G>
 where
     C: Channel,
+    M: AlphaMode,
 {
-    fn from(c: Rgb<C, Opaque<C>>) -> Self {
+    fn from(c: Rgb<C, Opaque<C>, M, G>) -> Self {
         Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
     }
 }
 
-impl<C, A> From<i32> for Rgb<C, A>
+impl<C, A, G: GammaMode> From<Rgb<C, A, SeparatedAlpha, G>>
+    for Rgb<C, A, AssociatedAlpha, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Rgb<C, A, SeparatedAlpha, G>) -> Self {
+        let red = AssociatedAlpha::encode::<C, A>(c.red, c.alpha);
+        let green = AssociatedAlpha::encode::<C, A>(c.green, c.alpha);
+        let blue = AssociatedAlpha::encode::<C, A>(c.blue, c.alpha);
+
+        Rgb::with_alpha(red, green, blue, c.alpha())
+    }
+}
+
+impl<C, A, G: GammaMode> From<Rgb<C, A, AssociatedAlpha, G>>
+    for Rgb<C, A, SeparatedAlpha, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Rgb<C, A, AssociatedAlpha, G>) -> Self {
+        let red = AssociatedAlpha::decode::<C, A>(c.red, c.alpha);
+        let green = AssociatedAlpha::decode::<C, A>(c.green, c.alpha);
+        let blue = AssociatedAlpha::decode::<C, A>(c.blue, c.alpha);
+
+        Rgb::with_alpha(red, green, blue, c.alpha())
+    }
+}
+
+impl<C, A, M, G: GammaMode> From<i32> for Rgb<C, A, M, G>
 where
     C: Channel + From<Ch8>,
     A: Alpha<Chan = C> + From<Translucent<Ch8>>,
+    M: AlphaMode,
 {
     /// Get an `Rgb` from an `i32`
     fn from(c: i32) -> Self {
@@ -63,14 +133,15 @@ where
     }
 }
 
-impl<C, A> From<Rgb<C, A>> for i32
+impl<C, A, M, G: GammaMode> From<Rgb<C, A, M, G>> for i32
 where
     C: Channel,
     Ch8: From<C>,
     A: Alpha<Chan = C>,
+    M: AlphaMode,
 {
     /// Get an `i32` from an `Rgb`
-    fn from(c: Rgb<C, A>) -> i32 {
+    fn from(c: Rgb<C, A, M, G>) -> i32 {
         let red: u8 = Ch8::from(c.red()).into();
         let red = i32::from(red);
         let green: u8 = Ch8::from(c.green()).into();
@@ -83,7 +154,9 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
+impl<C: Channel, A: Alpha, G: GammaMode> Mul<Self>
+    for Rgb<C, A, SeparatedAlpha, G>
+{
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let red = self.red * rhs.red;
@@ -91,6 +164,8 @@ impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
         let blue = self.blue * rhs.blue;
         let alpha = self.alpha * rhs.alpha;
         Rgb {
+            mode: std::marker::PhantomData,
+            gamma: std::marker::PhantomData,
             red,
             green,
             blue,
@@ -99,7 +174,19 @@ impl<C: Channel, A: Alpha> Mul<Self> for Rgb<C, A> {
     }
 }
 
-impl<C: Channel, A: Alpha> Rgb<C, A> {
+impl<C: Channel, A: Alpha<Chan = C>, G: GammaMode> Mul<Self>
+    for Rgb<C, A, AssociatedAlpha, G>
+{
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
+        let this: Rgb<C, A, SeparatedAlpha, G> = self.into();
+        let other: Rgb<C, A, SeparatedAlpha, G> = rhs.into();
+
+        (this * other).into()
+    }
+}
+
+impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Rgb<C, A, M, G> {
     /// Create an [Opaque](struct.Opaque.html) color by specifying *red*,
     /// *green* and *blue* values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
@@ -121,6 +208,8 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
         let blue = C::from(blue);
         let alpha = A::from(alpha);
         Rgb {
+            mode: std::marker::PhantomData,
+            gamma: std::marker::PhantomData,
             red,
             green,
             blue,
@@ -145,10 +234,11 @@ impl<C: Channel, A: Alpha> Rgb<C, A> {
     }
 }
 
-impl<C, A> Format for Rgb<C, A>
+impl<C, A, M, G: GammaMode> Format for Rgb<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,
+    M: AlphaMode,
 {
     type Chan = C;
 
@@ -202,27 +292,82 @@ where
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>>;
+pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, SeparatedAlpha, SrgbGamma>;
 
 /// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>>;
+pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, SeparatedAlpha, SrgbGamma>;
 
 /// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>>;
+pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, SeparatedAlpha, SrgbGamma>;
+
+/// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb8 = Rgb<Ch8, Opaque<Ch8>, SeparatedAlpha, LinearGamma>;
+
+/// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb16 = Rgb<Ch16, Opaque<Ch16>, SeparatedAlpha, LinearGamma>;
+
+/// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgb32 = Rgb<Ch32, Opaque<Ch32>, SeparatedAlpha, LinearGamma>;
 
 /// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>>;
+pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, SeparatedAlpha, SrgbGamma>;
 
 /// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>>;
+pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, SeparatedAlpha, SrgbGamma>;
 
 /// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>>;
+pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, SeparatedAlpha, SrgbGamma>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba8 = Rgb<Ch8, Translucent<Ch8>, SeparatedAlpha, LinearGamma>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba16 =
+    Rgb<Ch16, Translucent<Ch16>, SeparatedAlpha, LinearGamma>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type LinearRgba32 =
+    Rgb<Ch32, Translucent<Ch32>, SeparatedAlpha, LinearGamma>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba8 = Rgb<Ch8, Translucent<Ch8>, AssociatedAlpha, SrgbGamma>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba16 =
+    Rgb<Ch16, Translucent<Ch16>, AssociatedAlpha, SrgbGamma>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulRgba32 =
+    Rgb<Ch32, Translucent<Ch32>, AssociatedAlpha, SrgbGamma>;
+
+/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba8 =
+    Rgb<Ch8, Translucent<Ch8>, AssociatedAlpha, LinearGamma>;
+
+/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba16 =
+    Rgb<Ch16, Translucent<Ch16>, AssociatedAlpha, LinearGamma>;
+
+/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
+/// [Format](trait.Format.html).
+pub type PremulLinearRgba32 =
+    Rgb<Ch32, Translucent<Ch32>, AssociatedAlpha, LinearGamma>;
 
 #[cfg(test)]
 mod test {
@@ -236,5 +381,28 @@ mod test {
         assert_eq!(std::mem::size_of::<Rgba8>(), 4);
         assert_eq!(std::mem::size_of::<Rgba16>(), 8);
         assert_eq!(std::mem::size_of::<Rgba32>(), 16);
+    }
+
+    #[test]
+    fn check_mul() {
+        let a = Rgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = Rgba8::with_alpha(0x00, 0x00, 0x00, 0x00);
+
+        assert_eq!(a * b, b);
+
+        let a = Rgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = Rgba8::with_alpha(0x80, 0x80, 0x80, 0x80);
+
+        assert_eq!(a * b, b);
+
+        let a = Rgba8::with_alpha(0xFF, 0xF0, 0x00, 0x70);
+        let b = Rgba8::with_alpha(0x80, 0x00, 0x60, 0xFF);
+
+        assert_eq!(a * b, Rgba8::with_alpha(0x80, 0x00, 0x00, 0x70));
+
+        let a = Rgba8::with_alpha(0xFF, 0x00, 0x80, 0xFF);
+        let b = Rgba8::with_alpha(0xFF, 0xFF, 0xFF, 0x10);
+
+        assert_eq!(a * b, Rgba8::with_alpha(0xFF, 0x00, 0x80, 0x10));
     }
 }
