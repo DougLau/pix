@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, AlphaMode2, GammaMode2, Linear, Associated, GammaMode,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, Srgb, Separated, AlphaMode2, GammaMode, Linear, Associated, GammaModeID,
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -16,11 +16,24 @@ use std::marker::PhantomData;
 /// [GrayAlpha16](type.GrayAlpha16.html), [GrayAlpha32](type.GrayAlpha32.html)
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Gray<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
+pub struct Gray<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> {
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
     value: C,
     alpha: A,
+}
+
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> GammaMode for Gray<C, A, M, G> {
+    const ID: GammaModeID = G::ID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel, Gm: GammaMode>(h: H) -> H {
+        G::encode::<H, Gm>(h)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel, Gm: GammaMode>(h: H) -> H {
+        G::decode::<H, Gm>(h)
+    }
 }
 
 impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Srgb> {
@@ -28,8 +41,8 @@ impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Srgb> {
         AlphaMode::Associated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Srgb
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Srgb
     }
 }
 
@@ -38,8 +51,8 @@ impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Srgb> {
         AlphaMode::Separated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Srgb
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Srgb
     }
 }
 
@@ -48,8 +61,8 @@ impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Linear> {
         AlphaMode::Associated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Linear
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Linear
     }
 }
 
@@ -58,12 +71,12 @@ impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Linear> {
         AlphaMode::Separated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Linear
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Linear
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Iterator for Gray<C, A, M, G> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> Iterator for Gray<C, A, M, G> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -71,7 +84,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Iterator for Gray<C, A,
     }
 }
 
-impl<C, M: AlphaMode2, G: GammaMode2> From<Gray<C, Translucent<C>, M, G>> for Gray<C, Opaque<C>, M, G>
+impl<C, M: AlphaMode2, G: GammaMode> From<Gray<C, Translucent<C>, M, G>> for Gray<C, Opaque<C>, M, G>
 where
     C: Channel,
 {
@@ -80,7 +93,7 @@ where
     }
 }
 
-impl<C, M: AlphaMode2, G: GammaMode2> From<Gray<C, Opaque<C>, M, G>> for Gray<C, Translucent<C>, M, G>
+impl<C, M: AlphaMode2, G: GammaMode> From<Gray<C, Opaque<C>, M, G>> for Gray<C, Translucent<C>, M, G>
 where
     C: Channel,
 {
@@ -89,7 +102,7 @@ where
     }
 }
 
-impl<C, A, M: AlphaMode2, G: GammaMode2> From<u8> for Gray<C, A, M, G>
+impl<C, A, M: AlphaMode2, G: GammaMode> From<u8> for Gray<C, A, M, G>
 where
     C: Channel,
     C: From<Ch8>,
@@ -102,7 +115,7 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Mul<Self> for Gray<C, A, M, G> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> Mul<Self> for Gray<C, A, M, G> {
     type Output = Self;
     fn mul(mut self, rhs: Self) -> Self::Output {
         self.value = self.value * rhs.value;
@@ -111,7 +124,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Mul<Self> for Gray<C, A
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Gray<C, A, M, G> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> Gray<C, A, M, G> {
     /// Create an [Opaque](struct.Opaque.html) gray value.
     pub fn new<H>(value: H) -> Self
     where
@@ -146,7 +159,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Gray<C, A, M, G> {
     }
 }
 
-impl<C, A, M: AlphaMode2, G: GammaMode2> Format for Gray<C, A, M, G>
+impl<C, A, M: AlphaMode2, G: GammaMode> Format for Gray<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,

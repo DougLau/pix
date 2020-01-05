@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode2, Srgb, Linear, GammaMode
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaMode, AlphaMode2, Associated, Separated, GammaMode, Srgb, Linear, GammaModeID
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -14,7 +14,7 @@ use std::marker::PhantomData;
 /// The `Channel`s are *red*, *green* and *blue*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
+pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> {
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
     red: C,
@@ -23,13 +23,26 @@ pub struct Rgb<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> {
     alpha: A,
 }
 
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> GammaMode for Rgb<C, A, M, G> {
+    const ID: GammaModeID = G::ID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel, Gm: GammaMode>(h: H) -> H {
+        G::encode::<H, Gm>(h)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel, Gm: GammaMode>(h: H) -> H {
+        G::decode::<H, Gm>(h)
+    }
+}
+
 impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Srgb> {
     fn alpha_mode() -> AlphaMode {
         AlphaMode::Associated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Srgb
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Srgb
     }
 }
 
@@ -38,8 +51,8 @@ impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Srgb> {
         AlphaMode::Separated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Srgb
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Srgb
     }
 }
 
@@ -48,8 +61,8 @@ impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Associated, Linear> {
         AlphaMode::Associated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Linear
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Linear
     }
 }
 
@@ -58,12 +71,12 @@ impl<C: Channel, A: Alpha> PixModes for Rgb<C, A, Separated, Linear> {
         AlphaMode::Separated
     }
 
-    fn gamma_mode() -> GammaMode {
-        GammaMode::Linear
+    fn gamma_mode() -> GammaModeID {
+        GammaModeID::Linear
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Iterator for Rgb<C, A, M, G> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> Iterator for Rgb<C, A, M, G> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -71,7 +84,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Iterator for Rgb<C, A, 
     }
 }
 
-impl<C, M, G: GammaMode2> From<Rgb<C, Translucent<C>, M, G>> for Rgb<C, Opaque<C>, M, G>
+impl<C, M, G: GammaMode> From<Rgb<C, Translucent<C>, M, G>> for Rgb<C, Opaque<C>, M, G>
 where
     C: Channel,
     M: AlphaMode2
@@ -81,7 +94,7 @@ where
     }
 }
 
-impl<C, M, G: GammaMode2> From<Rgb<C, Opaque<C>, M, G>> for Rgb<C, Translucent<C>, M, G>
+impl<C, M, G: GammaMode> From<Rgb<C, Opaque<C>, M, G>> for Rgb<C, Translucent<C>, M, G>
 where
     C: Channel,
     M: AlphaMode2
@@ -91,7 +104,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode2> From<Rgb<C, A, Separated, G>> for Rgb<C, A, Associated, G>
+impl<C, A, G: GammaMode> From<Rgb<C, A, Separated, G>> for Rgb<C, A, Associated, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -105,7 +118,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode2> From<Rgb<C, A, Associated, G>> for Rgb<C, A, Separated, G>
+impl<C, A, G: GammaMode> From<Rgb<C, A, Associated, G>> for Rgb<C, A, Separated, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -119,7 +132,7 @@ where
     }
 }
 
-impl<C, A, M, G: GammaMode2> From<i32> for Rgb<C, A, M, G>
+impl<C, A, M, G: GammaMode> From<i32> for Rgb<C, A, M, G>
 where
     C: Channel + From<Ch8>,
     A: Alpha<Chan = C> + From<Translucent<Ch8>>,
@@ -135,7 +148,7 @@ where
     }
 }
 
-impl<C, A, M, G: GammaMode2> From<Rgb<C, A, M, G>> for i32
+impl<C, A, M, G: GammaMode> From<Rgb<C, A, M, G>> for i32
 where
     C: Channel,
     Ch8: From<C>,
@@ -156,7 +169,7 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha, G: GammaMode2> Mul<Self> for Rgb<C, A, Separated, G> {
+impl<C: Channel, A: Alpha, G: GammaMode> Mul<Self> for Rgb<C, A, Separated, G> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let red = self.red * rhs.red;
@@ -174,7 +187,7 @@ impl<C: Channel, A: Alpha, G: GammaMode2> Mul<Self> for Rgb<C, A, Separated, G> 
     }
 }
 
-impl<C: Channel, A: Alpha<Chan = C>, G: GammaMode2> Mul<Self> for Rgb<C, A, Associated, G> {
+impl<C: Channel, A: Alpha<Chan = C>, G: GammaMode> Mul<Self> for Rgb<C, A, Associated, G> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let this: Rgb<C, A, Separated, G> = self.into();
@@ -184,7 +197,7 @@ impl<C: Channel, A: Alpha<Chan = C>, G: GammaMode2> Mul<Self> for Rgb<C, A, Asso
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Rgb<C, A, M, G> {
+impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode> Rgb<C, A, M, G> {
     /// Create an [Opaque](struct.Opaque.html) color by specifying *red*,
     /// *green* and *blue* values.
     pub fn new<H>(red: H, green: H, blue: H) -> Self
@@ -232,7 +245,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode2, G: GammaMode2> Rgb<C, A, M, G> {
     }
 }
 
-impl<C, A, M, G: GammaMode2> Format for Rgb<C, A, M, G>
+impl<C, A, M, G: GammaMode> Format for Rgb<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,

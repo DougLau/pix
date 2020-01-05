@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode2, GammaMode
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode, GammaModeID, UnknownGamma
 };
 use std::ops::Mul;
 
@@ -15,15 +15,30 @@ pub struct Mask<A: Alpha> {
     alpha: A,
 }
 
+impl<A: Alpha> GammaMode for Mask<A> {
+    const ID: GammaModeID = UnknownGamma::ID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel, G: GammaMode>(h: H) -> H {
+        // Gamma Mode is a no-op on Mask
+        UnknownGamma::encode::<H, G>(h)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel, G: GammaMode>(h: H) -> H {
+        // Gamma Mode is a no-op on Mask
+        UnknownGamma::decode::<H, G>(h)
+    }
+}
+
 impl<A: Alpha> PixModes for Mask<A> {
     fn alpha_mode() -> AlphaMode {
         // Alpha Mode is a no-op on Mask
         AlphaMode::UnknownAlpha
     }
 
-    fn gamma_mode() -> GammaMode {
+    fn gamma_mode() -> GammaModeID {
         // Gamma Mode is a no-op on Mask
-        GammaMode::UnknownGamma
+        GammaModeID::UnknownGamma
     }
 }
 
@@ -56,7 +71,7 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, M, G: GammaMode2> From<Mask<A>> for Rgb<C, A, M, G>
+impl<C, A, M, G: GammaMode> From<Mask<A>> for Rgb<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -72,7 +87,7 @@ where
     }
 }
 
-impl<C, A, M: AlphaMode2, G: GammaMode2> From<Mask<A>> for Gray<C, A, M, G>
+impl<C, A, M: AlphaMode2, G: GammaMode> From<Mask<A>> for Gray<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,

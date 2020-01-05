@@ -196,17 +196,88 @@ pub struct PowerLaw(f32);
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct UnknownGamma;
 
-/// Trait for handling associated versus separated alpha
-pub trait GammaMode2: Copy + Clone + Debug + PartialEq + Default {}
+/*impl<A: GammaMode> GammaConversion for GammaConverter<Linear, A> {
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel>(c: C) -> C {
+        c
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel>(c: C) -> C {
+        c
+    }
+}*/
 
-impl GammaMode2 for Linear {}
-impl GammaMode2 for Srgb {}
-impl GammaMode2 for PowerLaw {}
-impl GammaMode2 for UnknownGamma {}
+/// Trait for handling associated versus separated alpha
+pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
+    const ID: GammaModeID;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel, G: GammaMode>(c: C) -> C;
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel, G: GammaMode>(c: C) -> C;
+}
+
+impl GammaMode for Linear {
+    const ID: GammaModeID = GammaModeID::Linear;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
+        c
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
+        c
+    }
+}
+
+impl GammaMode for Srgb {
+    const ID: GammaModeID = GammaModeID::Srgb;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
+        if G::ID != Self::ID && G::ID != GammaModeID::UnknownGamma {
+            encode_srgb(c)
+        } else {
+            c
+        }
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
+        if G::ID != Self::ID {
+            decode_srgb(c)
+        } else {
+            c
+        }
+    }
+}
+
+impl PowerLaw {
+    /// Encode one `Channel` using the gamma mode.
+    pub fn encode<C: Channel>(c: C, g: f32) -> C {
+        encode_power_law(c, g)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    pub fn decode<C: Channel>(c: C, g: f32) -> C {
+        decode_power_law(c, g)
+    }
+}
+
+impl GammaMode for UnknownGamma {
+    const ID: GammaModeID = GammaModeID::UnknownGamma;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
+        Linear::encode::<C, G>(c)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
+        Linear::decode::<C, G>(c)
+    }
+}
 
 /// Mode for handling gamma encoding / decoding.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum GammaMode {
+pub enum GammaModeID {
     /// No gamma correction applied
     Linear,
     /// Gamma correction using the sRGB formula
@@ -215,31 +286,6 @@ pub enum GammaMode {
     PowerLaw(f32),
     /// Unknown Gamma
     UnknownGamma,
-}
-
-impl GammaMode {
-    /// Encode one `Channel` using the gamma mode.
-    pub fn encode<C>(self, c: C) -> C
-    where
-        C: Channel,
-    {
-        match self {
-            GammaMode::Linear | GammaMode::UnknownGamma => c,
-            GammaMode::Srgb => encode_srgb(c),
-            GammaMode::PowerLaw(g) => encode_power_law(c, g),
-        }
-    }
-    /// Decode one `Channel` using the gamma mode.
-    pub fn decode<C>(self, c: C) -> C
-    where
-        C: Channel,
-    {
-        match self {
-            GammaMode::Linear | GammaMode::UnknownGamma => c,
-            GammaMode::Srgb => decode_srgb(c),
-            GammaMode::PowerLaw(g) => decode_power_law(c, g),
-        }
-    }
 }
 
 fn encode_srgb<C: Channel>(c: C) -> C {
