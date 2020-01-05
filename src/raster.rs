@@ -2,7 +2,10 @@
 //
 // Copyright (c) 2017-2020  Douglas P Lau
 //
-use crate::{AlphaModeID, Ch16, Ch8, Channel, Format, GammaModeID, Translucent, GammaMode, AlphaMode};
+use crate::{
+    AlphaMode, AlphaModeID, Ch16, Ch8, Channel, Format, GammaMode, GammaModeID,
+    Translucent,
+};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -388,8 +391,7 @@ impl<F: Format> Raster<F> {
                 let row = self.as_slice_row_mut(yi);
                 for x in x0..x1 {
                     if let Some(p) = it.next() {
-                        row[x] =
-                            Self::convert_pixel(p);
+                        row[x] = Self::convert_pixel(p);
                     }
                 }
             }
@@ -434,7 +436,9 @@ impl<F: Format> Raster<F> {
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
         // Apply alpha (only if source alpha mode was set)
-        let rgba = if <F as AlphaMode>::ID != <P as AlphaMode>::ID && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha {
+        let rgba = if <F as AlphaMode>::ID != <P as AlphaMode>::ID
+            && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha
+        {
             [
                 <F as AlphaMode>::encode(red, Translucent::new(alpha)),
                 <F as AlphaMode>::encode(green, Translucent::new(alpha)),
@@ -445,7 +449,9 @@ impl<F: Format> Raster<F> {
             [red, green, blue, alpha]
         };
         // Encode gamma (only if source gamma mode was set)
-        let rgba = if <F as GammaMode>::ID != <P as GammaMode>::ID && <F as GammaMode>::ID != GammaModeID::UnknownGamma {
+        let rgba = if <F as GammaMode>::ID != <P as GammaMode>::ID
+            && <F as GammaMode>::ID != GammaModeID::UnknownGamma
+        {
             [
                 <F as GammaMode>::encode(rgba[0]),
                 <F as GammaMode>::encode(rgba[1]),

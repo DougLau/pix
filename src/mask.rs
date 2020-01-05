@@ -3,7 +3,9 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Rgb, Gray, Translucent, AlphaModeID, GammaMode, GammaModeID, LinearGamma, AssociatedAlpha, SeparatedAlpha, AlphaMode,
+    Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,
+    Format, GammaMode, GammaModeID, Gray, LinearGamma, Rgb, SeparatedAlpha,
+    Translucent,
 };
 use std::ops::Mul;
 
@@ -129,7 +131,6 @@ where
         Gray::with_alpha(value, alpha)
     }
 }
-
 
 impl<A: Alpha> Mul<Self> for Mask<A> {
     type Output = Self;

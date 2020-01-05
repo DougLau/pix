@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{Channel, AlphaMode, GammaMode};
+use crate::{AlphaMode, Channel, GammaMode};
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -16,7 +16,9 @@ use crate::{Channel, AlphaMode, GammaMode};
 ///   [Rgb32](type.Rgb32.html), [Rgba8](type.Rgba8.html),
 ///   [Rgba16](type.Rgba16.html), [Rgba32](type.Rgba32.html)
 ///
-pub trait Format: Clone + Copy + Default + PartialEq + AlphaMode + GammaMode {
+pub trait Format:
+    Clone + Copy + Default + PartialEq + AlphaMode + GammaMode
+{
     /// `Channel` type
     type Chan: Channel;
 

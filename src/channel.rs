@@ -5,7 +5,7 @@
 use crate::gamma::Gamma;
 use std::cmp::Ordering;
 use std::fmt::Debug;
-use std::ops::{Div, Mul, Sub, Add};
+use std::ops::{Add, Div, Mul, Sub};
 
 /// One *component* of a pixel [Format](trait.Format.html).
 ///

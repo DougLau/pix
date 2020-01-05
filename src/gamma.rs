@@ -2,8 +2,8 @@
 //
 // Copyright (c) 2019  Douglas P Lau
 //
-use std::fmt::Debug;
 use crate::{Ch16, Ch32, Ch8, Channel};
+use std::fmt::Debug;
 
 /// Trait to encode/decode gamma
 pub trait Gamma {
