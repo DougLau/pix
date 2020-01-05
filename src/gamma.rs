@@ -182,57 +182,53 @@ impl Gamma for f64 {
 
 /// No gamma correction applied
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct Linear;
+pub struct LinearGamma;
 
 /// Gamma correction using the sRGB formula
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct Srgb;
+pub struct SrgbGamma;
 
 /// Gamma correction with a specified value
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct PowerLaw(f32);
+pub struct PowerLawGamma(f32);
 
 /// Trait for handling associated versus separated alpha
 pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
     const ID: GammaModeID;
 
     /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel, G: GammaMode>(c: C) -> C;
+    fn encode<C: Channel>(c: C) -> C;
     /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel, G: GammaMode>(c: C) -> C;
+    fn decode<C: Channel>(c: C) -> C;
 }
 
-impl GammaMode for Linear {
+impl GammaMode for LinearGamma {
     const ID: GammaModeID = GammaModeID::Linear;
 
     /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
+    fn encode<C: Channel>(c: C) -> C {
         c
     }
     /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
+    fn decode<C: Channel>(c: C) -> C {
         c
     }
 }
 
-impl GammaMode for Srgb {
+impl GammaMode for SrgbGamma {
     const ID: GammaModeID = GammaModeID::Srgb;
 
     /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
-        if G::ID != Self::ID && G::ID != GammaModeID::UnknownGamma {
-            encode_srgb(c)
-        } else {
-            c
-        }
+    fn encode<C: Channel>(c: C) -> C {
+        encode_srgb(c)
     }
     /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
+    fn decode<C: Channel>(c: C) -> C {
         decode_srgb(c)
     }
 }
 
-impl PowerLaw {
+impl PowerLawGamma {
     /// Encode one `Channel` using the gamma mode.
     pub fn encode<C: Channel>(c: C, g: f32) -> C {
         encode_power_law(c, g)

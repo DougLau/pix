@@ -168,8 +168,8 @@ impl<F: Format> RasterBuilder<F> {
     where
         C: Channel + From<H>,
         H: Channel,
-        F: Format<Chan = C> + GammaMode + AlphaMode,
-        P: Format<Chan = H> + GammaMode + AlphaMode,
+        F: Format<Chan = C>,
+        P: Format<Chan = H>,
     {
         let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
         let reg = o.region();
@@ -362,10 +362,10 @@ impl<F: Format> Raster<F> {
     /// ```
     pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
     where
-        F: Format<Chan = C> + GammaMode + AlphaMode,
+        F: Format<Chan = C>,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + GammaMode + AlphaMode,
+        P: Format<Chan = H>,
         R: Into<Region>,
         I: Iterator<Item = P>,
     {
@@ -400,18 +400,18 @@ impl<F: Format> Raster<F> {
     /// * `p` Source pixel to convert.
     fn convert_pixel<C, P, H>(p: P) -> F
     where
-        F: Format<Chan = C> + GammaMode + AlphaMode,
+        F: Format<Chan = C>,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + GammaMode + AlphaMode,
+        P: Format<Chan = H>,
     {
         let rgba = p.rgba();
         // Decode gamma
         let rgba = if <P as GammaMode>::ID != <F as GammaMode>::ID {
             [
-                <P as GammaMode>::decode::<H, F>(rgba[0]),
-                <P as GammaMode>::decode::<H, F>(rgba[1]),
-                <P as GammaMode>::decode::<H, F>(rgba[2]),
+                <P as GammaMode>::decode(rgba[0]),
+                <P as GammaMode>::decode(rgba[1]),
+                <P as GammaMode>::decode(rgba[2]),
                 rgba[3],
             ]
         } else {
@@ -447,9 +447,9 @@ impl<F: Format> Raster<F> {
         // Encode gamma (only if source gamma mode was set)
         let rgba = if <F as GammaMode>::ID != <P as GammaMode>::ID && <F as GammaMode>::ID != GammaModeID::UnknownGamma {
             [
-                <F as GammaMode>::encode::<C, P>(rgba[0]),
-                <F as GammaMode>::encode::<C, P>(rgba[1]),
-                <F as GammaMode>::encode::<C, P>(rgba[2]),
+                <F as GammaMode>::encode(rgba[0]),
+                <F as GammaMode>::encode(rgba[1]),
+                <F as GammaMode>::encode(rgba[2]),
                 rgba[3],
             ]
         } else {
