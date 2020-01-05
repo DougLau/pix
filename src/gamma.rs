@@ -192,9 +192,9 @@ pub struct Srgb;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct PowerLaw(f32);
 
-/// No gamma correction - unknown.
+/*/// No gamma correction - unknown.
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct UnknownGamma;
+pub struct UnknownGamma;*/
 
 /*impl<A: GammaMode> GammaConversion for GammaConverter<Linear, A> {
     /// Encode one `Channel` using the gamma mode.
@@ -259,19 +259,6 @@ impl PowerLaw {
     /// Decode one `Channel` using the gamma mode.
     pub fn decode<C: Channel>(c: C, g: f32) -> C {
         decode_power_law(c, g)
-    }
-}
-
-impl GammaMode for UnknownGamma {
-    const ID: GammaModeID = GammaModeID::UnknownGamma;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel, G: GammaMode>(c: C) -> C {
-        Linear::encode::<C, G>(c)
-    }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel, G: GammaMode>(c: C) -> C {
-        Linear::decode::<C, G>(c)
     }
 }
 
