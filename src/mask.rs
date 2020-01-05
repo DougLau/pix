@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode, GammaModeID, Linear, Associated, Separated,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode, GammaMode, GammaModeID, Linear, Associated, Separated,
 };
 use std::ops::Mul;
 
@@ -71,17 +71,31 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, M, G: GammaMode> From<Mask<A>> for Rgb<C, A, M, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, Separated, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
-    M: AlphaMode2
 {
     /// Get an `Rgb` from a `Mask`
     fn from(c: Mask<A>) -> Self {
         let red = C::MAX;
         let green = C::MAX;
         let blue = C::MAX;
+        let alpha = c.alpha();
+        Rgb::with_alpha(red, green, blue, alpha)
+    }
+}
+
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, Associated, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    /// Get an `Rgb` from a `Mask`
+    fn from(c: Mask<A>) -> Self {
+        let red = c.alpha().value();
+        let green = c.alpha().value();
+        let blue = c.alpha().value();
         let alpha = c.alpha();
         Rgb::with_alpha(red, green, blue, alpha)
     }
