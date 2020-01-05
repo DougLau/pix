@@ -177,44 +177,61 @@ pub struct Separated;
 pub struct UnknownAlpha;
 
 /// Trait for handling associated versus separated alpha
-pub trait AlphaMode2: Copy + Clone + Debug + PartialEq + Default {}
+pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
+    const ID: AlphaModeID;
 
-impl AlphaMode2 for Associated {}
-impl AlphaMode2 for Separated {}
-impl AlphaMode2 for UnknownAlpha {}
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+}
+
+impl AlphaMode for Associated {
+    const ID: AlphaModeID = AlphaModeID::Associated;
+
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
+        c * a.value()
+    }
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
+        c / a.value()
+    }
+}
+
+impl AlphaMode for Separated {
+    const ID: AlphaModeID = AlphaModeID::Separated;
+
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
+        c
+    }
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
+        c
+    }
+}
+
+impl AlphaMode for UnknownAlpha {
+    const ID: AlphaModeID = AlphaModeID::UnknownAlpha;
+
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
+        c
+    }
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
+        c
+    }
+}
 
 /// Mode for handling associated alpha.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum AlphaMode {
+pub enum AlphaModeID {
     /// Each `Channel` is associated, or premultiplied, with alpha
     Associated,
     /// Each `Channel` is separated from alpha (not premultiplied)
     Separated,
     /// Unknown
     UnknownAlpha,
-}
-
-impl AlphaMode {
-    /// Encode a `Channel` value using the alpha mode.
-    pub fn encode<C, A>(self, c: C, a: A) -> C
-    where
-        C: Channel,
-        A: Alpha<Chan = C>,
-    {
-        match self {
-            AlphaMode::Associated => c * a.value(),
-            AlphaMode::Separated | AlphaMode::UnknownAlpha => c,
-        }
-    }
-    /// Decode a `Channel` value using the alpha mode.
-    pub fn decode<C, A>(self, c: C, a: A) -> C
-    where
-        C: Channel,
-        A: Alpha<Chan = C>,
-    {
-        match self {
-            AlphaMode::Associated => c / a.value(),
-            AlphaMode::Separated | AlphaMode::UnknownAlpha => c,
-        }
-    }
 }

@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode, GammaMode, GammaModeID, Linear, Associated, Separated,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaModeID, GammaMode, GammaModeID, Linear, Associated, Separated, AlphaMode,
 };
 use std::ops::Mul;
 
@@ -30,10 +30,25 @@ impl<A: Alpha> GammaMode for Mask<A> {
     }
 }
 
+impl<A: Alpha> AlphaMode for Mask<A> {
+    const ID: AlphaModeID = AlphaModeID::UnknownAlpha;
+
+    /// Encode one `Channel` using the gamma mode.
+    fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
+        // Gamma Mode is a no-op on Mask
+        Separated::encode::<H, B>(h, b)
+    }
+    /// Decode one `Channel` using the gamma mode.
+    fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
+        // Gamma Mode is a no-op on Mask
+        Separated::decode::<H, B>(h, b)
+    }
+}
+
 impl<A: Alpha> PixModes for Mask<A> {
-    fn alpha_mode() -> AlphaMode {
+    fn alpha_mode() -> AlphaModeID {
         // Alpha Mode is a no-op on Mask
-        AlphaMode::UnknownAlpha
+        AlphaModeID::UnknownAlpha
     }
 
     fn gamma_mode() -> GammaModeID {

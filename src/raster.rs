@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2017-2020  Douglas P Lau
 //
-use crate::{AlphaMode, Ch16, Ch8, Channel, Format, GammaModeID, PixModes, Translucent, GammaMode};
+use crate::{AlphaModeID, Ch16, Ch8, Channel, Format, GammaModeID, PixModes, Translucent, GammaMode, AlphaMode};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -168,8 +168,8 @@ impl<F: Format> RasterBuilder<F> {
     where
         C: Channel + From<H>,
         H: Channel,
-        F: Format<Chan = C> + PixModes + GammaMode,
-        P: Format<Chan = H> + PixModes + GammaMode,
+        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
+        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
     {
         let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
         let reg = o.region();
@@ -362,10 +362,10 @@ impl<F: Format> Raster<F> {
     /// ```
     pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
     where
-        F: Format<Chan = C> + PixModes + GammaMode,
+        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + PixModes + GammaMode,
+        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
         R: Into<Region>,
         I: Iterator<Item = P>,
     {
@@ -400,25 +400,29 @@ impl<F: Format> Raster<F> {
     /// * `p` Source pixel to convert.
     fn convert_pixel<C, P, H>(p: P) -> F
     where
-        F: Format<Chan = C> + PixModes + GammaMode,
+        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + PixModes + GammaMode,
+        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
     {
         let rgba = p.rgba();
         // Decode gamma
-        let rgba = [
-            <P as GammaMode>::decode::<H, F>(rgba[0]),
-            <P as GammaMode>::decode::<H, F>(rgba[1]),
-            <P as GammaMode>::decode::<H, F>(rgba[2]),
-            rgba[3],
-        ];
-        // Remove associated alpha
-        let rgba = if P::alpha_mode() != F::alpha_mode() {
+        let rgba = if <P as GammaMode>::ID != <F as GammaMode>::ID {
             [
-                P::alpha_mode().decode(rgba[0], Translucent::new(rgba[3])),
-                P::alpha_mode().decode(rgba[1], Translucent::new(rgba[3])),
-                P::alpha_mode().decode(rgba[2], Translucent::new(rgba[3])),
+                <P as GammaMode>::decode::<H, F>(rgba[0]),
+                <P as GammaMode>::decode::<H, F>(rgba[1]),
+                <P as GammaMode>::decode::<H, F>(rgba[2]),
+                rgba[3],
+            ]
+        } else {
+            rgba
+        };
+        // Remove associated alpha
+        let rgba = if <P as AlphaMode>::ID != <F as AlphaMode>::ID {
+            [
+                <P as AlphaMode>::decode(rgba[0], Translucent::new(rgba[3])),
+                <P as AlphaMode>::decode(rgba[1], Translucent::new(rgba[3])),
+                <P as AlphaMode>::decode(rgba[2], Translucent::new(rgba[3])),
                 rgba[3],
             ]
         } else {
@@ -430,23 +434,27 @@ impl<F: Format> Raster<F> {
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
         // Apply alpha (only if source alpha mode was set)
-        let rgba = if P::alpha_mode() != F::alpha_mode() && P::alpha_mode() != AlphaMode::UnknownAlpha {
+        let rgba = if <F as AlphaMode>::ID != <P as AlphaMode>::ID && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha {
             [
-                F::alpha_mode().encode(red, Translucent::new(alpha)),
-                F::alpha_mode().encode(green, Translucent::new(alpha)),
-                F::alpha_mode().encode(blue, Translucent::new(alpha)),
+                <F as AlphaMode>::encode(red, Translucent::new(alpha)),
+                <F as AlphaMode>::encode(green, Translucent::new(alpha)),
+                <F as AlphaMode>::encode(blue, Translucent::new(alpha)),
                 alpha,
             ]
         } else {
             [red, green, blue, alpha]
         };
         // Encode gamma (only if source gamma mode was set)
-        let rgba = [
-            <F as GammaMode>::encode::<C, P>(rgba[0]),
-            <F as GammaMode>::encode::<C, P>(rgba[1]),
-            <F as GammaMode>::encode::<C, P>(rgba[2]),
-            rgba[3],
-        ];
+        let rgba = if <F as GammaMode>::ID != <P as GammaMode>::ID && <F as GammaMode>::ID != GammaModeID::UnknownGamma {
+            [
+                <F as GammaMode>::encode::<C, P>(rgba[0]),
+                <F as GammaMode>::encode::<C, P>(rgba[1]),
+                <F as GammaMode>::encode::<C, P>(rgba[2]),
+                rgba[3],
+            ]
+        } else {
+            rgba
+        };
         F::with_rgba(rgba)
     }
     /// Get view of pixels as a slice.
@@ -519,7 +527,7 @@ impl<'a, F: Format> RasterIter<'a, F> {
 
 impl<'a, F: Format + PixModes> PixModes for RasterIter<'a, F> {
     /// Get the pixel format alpha mode
-    fn alpha_mode() -> AlphaMode {
+    fn alpha_mode() -> AlphaModeID {
         F::alpha_mode()
     }
 

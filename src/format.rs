@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{AlphaMode, Channel, GammaModeID};
+use crate::{AlphaModeID, Channel, GammaModeID};
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -43,7 +43,7 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 /// [GammaMode](enum.GammaMode.html).
 pub trait PixModes {
     /// Get the pixel format alpha mode
-    fn alpha_mode() -> AlphaMode;
+    fn alpha_mode() -> AlphaModeID;
 
     /// Get the pixel format gamma mode
     fn gamma_mode() -> GammaModeID;

@@ -192,21 +192,6 @@ pub struct Srgb;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct PowerLaw(f32);
 
-/*/// No gamma correction - unknown.
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct UnknownGamma;*/
-
-/*impl<A: GammaMode> GammaConversion for GammaConverter<Linear, A> {
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel>(c: C) -> C {
-        c
-    }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel>(c: C) -> C {
-        c
-    }
-}*/
-
 /// Trait for handling associated versus separated alpha
 pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
     const ID: GammaModeID;
@@ -243,11 +228,7 @@ impl GammaMode for Srgb {
     }
     /// Decode one `Channel` using the gamma mode.
     fn decode<C: Channel, G: GammaMode>(c: C) -> C {
-        if G::ID != Self::ID {
-            decode_srgb(c)
-        } else {
-            c
-        }
+        decode_srgb(c)
     }
 }
 
