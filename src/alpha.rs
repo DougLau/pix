@@ -166,15 +166,11 @@ impl<C: Channel> Alpha for Translucent<C> {
 
 /// Each `Channel` is associated, or premultiplied, with alpha
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct Associated;
+pub struct AssociatedAlpha;
 
 /// Each `Channel` is separated from alpha (not premultiplied)
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct Separated;
-
-/// Unknown
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct UnknownAlpha;
+pub struct SeparatedAlpha;
 
 /// Trait for handling associated versus separated alpha
 pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
@@ -186,7 +182,7 @@ pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
     fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
 }
 
-impl AlphaMode for Associated {
+impl AlphaMode for AssociatedAlpha {
     const ID: AlphaModeID = AlphaModeID::Associated;
 
     /// Encode one `Channel` using the alpha mode.
@@ -199,21 +195,8 @@ impl AlphaMode for Associated {
     }
 }
 
-impl AlphaMode for Separated {
+impl AlphaMode for SeparatedAlpha {
     const ID: AlphaModeID = AlphaModeID::Separated;
-
-    /// Encode one `Channel` using the alpha mode.
-    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
-        c
-    }
-    /// Decode one `Channel` using the alpha mode.
-    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
-        c
-    }
-}
-
-impl AlphaMode for UnknownAlpha {
-    const ID: AlphaModeID = AlphaModeID::UnknownAlpha;
 
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {

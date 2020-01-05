@@ -17,7 +17,7 @@ mod palette;
 mod raster;
 mod rgb;
 
-pub use crate::alpha::{Alpha, AlphaModeID, AlphaMode, Opaque, Translucent, Associated, Separated};
+pub use crate::alpha::{Alpha, AlphaModeID, AlphaMode, Opaque, Translucent, AssociatedAlpha, SeparatedAlpha};
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::format::Format;
 pub use crate::gamma::{GammaModeID, GammaMode, Srgb, Linear, PowerLaw};

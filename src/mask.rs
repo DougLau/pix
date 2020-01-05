@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Rgb, Gray, Translucent, AlphaModeID, GammaMode, GammaModeID, Linear, Associated, Separated, AlphaMode,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Rgb, Gray, Translucent, AlphaModeID, GammaMode, GammaModeID, Linear, AssociatedAlpha, SeparatedAlpha, AlphaMode,
 };
 use std::ops::Mul;
 
@@ -36,12 +36,12 @@ impl<A: Alpha> AlphaMode for Mask<A> {
     /// Encode one `Channel` using the gamma mode.
     fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
         // Gamma Mode is a no-op on Mask
-        Separated::encode::<H, B>(h, b)
+        SeparatedAlpha::encode::<H, B>(h, b)
     }
     /// Decode one `Channel` using the gamma mode.
     fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
         // Gamma Mode is a no-op on Mask
-        Separated::decode::<H, B>(h, b)
+        SeparatedAlpha::decode::<H, B>(h, b)
     }
 }
 
@@ -74,7 +74,7 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, Separated, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, SeparatedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -89,7 +89,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, Associated, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, AssociatedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -104,7 +104,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, Separated, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, SeparatedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -117,7 +117,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, Associated, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, AssociatedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
