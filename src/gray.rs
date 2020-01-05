@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, PixModes, Translucent, AlphaModeID, Srgb, Separated, AlphaMode, GammaMode, Linear, Associated, GammaModeID,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, Opaque, Translucent, Srgb, Separated, AlphaMode, GammaMode, Linear, Associated, GammaModeID, AlphaModeID,
 };
 use std::ops::Mul;
 use std::marker::PhantomData;
@@ -46,46 +46,6 @@ impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> AlphaMode for Gray<C, A, 
     /// Decode one `Channel` using the gamma mode.
     fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
         M::decode::<H, B>(h, b)
-    }
-}
-
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Srgb> {
-    fn alpha_mode() -> AlphaModeID {
-        AlphaModeID::Associated
-    }
-
-    fn gamma_mode() -> GammaModeID {
-        GammaModeID::Srgb
-    }
-}
-
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Srgb> {
-    fn alpha_mode() -> AlphaModeID {
-        AlphaModeID::Separated
-    }
-
-    fn gamma_mode() -> GammaModeID {
-        GammaModeID::Srgb
-    }
-}
-
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Associated, Linear> {
-    fn alpha_mode() -> AlphaModeID {
-        AlphaModeID::Associated
-    }
-
-    fn gamma_mode() -> GammaModeID {
-        GammaModeID::Linear
-    }
-}
-
-impl<C: Channel, A: Alpha> PixModes for Gray<C, A, Separated, Linear> {
-    fn alpha_mode() -> AlphaModeID {
-        AlphaModeID::Separated
-    }
-
-    fn gamma_mode() -> GammaModeID {
-        GammaModeID::Linear
     }
 }
 

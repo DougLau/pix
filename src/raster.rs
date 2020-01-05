@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2017-2020  Douglas P Lau
 //
-use crate::{AlphaModeID, Ch16, Ch8, Channel, Format, GammaModeID, PixModes, Translucent, GammaMode, AlphaMode};
+use crate::{AlphaModeID, Ch16, Ch8, Channel, Format, GammaModeID, Translucent, GammaMode, AlphaMode};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -168,8 +168,8 @@ impl<F: Format> RasterBuilder<F> {
     where
         C: Channel + From<H>,
         H: Channel,
-        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
-        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
+        F: Format<Chan = C> + GammaMode + AlphaMode,
+        P: Format<Chan = H> + GammaMode + AlphaMode,
     {
         let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
         let reg = o.region();
@@ -362,10 +362,10 @@ impl<F: Format> Raster<F> {
     /// ```
     pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
     where
-        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
+        F: Format<Chan = C> + GammaMode + AlphaMode,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
+        P: Format<Chan = H> + GammaMode + AlphaMode,
         R: Into<Region>,
         I: Iterator<Item = P>,
     {
@@ -400,10 +400,10 @@ impl<F: Format> Raster<F> {
     /// * `p` Source pixel to convert.
     fn convert_pixel<C, P, H>(p: P) -> F
     where
-        F: Format<Chan = C> + PixModes + GammaMode + AlphaMode,
+        F: Format<Chan = C> + GammaMode + AlphaMode,
         C: Channel + From<H>,
         H: Channel,
-        P: Format<Chan = H> + PixModes + GammaMode + AlphaMode,
+        P: Format<Chan = H> + GammaMode + AlphaMode,
     {
         let rgba = p.rgba();
         // Decode gamma
@@ -522,18 +522,6 @@ impl<'a, F: Format> RasterIter<'a, F> {
             x,
             y,
         }
-    }
-}
-
-impl<'a, F: Format + PixModes> PixModes for RasterIter<'a, F> {
-    /// Get the pixel format alpha mode
-    fn alpha_mode() -> AlphaModeID {
-        F::alpha_mode()
-    }
-
-    /// Get the pixel format gamma mode
-    fn gamma_mode() -> GammaModeID {
-        F::gamma_mode()
     }
 }
 

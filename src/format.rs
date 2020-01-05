@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{AlphaModeID, Channel, GammaModeID};
+use crate::Channel;
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -33,18 +33,8 @@ pub trait Format: Clone + Copy + Default + PartialEq {
     fn within_threshold(self, rhs: Self) -> bool;
 
     /// Encode into associated alpha from separate alpha.
-    fn encode(self) -> Self;
+    fn encode(self) -> Self; // FIXME: Remove
 
     /// Decode into separate alpha from associated alpha.
-    fn decode(self) -> Self;
-}
-
-/// Pixel modes are settings for [AlphaMode](enum.AlphaMode.html) and
-/// [GammaMode](enum.GammaMode.html).
-pub trait PixModes {
-    /// Get the pixel format alpha mode
-    fn alpha_mode() -> AlphaModeID;
-
-    /// Get the pixel format gamma mode
-    fn gamma_mode() -> GammaModeID;
+    fn decode(self) -> Self; // FIXME: Remove
 }

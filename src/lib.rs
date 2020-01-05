@@ -19,7 +19,7 @@ mod rgb;
 
 pub use crate::alpha::{Alpha, AlphaModeID, AlphaMode, Opaque, Translucent, Associated, Separated};
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
-pub use crate::format::{Format, PixModes};
+pub use crate::format::Format;
 pub use crate::gamma::{GammaModeID, GammaMode, Srgb, Linear, PowerLaw};
 pub use crate::gray::{
     Gray, Gray16, Gray32, Gray8, GrayAlpha16, GrayAlpha32, GrayAlpha8,
