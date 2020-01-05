@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 //
 use crate::{
-    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode, GammaModeID, Linear,
+    Alpha, Ch16, Ch32, Ch8, Channel, Format, PixModes, Rgb, Gray, Translucent, AlphaMode2, AlphaMode, GammaMode, GammaModeID, Linear, Associated, Separated,
 };
 use std::ops::Mul;
 
@@ -87,7 +87,7 @@ where
     }
 }
 
-impl<C, A, M: AlphaMode2, G: GammaMode> From<Mask<A>> for Gray<C, A, M, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, Separated, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -99,6 +99,20 @@ where
         Gray::with_alpha(value, alpha)
     }
 }
+
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, Associated, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    /// Get a `Gray` from a `Mask`
+    fn from(c: Mask<A>) -> Self {
+        let value = c.alpha().value();
+        let alpha = c.alpha().into();
+        Gray::with_alpha(value, alpha)
+    }
+}
+
 
 impl<A: Alpha> Mul<Self> for Mask<A> {
     type Output = Self;
