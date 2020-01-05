@@ -31,10 +31,4 @@ pub trait Format: Clone + Copy + Default + PartialEq {
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool;
-
-    /// Encode into associated alpha from separate alpha.
-    fn encode(self) -> Self; // FIXME: Remove
-
-    /// Decode into separate alpha from associated alpha.
-    fn decode(self) -> Self; // FIXME: Remove
 }

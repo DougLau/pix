@@ -186,16 +186,6 @@ where
     fn within_threshold(self, rhs: Self) -> bool {
         self.alpha.value() <= rhs.alpha.value()
     }
-
-    /// Encode into associated alpha from separate alpha.
-    fn encode(self) -> Self {
-        self
-    }
-
-    /// Decode into separate alpha from associated alpha.
-    fn decode(self) -> Self {
-        self
-    }
 }
 
 /// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)

@@ -272,22 +272,6 @@ where
             && self.blue <= rhs.blue
             && self.alpha.value() <= rhs.alpha.value()
     }
-
-    /// Encode into associated alpha from separate alpha.
-    fn encode(mut self) -> Self {
-        self.red = Associated::encode(self.red, self.alpha);
-        self.green = Associated::encode(self.green, self.alpha);
-        self.blue = Associated::encode(self.blue, self.alpha);
-        self
-    }
-
-    /// Decode into separate alpha from associated alpha.
-    fn decode(mut self) -> Self {
-        self.red = Associated::decode(self.red, self.alpha);
-        self.green = Associated::decode(self.green, self.alpha);
-        self.blue = Associated::decode(self.blue, self.alpha);
-        self
-    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel

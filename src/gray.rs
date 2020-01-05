@@ -170,18 +170,6 @@ where
     fn within_threshold(self, rhs: Self) -> bool {
         self.value <= rhs.value && self.alpha.value() <= rhs.alpha.value()
     }
-
-    /// Encode into associated alpha from separate alpha.
-    fn encode(mut self) -> Self {
-        self.value = Associated::encode(self.value, self.alpha);
-        self
-    }
-
-    /// Decode into separate alpha from associated alpha.
-    fn decode(mut self) -> Self {
-        self.value = Associated::decode(self.value, self.alpha);
-        self
-    }
 }
 
 /// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel
