@@ -85,6 +85,32 @@ where
     }
 }
 
+impl<C, A, G: GammaMode> From<Gray<C, A, SeparatedAlpha, G>>
+    for Gray<C, A, AssociatedAlpha, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Gray<C, A, SeparatedAlpha, G>) -> Self {
+        let value = AssociatedAlpha::encode::<C, A>(c.value, c.alpha);
+
+        Gray::with_alpha(value, c.alpha())
+    }
+}
+
+impl<C, A, G: GammaMode> From<Gray<C, A, AssociatedAlpha, G>>
+    for Gray<C, A, SeparatedAlpha, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+{
+    fn from(c: Gray<C, A, AssociatedAlpha, G>) -> Self {
+        let value = AssociatedAlpha::decode::<C, A>(c.value, c.alpha);
+
+        Gray::with_alpha(value, c.alpha)
+    }
+}
+
 impl<C, A, M: AlphaMode, G: GammaMode> From<u8> for Gray<C, A, M, G>
 where
     C: Channel,
@@ -222,10 +248,10 @@ pub type LGray<C, A, M> = Gray<C, A, M, LinearGamma>;
 
 /// [SeparatedAlpha](struct.SeparatedAlpha.html) [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type SepGray<C, A, M> = Gray<C, A, M, SeparatedAlpha>;
+pub type SepGray<C, A, G> = Gray<C, A, SeparatedAlpha, G>;
 /// [AssociatedAlpha](struct.AssociatedAlpha.html) [Gray](struct.Gray.html) pixel
 /// [Format](trait.Format.html).
-pub type AssocGray<C, A, M> = Gray<C, A, M, AssociatedAlpha>;
+pub type AssocGray<C, A, G> = Gray<C, A, AssociatedAlpha, G>;
 
 /// [SeparatedAlpha](struct.SeparatedAlpha.html)
 /// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel

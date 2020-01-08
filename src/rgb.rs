@@ -318,10 +318,10 @@ pub type LRgb<C, A, M> = Rgb<C, A, M, LinearGamma>;
 
 /// [SeparatedAlpha](struct.SeparatedAlpha.html) [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type SepRgb<C, A, M> = Rgb<C, A, M, SeparatedAlpha>;
+pub type SepRgb<C, A, G> = Rgb<C, A, SeparatedAlpha, G>;
 /// [AssociatedAlpha](struct.AssociatedAlpha.html) [Rgb](struct.Rgb.html) pixel
 /// [Format](trait.Format.html).
-pub type AssocRgb<C, A, M> = Rgb<C, A, M, AssociatedAlpha>;
+pub type AssocRgb<C, A, G> = Rgb<C, A, AssociatedAlpha, G>;
 
 /// [SeparatedAlpha](struct.SeparatedAlpha.html)
 /// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
