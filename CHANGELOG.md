@@ -1,8 +1,23 @@
 ## [Unreleased]
+### Added
+* AlphaMode trait (and implementors: AssociatedAlpha, SeparatedAlpha)
+* AlphaModeID can now be UnknownAlpha (for masks)
+* GammaMode trait (and implementors: LinearGamma, SrgbGamma)
+* GammaModeID can now be UnknownGamma (for masks)
+* Implemented Add for Ch8, Ch16, and Ch32
+* Type aliases for new generics
+### Changed
+* Gamma and Alpha are now Generics on Gray, Rgb instead of attributes on Raster
+* Rename AlphaMode to AlphaModeID
+* Format now depends on traits AlphaMode + GammaMode
+* Rename GammaMode to GammaModeID
+
 ## [0.7.0] - 2020-01-01
-* Added Debug + Mul to Alpha, Channel
+### Added
 * Implemented From u8, u16, f32 for Translucent
-* Added From for Translucent <=> Opaque
+* Implemented From for Translucent <=> Opaque
+### Changed
+* Alpha, Channel now depend on traits Debug + Mul
 
 ## [0.6.1] - 2019-07-28
 ### Added
