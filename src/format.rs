@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2018-2019  Douglas P Lau
 //
-use crate::{AlphaMode, Channel, GammaMode};
+use crate::{AlphaMode, Channel, GammaMode, Translucent, AlphaModeID, GammaModeID};
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///
@@ -33,4 +33,69 @@ pub trait Format:
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool;
+
+    /// Convert a pixel from one `Format` to another
+    ///
+    /// * `p` Source pixel to convert.
+    fn convert<C, F>(self) -> F
+    where
+        F: Format<Chan = C>,
+        C: Channel + From<Self::Chan>,
+    {
+        let rgba = self.rgba();
+        // Decode gamma
+        let rgba = if <Self as GammaMode>::ID != <F as GammaMode>::ID {
+            [
+                <Self as GammaMode>::decode(rgba[0]),
+                <Self as GammaMode>::decode(rgba[1]),
+                <Self as GammaMode>::decode(rgba[2]),
+                rgba[3],
+            ]
+        } else {
+            rgba
+        };
+        // Remove associated alpha
+        let rgba = if <Self as AlphaMode>::ID != <F as AlphaMode>::ID {
+            [
+                <Self as AlphaMode>::decode(rgba[0], Translucent::new(rgba[3])),
+                <Self as AlphaMode>::decode(rgba[1], Translucent::new(rgba[3])),
+                <Self as AlphaMode>::decode(rgba[2], Translucent::new(rgba[3])),
+                rgba[3],
+            ]
+        } else {
+            rgba
+        };
+        // Convert bit depth
+        let red = C::from(rgba[0]);
+        let green = C::from(rgba[1]);
+        let blue = C::from(rgba[2]);
+        let alpha = C::from(rgba[3]);
+        // Apply alpha (only if source alpha mode was set)
+        let rgba = if <F as AlphaMode>::ID != <Self as AlphaMode>::ID
+            && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha
+        {
+            [
+                <F as AlphaMode>::encode(red, Translucent::new(alpha)),
+                <F as AlphaMode>::encode(green, Translucent::new(alpha)),
+                <F as AlphaMode>::encode(blue, Translucent::new(alpha)),
+                alpha,
+            ]
+        } else {
+            [red, green, blue, alpha]
+        };
+        // Encode gamma (only if source gamma mode was set)
+        let rgba = if <F as GammaMode>::ID != <Self as GammaMode>::ID
+            && <F as GammaMode>::ID != GammaModeID::UnknownGamma
+        {
+            [
+                <F as GammaMode>::encode(rgba[0]),
+                <F as GammaMode>::encode(rgba[1]),
+                <F as GammaMode>::encode(rgba[2]),
+                rgba[3],
+            ]
+        } else {
+            rgba
+        };
+        F::with_rgba(rgba)
+    }
 }

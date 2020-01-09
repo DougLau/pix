@@ -2,10 +2,7 @@
 //
 // Copyright (c) 2017-2020  Douglas P Lau
 //
-use crate::{
-    AlphaMode, AlphaModeID, Ch16, Ch8, Channel, Format, GammaMode, GammaModeID,
-    Translucent,
-};
+use crate::{ Ch16, Ch8, Channel, Format, };
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -391,77 +388,11 @@ impl<F: Format> Raster<F> {
                 let row = self.as_slice_row_mut(yi);
                 for x in x0..x1 {
                     if let Some(p) = it.next() {
-                        row[x] = Self::convert_pixel(p);
+                        row[x] = p.convert();
                     }
                 }
             }
         }
-    }
-    /// Convert a pixel from one `Format` to another
-    ///
-    /// * `p` Source pixel to convert.
-    fn convert_pixel<C, P, H>(p: P) -> F
-    where
-        F: Format<Chan = C>,
-        C: Channel + From<H>,
-        H: Channel,
-        P: Format<Chan = H>,
-    {
-        let rgba = p.rgba();
-        // Decode gamma
-        let rgba = if <P as GammaMode>::ID != <F as GammaMode>::ID {
-            [
-                <P as GammaMode>::decode(rgba[0]),
-                <P as GammaMode>::decode(rgba[1]),
-                <P as GammaMode>::decode(rgba[2]),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        // Remove associated alpha
-        let rgba = if <P as AlphaMode>::ID != <F as AlphaMode>::ID {
-            [
-                <P as AlphaMode>::decode(rgba[0], Translucent::new(rgba[3])),
-                <P as AlphaMode>::decode(rgba[1], Translucent::new(rgba[3])),
-                <P as AlphaMode>::decode(rgba[2], Translucent::new(rgba[3])),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        // Convert bit depth
-        let red = C::from(rgba[0]);
-        let green = C::from(rgba[1]);
-        let blue = C::from(rgba[2]);
-        let alpha = C::from(rgba[3]);
-        // Apply alpha (only if source alpha mode was set)
-        let rgba = if <F as AlphaMode>::ID != <P as AlphaMode>::ID
-            && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha
-        {
-            [
-                <F as AlphaMode>::encode(red, Translucent::new(alpha)),
-                <F as AlphaMode>::encode(green, Translucent::new(alpha)),
-                <F as AlphaMode>::encode(blue, Translucent::new(alpha)),
-                alpha,
-            ]
-        } else {
-            [red, green, blue, alpha]
-        };
-        // Encode gamma (only if source gamma mode was set)
-        let rgba = if <F as GammaMode>::ID != <P as GammaMode>::ID
-            && <F as GammaMode>::ID != GammaModeID::UnknownGamma
-        {
-            [
-                <F as GammaMode>::encode(rgba[0]),
-                <F as GammaMode>::encode(rgba[1]),
-                <F as GammaMode>::encode(rgba[2]),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        F::with_rgba(rgba)
     }
     /// Get view of pixels as a slice.
     pub fn as_slice(&self) -> &[F] {
