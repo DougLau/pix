@@ -1,6 +1,7 @@
 // lib.rs      Pix crate.
 //
 // Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Pixel and [Raster](struct.Raster.html) image crate.
 //!
@@ -27,18 +28,21 @@ pub use crate::gamma::{
     GammaMode, GammaModeID, LinearGamma, PowerLawGamma, SrgbGamma,
 };
 pub use crate::gray::{
-    Gray, Gray16, Gray32, Gray8, GrayAlpha16, GrayAlpha32, GrayAlpha8,
-    LinearGray16, LinearGray32, LinearGray8, LinearGrayAlpha16,
-    LinearGrayAlpha32, LinearGrayAlpha8, PremulGrayAlpha16, PremulGrayAlpha32,
-    PremulGrayAlpha8, PremulLinearGrayAlpha16, PremulLinearGrayAlpha32,
-    PremulLinearGrayAlpha8,
+    AssocGray, AssocLGray, AssocLGrayAlpha16, AssocLGrayAlpha32,
+    AssocLGrayAlpha8, AssocSGray, AssocSGrayAlpha16, AssocSGrayAlpha32,
+    AssocSGrayAlpha8, Gray, Gray16, Gray32, Gray8, GrayAlpha16, GrayAlpha32,
+    GrayAlpha8, LGray, SGray, SepGray, SepLGray, SepLGray16, SepLGray32,
+    SepLGray8, SepLGrayAlpha16, SepLGrayAlpha32, SepLGrayAlpha8, SepSGray,
+    SepSGray16, SepSGray32, SepSGray8, SepSGrayAlpha16, SepSGrayAlpha32,
+    SepSGrayAlpha8,
 };
 pub use crate::mask::{Mask, Mask16, Mask32, Mask8};
 pub use crate::palette::Palette;
 pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
 pub use crate::rgb::{
-    LinearRgb16, LinearRgb32, LinearRgb8, LinearRgba16, LinearRgba32,
-    LinearRgba8, PremulLinearRgba16, PremulLinearRgba32, PremulLinearRgba8,
-    PremulRgba16, PremulRgba32, PremulRgba8, Rgb, Rgb16, Rgb32, Rgb8, Rgba16,
-    Rgba32, Rgba8,
+    AssocLRgb, AssocLRgba16, AssocLRgba32, AssocLRgba8, AssocRgb, AssocSRgb,
+    AssocSRgba16, AssocSRgba32, AssocSRgba8, LRgb, Rgb, Rgb16, Rgb32, Rgb8,
+    Rgba16, Rgba32, Rgba8, SRgb, SepLRgb, SepLRgb16, SepLRgb32, SepLRgb8,
+    SepLRgba16, SepLRgba32, SepLRgba8, SepRgb, SepSRgb, SepSRgb16, SepSRgb32,
+    SepSRgb8, SepSRgba16, SepSRgba32, SepSRgba8,
 };

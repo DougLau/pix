@@ -1,6 +1,7 @@
 // channel.rs       Color channels
 //
 // Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::gamma::Gamma;
 use std::cmp::Ordering;

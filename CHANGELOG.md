@@ -6,6 +6,7 @@
 * GammaModeID can now be UnknownGamma (for masks)
 * Implemented Add for Ch8, Ch16, and Ch32
 * Type aliases for new generics
+* Format::convert method
 ### Changed
 * Gamma and Alpha are now Generics on Gray, Rgb instead of attributes on Raster
 * Rename AlphaMode to AlphaModeID
