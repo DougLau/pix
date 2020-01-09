@@ -1,6 +1,7 @@
 // alpha.rs     Alpha channel handling.
 //
 // Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::{Ch16, Ch32, Ch8, Channel};
 use std::fmt::Debug;

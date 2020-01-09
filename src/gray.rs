@@ -1,6 +1,7 @@
 // gray.rs      Grayscale pixel format.
 //
 // Copyright (c) 2018-2020  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::{
     Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,

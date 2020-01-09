@@ -1,8 +1,11 @@
 // format.rs     Pixel format.
 //
 // Copyright (c) 2018-2019  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{AlphaMode, Channel, GammaMode, Translucent, AlphaModeID, GammaModeID};
+use crate::{
+    AlphaMode, AlphaModeID, Channel, GammaMode, GammaModeID, Translucent,
+};
 
 /// Pixel format determines [Channel](trait.Channel.html)s and bit depth.
 ///

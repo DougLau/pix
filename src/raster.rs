@@ -1,8 +1,9 @@
 // raster.rs    Raster images.
 //
 // Copyright (c) 2017-2020  Douglas P Lau
+// Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{ Ch16, Ch8, Channel, Format, };
+use crate::{Ch16, Ch8, Channel, Format};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 

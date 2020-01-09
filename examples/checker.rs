@@ -1,6 +1,6 @@
 extern crate pix;
 
-use pix::{SepSGray8, Raster, RasterBuilder};
+use pix::{Raster, RasterBuilder, SepSGray8};
 use std::fs::File;
 use std::io;
 use std::io::Write;
