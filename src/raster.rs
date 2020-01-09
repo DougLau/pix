@@ -9,9 +9,8 @@ use std::marker::PhantomData;
 
 /// Builder for [Raster](struct.Raster.html) images.
 ///
-/// After creating a `RasterBuilder`, the [AlphaMode](enum.AlphaMode.html) and
-/// [GammaMode](enum.GammaMode.html) can be configured.  To finish building a
-/// `Raster`, use one of the *with_* methods:
+/// After creating a `RasterBuilder`, finish building a `Raster` using one of
+/// the *with_* methods:
 /// * [with_clear](struct.RasterBuilder.html#method.with_clear)
 /// * [with_color](struct.RasterBuilder.html#method.with_color)
 /// * [with_raster](struct.RasterBuilder.html#method.with_raster)
