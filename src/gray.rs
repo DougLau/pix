@@ -194,7 +194,7 @@ where
 
     /// Make a pixel with given RGBA `Channel`s
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let value = rgba[0].max(rgba[1]).max(rgba[2]);
+        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
         let alpha = rgba[3];
         Gray::with_alpha(value, alpha)
     }
