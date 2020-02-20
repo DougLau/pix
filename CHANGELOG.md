@@ -1,4 +1,6 @@
 ## [Unreleased]
+
+## [0.8.0] - 2020-02-20
 ### Added
 * AlphaMode trait (and implementors: AssociatedAlpha, SeparatedAlpha)
 * AlphaModeID can now be UnknownAlpha (for masks)
