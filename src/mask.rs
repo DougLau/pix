@@ -116,7 +116,7 @@ where
     /// Get a `Gray` from a `Mask`
     fn from(c: Mask<A>) -> Self {
         let value = C::MAX;
-        let alpha = c.alpha().into();
+        let alpha = c.alpha();
         Gray::with_alpha(value, alpha)
     }
 }
@@ -129,7 +129,7 @@ where
     /// Get a `Gray` from a `Mask`
     fn from(c: Mask<A>) -> Self {
         let value = c.alpha().value();
-        let alpha = c.alpha().into();
+        let alpha = c.alpha();
         Gray::with_alpha(value, alpha)
     }
 }
