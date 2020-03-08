@@ -3,9 +3,9 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+use crate::alpha::{AlphaMode, AlphaModeID, Translucent};
+use crate::gamma::{GammaMode, GammaModeID};
 use crate::Channel;
-use crate::alpha::{ AlphaMode, AlphaModeID, Translucent };
-use crate::gamma::{ GammaMode, GammaModeID };
 
 /// Pixel format determines bit depth ([Channel](trait.Channel.html)),
 /// color components, [alpha mode](alpha/trait.AlphaMode.html),

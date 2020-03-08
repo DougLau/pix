@@ -3,12 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{ Ch16, Ch32, Ch8, Channel, Format };
 use crate::alpha::{
     Alpha, AlphaMode, AlphaModeID, Opaque, PremultipliedAlpha, StraightAlpha,
     Translucent,
 };
-use crate::gamma::{ GammaMode, GammaModeID, LinearGamma, SrgbGamma };
+use crate::gamma::{GammaMode, GammaModeID, LinearGamma, SrgbGamma};
+use crate::{Ch16, Ch32, Ch8, Channel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
@@ -330,12 +330,14 @@ pub type Rgba8p = Rgb<Ch8, Translucent<Ch8>, PremultipliedAlpha, LinearGamma>;
 /// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
 /// [linear gamma](gamma/struct.LinearGamma.html)
 /// pixel [format](trait.Format.html).
-pub type Rgba16p = Rgb<Ch16, Translucent<Ch16>, PremultipliedAlpha, LinearGamma>;
+pub type Rgba16p =
+    Rgb<Ch16, Translucent<Ch16>, PremultipliedAlpha, LinearGamma>;
 /// [Rgb](struct.Rgb.html) 32-bit
 /// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
 /// [linear gamma](gamma/struct.LinearGamma.html)
 /// pixel [format](trait.Format.html).
-pub type Rgba32p = Rgb<Ch32, Translucent<Ch32>, PremultipliedAlpha, LinearGamma>;
+pub type Rgba32p =
+    Rgb<Ch32, Translucent<Ch32>, PremultipliedAlpha, LinearGamma>;
 
 type SRgb<C, A> = Rgb<C, A, StraightAlpha, SrgbGamma>;
 /// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)

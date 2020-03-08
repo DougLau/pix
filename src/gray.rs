@@ -3,12 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{ Ch16, Ch32, Ch8, Channel, Format };
 use crate::alpha::{
     Alpha, AlphaMode, AlphaModeID, Opaque, PremultipliedAlpha, StraightAlpha,
     Translucent,
 };
-use crate::gamma::{ GammaMode, GammaModeID, LinearGamma, SrgbGamma };
+use crate::gamma::{GammaMode, GammaModeID, LinearGamma, SrgbGamma};
+use crate::{Ch16, Ch32, Ch8, Channel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
