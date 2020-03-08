@@ -1,8 +1,9 @@
 // gamma.rs     Gamma encoding/decoding for sRGB
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! Module for gamma encoding items
 use crate::{Ch16, Ch32, Ch8, Channel};
 use std::fmt::Debug;
 
@@ -193,7 +194,7 @@ pub struct SrgbGamma;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct PowerLawGamma(f32);
 
-/// Trait for handling associated versus separated alpha
+/// Trait for handling gamma encoding/decoding
 pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
     const ID: GammaModeID;
 

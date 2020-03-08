@@ -1,8 +1,9 @@
 // alpha.rs     Alpha channel handling.
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! Module for alpha channel items
 use crate::{Ch16, Ch32, Ch8, Channel};
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -165,15 +166,15 @@ impl<C: Channel> Alpha for Translucent<C> {
     }
 }
 
-/// Each `Channel` is associated, or premultiplied, with alpha
+/// Each `Channel` is not premultiplied with alpha
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct AssociatedAlpha;
+pub struct StraightAlpha;
 
-/// Each `Channel` is separated from alpha (not premultiplied)
+/// Each `Channel` is premultiplied, or associated, with alpha
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct SeparatedAlpha;
+pub struct PremultipliedAlpha;
 
-/// Trait for handling associated versus separated alpha
+/// Trait for handling straight versus premultiplied alpha
 pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
     const ID: AlphaModeID;
 
@@ -183,8 +184,8 @@ pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
     fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
 }
 
-impl AlphaMode for AssociatedAlpha {
-    const ID: AlphaModeID = AlphaModeID::Associated;
+impl AlphaMode for PremultipliedAlpha {
+    const ID: AlphaModeID = AlphaModeID::Premultiplied;
 
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
@@ -196,8 +197,8 @@ impl AlphaMode for AssociatedAlpha {
     }
 }
 
-impl AlphaMode for SeparatedAlpha {
-    const ID: AlphaModeID = AlphaModeID::Separated;
+impl AlphaMode for StraightAlpha {
+    const ID: AlphaModeID = AlphaModeID::Straight;
 
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
@@ -209,13 +210,13 @@ impl AlphaMode for SeparatedAlpha {
     }
 }
 
-/// Mode for handling associated alpha.
+/// Mode for handling premultiplied alpha.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum AlphaModeID {
-    /// Each `Channel` is associated, or premultiplied, with alpha
-    Associated,
-    /// Each `Channel` is separated from alpha (not premultiplied)
-    Separated,
-    /// Unknown
+    /// Each `Channel` is not premultiplied with alpha
+    Straight,
+    /// Each `Channel` is premultiplied, or associated, with alpha
+    Premultiplied,
+    /// Unknown alpha mode
     UnknownAlpha,
 }

@@ -3,11 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{
-    Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,
-    Format, GammaMode, GammaModeID, LinearGamma, Opaque, SeparatedAlpha,
-    SrgbGamma, Translucent,
+use crate::{ Ch16, Ch32, Ch8, Channel, Format };
+use crate::alpha::{
+    Alpha, AlphaMode, AlphaModeID, Opaque, PremultipliedAlpha, StraightAlpha,
+    Translucent,
 };
+use crate::gamma::{ GammaMode, GammaModeID, LinearGamma, SrgbGamma };
 use std::marker::PhantomData;
 use std::ops::Mul;
 
@@ -88,31 +89,31 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Rgb<C, A, SeparatedAlpha, G>>
-    for Rgb<C, A, AssociatedAlpha, G>
+impl<C, A, G: GammaMode> From<Rgb<C, A, StraightAlpha, G>>
+    for Rgb<C, A, PremultipliedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
 {
-    fn from(c: Rgb<C, A, SeparatedAlpha, G>) -> Self {
-        let red = AssociatedAlpha::encode::<C, A>(c.red, c.alpha);
-        let green = AssociatedAlpha::encode::<C, A>(c.green, c.alpha);
-        let blue = AssociatedAlpha::encode::<C, A>(c.blue, c.alpha);
+    fn from(c: Rgb<C, A, StraightAlpha, G>) -> Self {
+        let red = PremultipliedAlpha::encode::<C, A>(c.red, c.alpha);
+        let green = PremultipliedAlpha::encode::<C, A>(c.green, c.alpha);
+        let blue = PremultipliedAlpha::encode::<C, A>(c.blue, c.alpha);
 
         Rgb::with_alpha(red, green, blue, c.alpha())
     }
 }
 
-impl<C, A, G: GammaMode> From<Rgb<C, A, AssociatedAlpha, G>>
-    for Rgb<C, A, SeparatedAlpha, G>
+impl<C, A, G: GammaMode> From<Rgb<C, A, PremultipliedAlpha, G>>
+    for Rgb<C, A, StraightAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
 {
-    fn from(c: Rgb<C, A, AssociatedAlpha, G>) -> Self {
-        let red = AssociatedAlpha::decode::<C, A>(c.red, c.alpha);
-        let green = AssociatedAlpha::decode::<C, A>(c.green, c.alpha);
-        let blue = AssociatedAlpha::decode::<C, A>(c.blue, c.alpha);
+    fn from(c: Rgb<C, A, PremultipliedAlpha, G>) -> Self {
+        let red = PremultipliedAlpha::decode::<C, A>(c.red, c.alpha);
+        let green = PremultipliedAlpha::decode::<C, A>(c.green, c.alpha);
+        let blue = PremultipliedAlpha::decode::<C, A>(c.blue, c.alpha);
 
         Rgb::with_alpha(red, green, blue, c.alpha())
     }
@@ -156,7 +157,7 @@ where
 }
 
 impl<C: Channel, A: Alpha, G: GammaMode> Mul<Self>
-    for Rgb<C, A, SeparatedAlpha, G>
+    for Rgb<C, A, StraightAlpha, G>
 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
@@ -176,12 +177,12 @@ impl<C: Channel, A: Alpha, G: GammaMode> Mul<Self>
 }
 
 impl<C: Channel, A: Alpha<Chan = C>, G: GammaMode> Mul<Self>
-    for Rgb<C, A, AssociatedAlpha, G>
+    for Rgb<C, A, PremultipliedAlpha, G>
 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
-        let this: Rgb<C, A, SeparatedAlpha, G> = self.into();
-        let other: Rgb<C, A, SeparatedAlpha, G> = rhs.into();
+        let this: Rgb<C, A, StraightAlpha, G> = self.into();
+        let other: Rgb<C, A, StraightAlpha, G> = rhs.into();
 
         (this * other).into()
     }
@@ -291,148 +292,89 @@ where
     }
 }
 
-/// [Opaque](struct.Opaque.html) 8-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgb8<M, G> = Rgb<Ch8, Opaque<Ch8>, M, G>;
-/// [Opaque](struct.Opaque.html) 16-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgb16<M, G> = Rgb<Ch16, Opaque<Ch16>, M, G>;
-/// [Opaque](struct.Opaque.html) 32-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgb32<M, G> = Rgb<Ch32, Opaque<Ch32>, M, G>;
-/// [Translucent](struct.Translucent.html) 8-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgba8<M, G> = Rgb<Ch8, Translucent<Ch8>, M, G>;
-/// [Translucent](struct.Translucent.html) 16-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgba16<M, G> = Rgb<Ch16, Translucent<Ch16>, M, G>;
-/// [Translucent](struct.Translucent.html) 32-bit [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type Rgba32<M, G> = Rgb<Ch32, Translucent<Ch32>, M, G>;
+/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, StraightAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, StraightAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, StraightAlpha, LinearGamma>;
 
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SRgb<C, A, M> = Rgb<C, A, M, SrgbGamma>;
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type LRgb<C, A, M> = Rgb<C, A, M, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, StraightAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, StraightAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, StraightAlpha, LinearGamma>;
 
-/// [SeparatedAlpha](struct.SeparatedAlpha.html) [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepRgb<C, A, G> = Rgb<C, A, SeparatedAlpha, G>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html) [Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocRgb<C, A, G> = Rgb<C, A, AssociatedAlpha, G>;
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba8p = Rgb<Ch8, Translucent<Ch8>, PremultipliedAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba16p = Rgb<Ch16, Translucent<Ch16>, PremultipliedAlpha, LinearGamma>;
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Rgba32p = Rgb<Ch32, Translucent<Ch32>, PremultipliedAlpha, LinearGamma>;
 
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgb<C, A> = SRgb<C, A, SeparatedAlpha>;
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgb<C, A> = LRgb<C, A, SeparatedAlpha>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSRgb<C, A> = SRgb<C, A, AssociatedAlpha>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLRgb<C, A> = LRgb<C, A, AssociatedAlpha>;
+type SRgb<C, A> = Rgb<C, A, StraightAlpha, SrgbGamma>;
+/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgb8 = SRgb<Ch8, Opaque<Ch8>>;
+/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgb16 = SRgb<Ch16, Opaque<Ch16>>;
+/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgb32 = SRgb<Ch32, Opaque<Ch32>>;
 
-/// [Opaque](struct.Opaque.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgb8 = SepSRgb<Ch8, Opaque<Ch8>>;
-/// [Opaque](struct.Opaque.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgb16 = SepSRgb<Ch16, Opaque<Ch16>>;
-/// [Opaque](struct.Opaque.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgb32 = SepSRgb<Ch32, Opaque<Ch32>>;
-/// [Opaque](struct.Opaque.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgb8 = SepLRgb<Ch8, Opaque<Ch8>>;
-/// [Opaque](struct.Opaque.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgb16 = SepLRgb<Ch16, Opaque<Ch16>>;
-/// [Opaque](struct.Opaque.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgb32 = SepLRgb<Ch32, Opaque<Ch32>>;
+type SRgba<C, A> = Rgb<C, A, StraightAlpha, SrgbGamma>;
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba8 = SRgba<Ch8, Translucent<Ch8>>;
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba16 = SRgba<Ch16, Translucent<Ch16>>;
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba32 = SRgba<Ch32, Translucent<Ch32>>;
 
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgba8 = SepSRgb<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgba16 = SepSRgb<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSRgba32 = SepSRgb<Ch32, Translucent<Ch32>>;
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgba8 = SepLRgb<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgba16 = SepLRgb<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLRgba32 = SepLRgb<Ch32, Translucent<Ch32>>;
-
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSRgba8 = AssocSRgb<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSRgba16 = AssocSRgb<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSRgba32 = AssocSRgb<Ch32, Translucent<Ch32>>;
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLRgba8 = AssocLRgb<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLRgba16 = AssocLRgb<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Rgb](struct.Rgb.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLRgba32 = AssocLRgb<Ch32, Translucent<Ch32>>;
+type SRgbap<C, A> = Rgb<C, A, PremultipliedAlpha, SrgbGamma>;
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba8p = SRgbap<Ch8, Translucent<Ch8>>;
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba16p = SRgbap<Ch16, Translucent<Ch16>>;
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SRgba32p = SRgbap<Ch32, Translucent<Ch32>>;
 
 #[cfg(test)]
 mod test {
@@ -440,34 +382,30 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert_eq!(std::mem::size_of::<SepSRgb8>(), 3);
-        assert_eq!(std::mem::size_of::<SepSRgb16>(), 6);
-        assert_eq!(std::mem::size_of::<SepSRgb32>(), 12);
-        assert_eq!(std::mem::size_of::<SepSRgba8>(), 4);
-        assert_eq!(std::mem::size_of::<SepSRgba16>(), 8);
-        assert_eq!(std::mem::size_of::<SepSRgba32>(), 16);
+        assert_eq!(std::mem::size_of::<SRgb8>(), 3);
+        assert_eq!(std::mem::size_of::<SRgb16>(), 6);
+        assert_eq!(std::mem::size_of::<SRgb32>(), 12);
+        assert_eq!(std::mem::size_of::<SRgba8>(), 4);
+        assert_eq!(std::mem::size_of::<SRgba16>(), 8);
+        assert_eq!(std::mem::size_of::<SRgba32>(), 16);
     }
 
     #[test]
     fn check_mul() {
-        let a = SepSRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SepSRgba8::with_alpha(0x00, 0x00, 0x00, 0x00);
-
+        let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = SRgba8::with_alpha(0x00, 0x00, 0x00, 0x00);
         assert_eq!(a * b, b);
 
-        let a = SepSRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SepSRgba8::with_alpha(0x80, 0x80, 0x80, 0x80);
-
+        let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = SRgba8::with_alpha(0x80, 0x80, 0x80, 0x80);
         assert_eq!(a * b, b);
 
-        let a = SepSRgba8::with_alpha(0xFF, 0xF0, 0x00, 0x70);
-        let b = SepSRgba8::with_alpha(0x80, 0x00, 0x60, 0xFF);
+        let a = SRgba8::with_alpha(0xFF, 0xF0, 0x00, 0x70);
+        let b = SRgba8::with_alpha(0x80, 0x00, 0x60, 0xFF);
+        assert_eq!(a * b, SRgba8::with_alpha(0x80, 0x00, 0x00, 0x70));
 
-        assert_eq!(a * b, SepSRgba8::with_alpha(0x80, 0x00, 0x00, 0x70));
-
-        let a = SepSRgba8::with_alpha(0xFF, 0x00, 0x80, 0xFF);
-        let b = SepSRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0x10);
-
-        assert_eq!(a * b, SepSRgba8::with_alpha(0xFF, 0x00, 0x80, 0x10));
+        let a = SRgba8::with_alpha(0xFF, 0x00, 0x80, 0xFF);
+        let b = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0x10);
+        assert_eq!(a * b, SRgba8::with_alpha(0xFF, 0x00, 0x80, 0x10));
     }
 }

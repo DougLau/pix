@@ -1,5 +1,12 @@
 ## [Unreleased]
 
+### Changed
+* Simplified type aliases to shorter names
+* AssociatedAlpha renamed to PremultipliedAlpha
+* SeparatedAlpha renamed to StraightAlpha
+* Alpha items no longer re-exported in crate root
+* Gamma items no longer re-exported in crate root
+
 ## [0.8.0] - 2020-02-20
 ### Added
 * AlphaMode trait (and implementors: AssociatedAlpha, SeparatedAlpha)

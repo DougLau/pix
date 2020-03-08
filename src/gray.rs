@@ -3,11 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{
-    Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,
-    Format, GammaMode, GammaModeID, LinearGamma, Opaque, SeparatedAlpha,
-    SrgbGamma, Translucent,
+use crate::{ Ch16, Ch32, Ch8, Channel, Format };
+use crate::alpha::{
+    Alpha, AlphaMode, AlphaModeID, Opaque, PremultipliedAlpha, StraightAlpha,
+    Translucent,
 };
+use crate::gamma::{ GammaMode, GammaModeID, LinearGamma, SrgbGamma };
 use std::marker::PhantomData;
 use std::ops::Mul;
 
@@ -86,27 +87,27 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Gray<C, A, SeparatedAlpha, G>>
-    for Gray<C, A, AssociatedAlpha, G>
+impl<C, A, G: GammaMode> From<Gray<C, A, StraightAlpha, G>>
+    for Gray<C, A, PremultipliedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
 {
-    fn from(c: Gray<C, A, SeparatedAlpha, G>) -> Self {
-        let value = AssociatedAlpha::encode::<C, A>(c.value, c.alpha);
+    fn from(c: Gray<C, A, StraightAlpha, G>) -> Self {
+        let value = PremultipliedAlpha::encode::<C, A>(c.value, c.alpha);
 
         Gray::with_alpha(value, c.alpha())
     }
 }
 
-impl<C, A, G: GammaMode> From<Gray<C, A, AssociatedAlpha, G>>
-    for Gray<C, A, SeparatedAlpha, G>
+impl<C, A, G: GammaMode> From<Gray<C, A, PremultipliedAlpha, G>>
+    for Gray<C, A, StraightAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
 {
-    fn from(c: Gray<C, A, AssociatedAlpha, G>) -> Self {
-        let value = AssociatedAlpha::decode::<C, A>(c.value, c.alpha);
+    fn from(c: Gray<C, A, PremultipliedAlpha, G>) -> Self {
+        let value = PremultipliedAlpha::decode::<C, A>(c.value, c.alpha);
 
         Gray::with_alpha(value, c.alpha)
     }
@@ -221,148 +222,91 @@ where
     }
 }
 
-/// [Opaque](struct.Opaque.html) 8-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type Gray8<M, G> = Gray<Ch8, Opaque<Ch8>, M, G>;
-/// [Opaque](struct.Opaque.html) 16-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type Gray16<M, G> = Gray<Ch16, Opaque<Ch16>, M, G>;
-/// [Opaque](struct.Opaque.html) 32-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type Gray32<M, G> = Gray<Ch32, Opaque<Ch32>, M, G>;
-/// [Translucent](struct.Translucent.html) 8-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type GrayAlpha8<M, G> = Gray<Ch8, Translucent<Ch8>, M, G>;
-/// [Translucent](struct.Translucent.html) 16-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type GrayAlpha16<M, G> = Gray<Ch16, Translucent<Ch16>, M, G>;
-/// [Translucent](struct.Translucent.html) 32-bit [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type GrayAlpha32<M, G> = Gray<Ch32, Translucent<Ch32>, M, G>;
+/// [Gray](struct.Gray.html) 8-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Gray8 = Gray<Ch8, Opaque<Ch8>, StraightAlpha, LinearGamma>;
+/// [Gray](struct.Gray.html) 16-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Gray16 = Gray<Ch16, Opaque<Ch16>, StraightAlpha, LinearGamma>;
+/// [Gray](struct.Gray.html) 32-bit [opaque](alpha/struct.Opaque.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type Gray32 = Gray<Ch32, Opaque<Ch32>, StraightAlpha, LinearGamma>;
 
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SGray<C, A, M> = Gray<C, A, M, SrgbGamma>;
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type LGray<C, A, M> = Gray<C, A, M, LinearGamma>;
+type GrayAlpha<C, A> = Gray<C, A, StraightAlpha, LinearGamma>;
+/// [Gray](struct.Gray.html) 8-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha8 = GrayAlpha<Ch8, Translucent<Ch8>>;
+/// [Gray](struct.Gray.html) 16-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha16 = GrayAlpha<Ch16, Translucent<Ch16>>;
+/// [Gray](struct.Gray.html) 32-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha32 = GrayAlpha<Ch32, Translucent<Ch32>>;
 
-/// [SeparatedAlpha](struct.SeparatedAlpha.html) [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepGray<C, A, G> = Gray<C, A, SeparatedAlpha, G>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html) [Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocGray<C, A, G> = Gray<C, A, AssociatedAlpha, G>;
+type GrayAlphap<C, A> = Gray<C, A, PremultipliedAlpha, LinearGamma>;
+/// [Gray](struct.Gray.html) 8-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha8p = GrayAlphap<Ch8, Translucent<Ch8>>;
+/// [Gray](struct.Gray.html) 16-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha16p = GrayAlphap<Ch16, Translucent<Ch16>>;
+/// [Gray](struct.Gray.html) 32-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [linear gamma](gamma/struct.LinearGamma.html)
+/// pixel [format](trait.Format.html).
+pub type GrayAlpha32p = GrayAlphap<Ch32, Translucent<Ch32>>;
 
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGray<C, A> = SGray<C, A, SeparatedAlpha>;
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGray<C, A> = LGray<C, A, SeparatedAlpha>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSGray<C, A> = SGray<C, A, AssociatedAlpha>;
-/// [AssociatedAlpha](struct.AssociatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLGray<C, A> = LGray<C, A, AssociatedAlpha>;
+type SGray<C, A> = Gray<C, A, StraightAlpha, SrgbGamma>;
+/// [Gray](struct.Gray.html) 8-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGray8 = SGray<Ch8, Opaque<Ch8>>;
+/// [Gray](struct.Gray.html) 16-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGray16 = SGray<Ch16, Opaque<Ch16>>;
+/// [Gray](struct.Gray.html) 32-bit [opaque](alpha/struct.Opaque.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGray32 = SGray<Ch32, Opaque<Ch32>>;
 
-/// [Opaque](struct.Opaque.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGray8 = SepSGray<Ch8, Opaque<Ch8>>;
-/// [Opaque](struct.Opaque.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGray16 = SepSGray<Ch16, Opaque<Ch16>>;
-/// [Opaque](struct.Opaque.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGray32 = SepSGray<Ch32, Opaque<Ch32>>;
-/// [Opaque](struct.Opaque.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGray8 = SepLGray<Ch8, Opaque<Ch8>>;
-/// [Opaque](struct.Opaque.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGray16 = SepLGray<Ch16, Opaque<Ch16>>;
-/// [Opaque](struct.Opaque.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGray32 = SepLGray<Ch32, Opaque<Ch32>>;
+type SGrayAlpha<C, A> = Gray<C, A, StraightAlpha, SrgbGamma>;
+/// [Gray](struct.Gray.html) 8-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha8 = SGrayAlpha<Ch8, Translucent<Ch8>>;
+/// [Gray](struct.Gray.html) 16-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha16 = SGrayAlpha<Ch16, Translucent<Ch16>>;
+/// [Gray](struct.Gray.html) 32-bit
+/// [straight alpha](alpha/struct.StraightAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha32 = SGrayAlpha<Ch32, Translucent<Ch32>>;
 
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGrayAlpha8 = SepSGray<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGrayAlpha16 = SepSGray<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepSGrayAlpha32 = SepSGray<Ch32, Translucent<Ch32>>;
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGrayAlpha8 = SepLGray<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGrayAlpha16 = SepLGray<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type SepLGrayAlpha32 = SepLGray<Ch32, Translucent<Ch32>>;
-
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSGrayAlpha8 = AssocSGray<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSGrayAlpha16 = AssocSGray<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [S](struct.SrgbGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocSGrayAlpha32 = AssocSGray<Ch32, Translucent<Ch32>>;
-/// [Translucent](struct.Translucent.html) 8-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLGrayAlpha8 = AssocLGray<Ch8, Translucent<Ch8>>;
-/// [Translucent](struct.Translucent.html) 16-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLGrayAlpha16 = AssocLGray<Ch16, Translucent<Ch16>>;
-/// [Translucent](struct.Translucent.html) 32-bit
-/// [SeparatedAlpha](struct.SeparatedAlpha.html)
-/// [L](struct.LinearGamma.html)[Gray](struct.Gray.html) pixel
-/// [Format](trait.Format.html).
-pub type AssocLGrayAlpha32 = AssocLGray<Ch32, Translucent<Ch32>>;
+type SGrayAlphap<C, A> = Gray<C, A, PremultipliedAlpha, SrgbGamma>;
+/// [Gray](struct.Gray.html) 8-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha8p = SGrayAlphap<Ch8, Translucent<Ch8>>;
+/// [Gray](struct.Gray.html) 16-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha16p = SGrayAlphap<Ch16, Translucent<Ch16>>;
+/// [Gray](struct.Gray.html) 32-bit
+/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
+/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+pub type SGrayAlpha32p = SGrayAlphap<Ch32, Translucent<Ch32>>;
 
 #[cfg(test)]
 mod test {
@@ -370,11 +314,11 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert_eq!(std::mem::size_of::<SepSGray8>(), 1);
-        assert_eq!(std::mem::size_of::<SepSGray16>(), 2);
-        assert_eq!(std::mem::size_of::<SepSGray32>(), 4);
-        assert_eq!(std::mem::size_of::<SepSGrayAlpha8>(), 2);
-        assert_eq!(std::mem::size_of::<SepSGrayAlpha16>(), 4);
-        assert_eq!(std::mem::size_of::<SepSGrayAlpha32>(), 8);
+        assert_eq!(std::mem::size_of::<SGray8>(), 1);
+        assert_eq!(std::mem::size_of::<SGray16>(), 2);
+        assert_eq!(std::mem::size_of::<SGray32>(), 4);
+        assert_eq!(std::mem::size_of::<SGrayAlpha8>(), 2);
+        assert_eq!(std::mem::size_of::<SGrayAlpha16>(), 4);
+        assert_eq!(std::mem::size_of::<SGrayAlpha32>(), 8);
     }
 }

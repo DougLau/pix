@@ -3,11 +3,12 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{
-    Alpha, AlphaMode, AlphaModeID, AssociatedAlpha, Ch16, Ch32, Ch8, Channel,
-    Format, GammaMode, GammaModeID, Gray, LinearGamma, Rgb, SeparatedAlpha,
+use crate::{ Ch16, Ch32, Ch8, Channel, Format, Gray, Rgb };
+use crate::alpha::{
+    Alpha, AlphaMode, AlphaModeID, PremultipliedAlpha, StraightAlpha,
     Translucent,
 };
+use crate::gamma::{ GammaMode, GammaModeID, LinearGamma };
 use std::ops::Mul;
 
 /// [Translucent](struct.Translucent.html) alpha mask pixel
@@ -36,15 +37,15 @@ impl<A: Alpha> GammaMode for Mask<A> {
 impl<A: Alpha> AlphaMode for Mask<A> {
     const ID: AlphaModeID = AlphaModeID::UnknownAlpha;
 
-    /// Encode one `Channel` using the gamma mode.
+    /// Encode one `Channel` using the alpha mode.
     fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        // Gamma Mode is a no-op on Mask
-        SeparatedAlpha::encode::<H, B>(h, b)
+        // Alpha Mode is a no-op on Mask
+        StraightAlpha::encode::<H, B>(h, b)
     }
-    /// Decode one `Channel` using the gamma mode.
+    /// Decode one `Channel` using the alpha mode.
     fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        // Gamma Mode is a no-op on Mask
-        SeparatedAlpha::decode::<H, B>(h, b)
+        // Alpha Mode is a no-op on Mask
+        StraightAlpha::decode::<H, B>(h, b)
     }
 }
 
@@ -77,7 +78,7 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, SeparatedAlpha, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, StraightAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -92,7 +93,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, AssociatedAlpha, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, PremultipliedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -107,7 +108,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, SeparatedAlpha, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, StraightAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
@@ -120,7 +121,7 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, AssociatedAlpha, G>
+impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, PremultipliedAlpha, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,

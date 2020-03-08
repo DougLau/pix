@@ -21,7 +21,7 @@ use std::marker::PhantomData;
 /// ### Create a `Raster`
 /// ```
 /// # use pix::*;
-/// let r = RasterBuilder::<SepSRgb8>::new().with_clear(100, 100);
+/// let r = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
 /// ```
 pub struct RasterBuilder<F: Format> {
     _format: PhantomData<F>,
@@ -32,8 +32,8 @@ pub struct RasterBuilder<F: Format> {
 /// ### Create a `Raster` with a solid color rectangle
 /// ```
 /// # use pix::*;
-/// let mut raster = RasterBuilder::<SepSRgb8>::new().with_clear(10, 10);
-/// raster.set_region((2, 4, 3, 3), SepSRgb8::new(0xFF, 0xFF, 0x00));
+/// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(10, 10);
+/// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<F: Format> {
     width: u32,
@@ -57,7 +57,7 @@ pub struct Raster<F: Format> {
 /// ### `Iterator` of `Region` within a `Raster`
 /// ```
 /// # use pix::*;
-/// let mut gray = RasterBuilder::<SepSGrayAlpha16>::new().with_clear(40, 40);
+/// let mut gray = RasterBuilder::<SGrayAlpha16>::new().with_clear(40, 40);
 /// // ... load raster data
 /// let region = gray.region().intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
@@ -82,7 +82,7 @@ pub struct RasterIter<'a, F: Format> {
 /// ### Create from Raster
 /// ```
 /// # use pix::*;
-/// let r = RasterBuilder::<SepSRgb8>::new().with_clear(100, 100);
+/// let r = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -126,10 +126,10 @@ impl<F: Format> RasterBuilder<F> {
     /// ## Examples
     /// ```
     /// # use pix::*;
-    /// let r1 = RasterBuilder::<SepSGray8>::new().with_clear(20, 20);
+    /// let r1 = RasterBuilder::<SGray8>::new().with_clear(20, 20);
     /// let r2 = RasterBuilder::<Mask8>::new().with_clear(64, 64);
-    /// let r3 = RasterBuilder::<SepSRgb16>::new().with_clear(10, 10);
-    /// let r4 = RasterBuilder::<SepSGrayAlpha32>::new().with_clear(100, 250);
+    /// let r3 = RasterBuilder::<SRgb16>::new().with_clear(10, 10);
+    /// let r4 = RasterBuilder::<SGrayAlpha32>::new().with_clear(100, 250);
     /// ```
     pub fn with_clear(self, width: u32, height: u32) -> Raster<F> {
         self.with_color(width, height, F::default())
@@ -139,8 +139,8 @@ impl<F: Format> RasterBuilder<F> {
     /// ## Example
     /// ```
     /// # use pix::*;
-    /// let clr = SepSRgb8::new(0x40, 0xAA, 0xBB);
-    /// let r = RasterBuilder::<SepSRgb8>::new().with_clear(15, 15);
+    /// let clr = SRgb8::new(0x40, 0xAA, 0xBB);
+    /// let r = RasterBuilder::<SRgb8>::new().with_clear(15, 15);
     /// ```
     pub fn with_color(self, width: u32, height: u32, clr: F) -> Raster<F> {
         let len = (width * height) as usize;
@@ -160,9 +160,9 @@ impl<F: Format> RasterBuilder<F> {
     /// ### Convert from Rgb8 to Rgba16
     /// ```
     /// # use pix::*;
-    /// let mut r0 = RasterBuilder::<SepSRgb8>::new().with_clear(50, 50);
+    /// let mut r0 = RasterBuilder::<SRgb8>::new().with_clear(50, 50);
     /// // load pixels into raster
-    /// let r1 = RasterBuilder::<SepSRgba16>::new().with_raster(&r0);
+    /// let r1 = RasterBuilder::<SRgba16>::new().with_raster(&r0);
     /// ```
     pub fn with_raster<C, H, P>(self, o: &Raster<P>) -> Raster<F>
     where
@@ -192,12 +192,12 @@ impl<F: Format> RasterBuilder<F> {
     /// ## Example
     /// ```
     /// # use pix::*;
-    /// let p = vec![SepSRgb8::new(255, 0, 255); 16]; // vec of magenta pix
-    /// let mut r = RasterBuilder::new()          // convert to raster
+    /// let p = vec![SRgb8::new(255, 0, 255); 16]; // vec of magenta pix
+    /// let mut r = RasterBuilder::new()           // convert to raster
     ///     .with_pixels(4, 4, p);
-    /// let clr = SepSRgb8::new(0x00, 0xFF, 0x00);    // green
-    /// r.set_region((2, 0, 1, 3), clr);          // make stripe
-    /// let p2 = Into::<Vec<SepSRgb8>>::into(r);      // convert back to vec
+    /// let clr = SRgb8::new(0x00, 0xFF, 0x00);    // green
+    /// r.set_region((2, 0, 1, 3), clr);           // make stripe
+    /// let p2 = Into::<Vec<SRgb8>>::into(r);      // convert back to vec
     /// ```
     pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<F>
     where
@@ -340,20 +340,20 @@ impl<F: Format> Raster<F> {
     /// ### Set entire raster to one color
     /// ```
     /// # use pix::*;
-    /// let mut r = RasterBuilder::<SepSRgb32>::new().with_clear(360, 240);
-    /// r.set_region(r.region(), SepSRgb32::new(0.5, 0.2, 0.8));
+    /// let mut r = RasterBuilder::<SRgb32>::new().with_clear(360, 240);
+    /// r.set_region(r.region(), SRgb32::new(0.5, 0.2, 0.8));
     /// ```
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
-    /// let mut raster = RasterBuilder::<SepSRgb8>::new().with_clear(100, 100);
-    /// raster.set_region((20, 40, 25, 50), SepSRgb8::new(0xDD, 0x96, 0x70));
+    /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
+    /// raster.set_region((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
     /// ```
     /// ### Copy part of one `Raster` to another, converting pixel format
     /// ```
     /// # use pix::*;
-    /// let mut rgb = RasterBuilder::<SepSRgb8>::new().with_clear(100, 100);
-    /// let mut gray = RasterBuilder::<SepSGray16>::new().with_clear(50, 50);
+    /// let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
+    /// let mut gray = RasterBuilder::<SGray16>::new().with_clear(50, 50);
     /// // ... load image data
     /// let src = gray.region().intersection((20, 10, 25, 25));
     /// let dst = rgb.region().intersection((40, 40, 25, 25));
@@ -582,8 +582,8 @@ mod test {
     }
     #[test]
     fn rgb8() {
-        let mut r = RasterBuilder::<SepSRgb8>::new().with_clear(4, 4);
-        let rgb = SepSRgb8::new(0xCC, 0xAA, 0xBB);
+        let mut r = RasterBuilder::<SRgb8>::new().with_clear(4, 4);
+        let rgb = SRgb8::new(0xCC, 0xAA, 0xBB);
         r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -596,10 +596,10 @@ mod test {
     }
     #[test]
     fn gray8() {
-        let mut r = RasterBuilder::<SepSGray8>::new().with_clear(4, 4);
-        r.set_region((0, 0, 1, 1), SepSGray8::from(0x23));
-        r.set_region((10, 10, 1, 1), SepSGray8::from(0x45));
-        r.set_region((2, 2, 10, 10), SepSGray8::from(0xBB));
+        let mut r = RasterBuilder::<SGray8>::new().with_clear(4, 4);
+        r.set_region((0, 0, 1, 1), SGray8::from(0x23));
+        r.set_region((10, 10, 1, 1), SGray8::from(0x45));
+        r.set_region((2, 2, 10, 10), SGray8::from(0xBB));
         let v = vec![
             0x23, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBB,
             0xBB, 0x00, 0x00, 0xBB, 0xBB,
@@ -613,8 +613,8 @@ mod test {
             0x00, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0x00, 0x00, 0xCC, 0xCC,
             0xDD, 0xEE, 0xFF, 0x00, 0x11,
         ];
-        let mut r = RasterBuilder::<SepSRgb8>::new().with_u8_buffer(3, 3, b);
-        let rgb = SepSRgb8::new(0x12, 0x34, 0x56);
+        let mut r = RasterBuilder::<SRgb8>::new().with_u8_buffer(3, 3, b);
+        let rgb = SRgb8::new(0x12, 0x34, 0x56);
         r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
             0xAA, 0x00, 0x00, 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x12, 0x34,
@@ -631,8 +631,8 @@ mod test {
             0xA00B, 0x8009,
         ];
         let mut r =
-            RasterBuilder::<SepSGrayAlpha16>::new().with_u16_buffer(3, 3, b);
-        r.set_region((1, 0, 2, 2), SepSGrayAlpha16::new(0x4444));
+            RasterBuilder::<SGrayAlpha16>::new().with_u16_buffer(3, 3, b);
+        r.set_region((1, 0, 2, 2), SGrayAlpha16::new(0x4444));
         let v = vec![
             0x01, 0x10, 0x05, 0x50, 0x44, 0x44, 0xFF, 0xFF, 0x44, 0x44, 0xFF,
             0xFF, 0x02, 0x20, 0x06, 0x60, 0x44, 0x44, 0xFF, 0xFF, 0x44, 0x44,
@@ -644,10 +644,10 @@ mod test {
     }
     #[test]
     fn gray_to_rgb() {
-        let mut r = RasterBuilder::<SepSGray8>::new().with_clear(3, 3);
-        r.set_region((2, 0, 4, 2), SepSGray8::new(0x45));
-        r.set_region((0, 2, 2, 10), SepSGray8::new(0xDA));
-        let r = RasterBuilder::<SepSRgb8>::new().with_raster(&r);
+        let mut r = RasterBuilder::<SGray8>::new().with_clear(3, 3);
+        r.set_region((2, 0, 4, 2), SGray8::new(0x45));
+        r.set_region((0, 2, 2, 10), SGray8::new(0xDA));
+        let r = RasterBuilder::<SRgb8>::new().with_raster(&r);
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x45, 0x45, 0x45, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x45, 0x45, 0x45, 0xDA, 0xDA, 0xDA, 0xDA,
@@ -657,18 +657,18 @@ mod test {
     }
     #[test]
     fn rgb_to_gray() {
-        let mut r = RasterBuilder::<SepSRgb16>::new().with_clear(3, 3);
-        r.set_region((1, 0, 4, 2), SepSRgb16::new(0x4321, 0x9085, 0x5543));
-        r.set_region((0, 1, 1, 10), SepSRgb16::new(0x5768, 0x4091, 0x5000));
-        let r = RasterBuilder::<SepSGray8>::new().with_raster(&r);
+        let mut r = RasterBuilder::<SRgb16>::new().with_clear(3, 3);
+        r.set_region((1, 0, 4, 2), SRgb16::new(0x4321, 0x9085, 0x5543));
+        r.set_region((0, 1, 1, 10), SRgb16::new(0x5768, 0x4091, 0x5000));
+        let r = RasterBuilder::<SGray8>::new().with_raster(&r);
         let v = vec![0x00, 0x90, 0x90, 0x57, 0x90, 0x90, 0x57, 0x00, 0x00];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
     fn gray_to_mask() {
-        let mut r = RasterBuilder::<SepSGrayAlpha8>::new().with_clear(3, 3);
-        r.set_region((0, 1, 2, 8), SepSGrayAlpha8::with_alpha(0x67, 0x94));
-        r.set_region((2, 0, 1, 10), SepSGrayAlpha8::with_alpha(0xBA, 0xA2));
+        let mut r = RasterBuilder::<SGrayAlpha8>::new().with_clear(3, 3);
+        r.set_region((0, 1, 2, 8), SGrayAlpha8::with_alpha(0x67, 0x94));
+        r.set_region((2, 0, 1, 10), SGrayAlpha8::with_alpha(0xBA, 0xA2));
         let r = RasterBuilder::<Mask16>::new().with_raster(&r);
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0xA2, 0xA2, 0x94, 0x94, 0x94, 0x94, 0xA2,
@@ -681,7 +681,7 @@ mod test {
         let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
         r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
         r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
-        let r = RasterBuilder::<SepSGrayAlpha8>::new().with_raster(&r);
+        let r = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
         let v = vec![
             0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x98, 0xFF, 0xAB, 0xFF, 0xAB, 0xFF,
             0x98, 0xFF, 0xAB, 0xFF, 0xAB, 0xFF, 0x98,
@@ -690,10 +690,10 @@ mod test {
     }
     #[test]
     fn copy_region_gray() {
-        let mut g0 = RasterBuilder::<SepSGray16>::new().with_clear(3, 3);
-        let mut g1 = RasterBuilder::<SepLGray16>::new().with_clear(3, 3);
-        g0.set_region((0, 2, 2, 5), SepSGray16::new(0x4455));
-        g0.set_region((2, 0, 3, 2), SepSGray8::new(0x33));
+        let mut g0 = RasterBuilder::<SGray16>::new().with_clear(3, 3);
+        let mut g1 = RasterBuilder::<Gray16>::new().with_clear(3, 3);
+        g0.set_region((0, 2, 2, 5), SGray16::new(0x4455));
+        g0.set_region((2, 0, 3, 2), SGray8::new(0x33));
         g1.set_region(g1.region(), g0.region_iter(g0.region()));
         let v = vec![
             0x00, 0x00, 0x00, 0x00, 0x7A, 0x08, 0x00, 0x00, 0x00, 0x00, 0x7A,
@@ -703,18 +703,18 @@ mod test {
     }
     #[test]
     fn from_rgb8() {
-        let r = RasterBuilder::<SepSRgb8>::new().with_clear(50, 50);
-        let _ = RasterBuilder::<SepSRgb16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgb32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha32>::new().with_raster(&r);
+        let r = RasterBuilder::<SRgb8>::new().with_clear(50, 50);
+        let _ = RasterBuilder::<SRgb16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgb32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha32>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
@@ -722,18 +722,18 @@ mod test {
     #[test]
     fn from_mask8() {
         let r = RasterBuilder::<Mask8>::new().with_clear(50, 50);
-        let _ = RasterBuilder::<SepSRgb8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgb16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgb32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSRgba32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGray32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SepSGrayAlpha32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgb8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgb16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgb32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SRgba32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGray32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGrayAlpha32>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);

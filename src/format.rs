@@ -1,78 +1,74 @@
 // format.rs     Pixel format.
 //
-// Copyright (c) 2018-2019  Douglas P Lau
+// Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{
-    AlphaMode, AlphaModeID, Channel, GammaMode, GammaModeID, Translucent,
-};
+use crate::Channel;
+use crate::alpha::{ AlphaMode, AlphaModeID, Translucent };
+use crate::gamma::{ GammaMode, GammaModeID };
 
 /// Pixel format determines bit depth ([Channel](trait.Channel.html)),
-/// color components, alpha mode, and gamma mode.
+/// color components, [alpha mode](alpha/trait.AlphaMode.html),
+/// and [gamma mode](gamma/trait.GammaMode.html).
 ///
 /// The naming scheme for type aliases goes:
 ///
-/// * `Sep`/`Assoc` for [separated](struct.SeparatedAlpha.html) and
-///   [associated](struct.AssociatedAlpha.html) alpha.
-/// * `L`/`S` for [linear gamma colorspace](struct.LinearGamma.html) and
-///   [sRGB gamma colorspace](struct.SrgbGamma.html).
-/// * `Gray`/`Mask`/`Rgb` for [Gray](struct.Gray.html),
+/// * `S` for [sRGB gamma](gamma/struct.SrgbGamma.html) colorspace;
+///   [linear gamma](gamma/struct.LinearGamma.html) if omitted.
+/// * `Gray`/`GrayAlpha`/`Mask`/`Rgb`/`Rgba` for [Gray](struct.Gray.html),
 ///   [Mask](struct.Mask.html), and [Rgb](struct.Rgb.html).
 /// * `8`/`16`/`32` for 8-bit integer, 16-bit integer, and 32-bit floating-point
-///   pixel formats.
+///   [channels](trait.Channel.html).
+/// * `p` for [premultiplied](alpha/struct.PremultipliedAlpha.html) alpha.
 ///
 /// The following types are defined:
 ///
-/// * [Gray](struct.Gray.html): [Gray8](type.Gray8.html),
-///   [Gray16](type.Gray16.html), [Gray32](type.Gray32.html),
-///   [GrayAlpha8](type.GrayAlpha8.html), [GrayAlpha16](type.GrayAlpha16.html),
+/// * Opaque, linear gamma:
+///   [Gray8](type.Gray8.html),
+///   [Gray16](type.Gray16.html),
+///   [Gray32](type.Gray32.html),
+///   [Rgb8](type.Rgb8.html),
+///   [Rgb16](type.Rgb16.html),
+///   [Rgb32](type.Rgb32.html)
+/// * Opaque, sRGB gamma:
+///   [SGray8](type.SGray8.html),
+///   [SGray16](type.SGray16.html),
+///   [SGray32](type.SGray32.html),
+///   [SRgb8](type.SRgb8.html),
+///   [SRgb16](type.SRgb16.html),
+///   [SRgb32](type.SRgb32.html)
+/// * Translucent (straight alpha), linear gamma:
+///   [GrayAlpha8](type.GrayAlpha8.html),
+///   [GrayAlpha16](type.GrayAlpha16.html),
 ///   [GrayAlpha32](type.GrayAlpha32.html)
-/// * [SGray](type.SGray.html)
-/// * [SepSGray](type.SepSGray.html): [SepSGray8](type.SepSGray8.html),
-///   [SepSGray16](type.SepSGray16.html), [SepSGray32](type.SepSGray32.html),
-///   [SepSGrayAlpha8](type.SepSGrayAlpha8.html),
-///   [SepSGrayAlpha16](type.SepSGrayAlpha16.html),
-///   [SepSGrayAlpha32](type.SepSGrayAlpha32.html)
-/// * [AssocSGray](type.AssocSGray.html):
-///   [AssocSGrayAlpha8](type.AssocSGrayAlpha8.html),
-///   [AssocSGrayAlpha16](type.AssocSGrayAlpha16.html),
-///   [AssocSGrayAlpha32](type.AssocSGrayAlpha32.html)
-/// * [LGray](type.LGray.html)
-/// * [SepLGray](type.SepLGray.html): [SepLGray8](type.SepLGray8.html),
-///   [SepLGray16](type.SepLGray16.html), [SepLGray32](type.SepLGray32.html),
-///   [SepLGrayAlpha8](type.SepLGrayAlpha8.html),
-///   [SepLGrayAlpha16](type.SepLGrayAlpha16.html),
-///   [SepLGrayAlpha32](type.SepLGrayAlpha32.html)
-/// * [AssocLGray](type.AssocLGray.html):
-///   [AssocLGrayAlpha8](type.AssocLGrayAlpha8.html),
-///   [AssocLGrayAlpha16](type.AssocLGrayAlpha16.html),
-///   [AssocLGrayAlpha32](type.AssocLGrayAlpha32.html)
-/// * [Mask](struct.Mask.html): [Mask8](type.Mask8.html),
-///   [Mask16](type.Mask16.html), [Mask32](type.Mask32.html)
-/// * [Rgb](struct.Rgb.html): [Rgb8](type.Rgb8.html),
-///   [Rgb16](type.Rgb16.html), [Rgb32](type.Rgb32.html),
-///   [Rgba8](type.Rgba8.html), [Rgba16](type.Rgba16.html),
+///   [Rgba8](type.Rgba8.html),
+///   [Rgba16](type.Rgba16.html),
 ///   [Rgba32](type.Rgba32.html)
-/// * [SRgb](type.SRgb.html)
-/// * [SepSRgb](type.SepSRgb.html): [SepSRgb8](type.SepSRgb8.html),
-///   [SepSRgb16](type.SepSRgb16.html), [SepSRgb32](type.SepSRgb32.html),
-///   [SepSRgba8](type.SepSRgba8.html),
-///   [SepSRgba16](type.SepSRgba16.html),
-///   [SepSRgba32](type.SepSRgba32.html)
-/// * [AssocSRgb](type.AssocSRgb.html):
-///   [AssocSRgba8](type.AssocSRgba8.html),
-///   [AssocSRgba16](type.AssocSRgba16.html),
-///   [AssocSRgba32](type.AssocSRgba32.html)
-/// * [LRgb](type.LRgb.html)
-/// * [SepLRgb](type.SepLRgb.html): [SepLRgb8](type.SepLRgb8.html),
-///   [SepLRgb16](type.SepLRgb16.html), [SepLRgb32](type.SepLRgb32.html),
-///   [SepLRgba8](type.SepLRgba8.html),
-///   [SepLRgba16](type.SepLRgba16.html),
-///   [SepLRgba32](type.SepLRgba32.html)
-/// * [AssocLRgb](type.AssocLRgb.html):
-///   [AssocLRgba8](type.AssocLRgba8.html),
-///   [AssocLRgba16](type.AssocLRgba16.html),
-///   [AssocLRgba32](type.AssocLRgba32.html)
+/// * Translucent (premultiplied alpha), linear gamma:
+///   [GrayAlpha8p](type.GrayAlpha8p.html),
+///   [GrayAlpha16p](type.GrayAlpha16p.html),
+///   [GrayAlpha32p](type.GrayAlpha32p.html)
+///   [Rgba8p](type.Rgba8p.html),
+///   [Rgba16p](type.Rgba16p.html),
+///   [Rgba32p](type.Rgba32p.html)
+/// * Translucent (straight alpha), sRGB gamma:
+///   [SGrayAlpha8](type.SGrayAlpha8.html),
+///   [SGrayAlpha16](type.SGrayAlpha16.html),
+///   [SGrayAlpha32](type.SGrayAlpha32.html)
+///   [SRgba8](type.SRgba8.html),
+///   [SRgba16](type.SRgba16.html),
+///   [SRgba32](type.SRgba32.html)
+/// * Translucent (premultiplied alpha), sRGB gamma:
+///   [SGrayAlpha8p](type.SGrayAlpha8p.html),
+///   [SGrayAlpha16p](type.SGrayAlpha16p.html),
+///   [SGrayAlpha32p](type.SGrayAlpha32p.html)
+///   [SRgba8p](type.SRgba8p.html),
+///   [SRgba16p](type.SRgba16p.html),
+///   [SRgba32p](type.SRgba32p.html)
+/// * Alpha mask:
+///   [Mask8](type.Mask8.html),
+///   [Mask16](type.Mask16.html),
+///   [Mask32](type.Mask32.html)
 ///
 pub trait Format:
     Clone + Copy + Default + PartialEq + AlphaMode + GammaMode
@@ -112,7 +108,7 @@ pub trait Format:
         } else {
             rgba
         };
-        // Remove associated alpha
+        // Remove premultiplied alpha
         let rgba = if <Self as AlphaMode>::ID != <F as AlphaMode>::ID {
             [
                 <Self as AlphaMode>::decode(rgba[0], Translucent::new(rgba[3])),
