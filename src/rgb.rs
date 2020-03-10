@@ -317,14 +317,12 @@ pub type Rgba8p = Rgb<Ch8, Translucent<Ch8>, Premultiplied, Linear>;
 /// [premultiplied alpha](alpha/struct.Premultiplied.html)
 /// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
-pub type Rgba16p =
-    Rgb<Ch16, Translucent<Ch16>, Premultiplied, Linear>;
+pub type Rgba16p = Rgb<Ch16, Translucent<Ch16>, Premultiplied, Linear>;
 /// [Rgb](struct.Rgb.html) 32-bit
 /// [premultiplied alpha](alpha/struct.Premultiplied.html)
 /// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
-pub type Rgba32p =
-    Rgb<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
+pub type Rgba32p = Rgb<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
 
 type SRgb<C, A> = Rgb<C, A, Straight, gamma::Srgb>;
 /// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)

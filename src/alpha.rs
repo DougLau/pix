@@ -4,8 +4,8 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for alpha channel items
-use crate::{Ch16, Ch32, Ch8, Channel};
 use crate::private::Sealed;
+use crate::{Ch16, Ch32, Ch8, Channel};
 use std::any::Any;
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -47,7 +47,9 @@ pub struct Translucent<C: Channel> {
 }
 
 /// Trait for handling straight versus premultiplied alpha
-pub trait Mode: Any + Copy + Clone + Debug + Default + PartialEq + Sealed {
+pub trait Mode:
+    Any + Copy + Clone + Debug + Default + PartialEq + Sealed
+{
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
     /// Decode one `Channel` using the alpha mode.

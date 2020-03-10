@@ -4,13 +4,15 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for gamma encoding items
-use crate::{Channel, Ch16, Ch32, Ch8};
 use crate::private::Sealed;
+use crate::{Ch16, Ch32, Ch8, Channel};
 use std::any::Any;
 use std::fmt::Debug;
 
 /// Trait for handling gamma mode conversions
-pub trait Mode: Any + Copy + Clone + Debug + Default + PartialEq + Sealed {
+pub trait Mode:
+    Any + Copy + Clone + Debug + Default + PartialEq + Sealed
+{
     /// Convert a `Channel` value to linear.
     fn to_linear<C: Channel>(c: C) -> C;
     /// Convert a `Channel` value from linear.
