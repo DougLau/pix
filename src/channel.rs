@@ -55,7 +55,7 @@ pub trait Channel:
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ch8(u8);
 
-/// 16-bit color [Channel](trait.Channel.html)
+/// 16-bit color [Channel](trait.Channel.html).
 ///
 /// The `Channel` is represented by a `u16`, but multiplication and division
 /// treat values as though they range between 0 and 1.
@@ -74,7 +74,7 @@ pub struct Ch8(u8);
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ch16(u16);
 
-/// 32-bit color [Channel](trait.Channel.html)
+/// 32-bit color [Channel](trait.Channel.html).
 ///
 /// The `Channel` is represented by an `f32`, but values are guaranteed to be
 /// between 0 and 1, inclusive.
@@ -541,5 +541,17 @@ mod test {
         assert_eq!(Ch16::new(16384), Ch16::new(16384) / 1.0);
         assert_eq!(Ch16::new(16384), Ch16::new(8192) / 0.5);
         assert_eq!(Ch16::new(16384), Ch16::new(4096) / 0.25);
+    }
+    #[test]
+    fn ch32_mul() {
+        assert_eq!(Ch8::new(255), (Ch32::new(1.0) * Ch32::new(1.0)).into());
+        assert_eq!(Ch8::new(128), (Ch32::new(1.0) * Ch32::new(0.5)).into());
+        assert_eq!(Ch8::new(64), (Ch32::new(1.0) * Ch32::new(0.25)).into());
+        assert_eq!(Ch8::new(32), (Ch32::new(1.0) * Ch32::new(0.125)).into());
+        assert_eq!(Ch8::new(16), (Ch32::new(1.0) * Ch32::new(0.0625)).into());
+        assert_eq!(Ch8::new(64), (Ch32::new(0.5) * Ch32::new(0.5)).into());
+        assert_eq!(Ch8::new(32), (Ch32::new(0.5) * Ch32::new(0.25)).into());
+        assert_eq!(Ch8::new(16), (Ch32::new(0.5) * Ch32::new(0.125)).into());
+        assert_eq!(Ch8::new(8), (Ch32::new(0.5) * Ch32::new(0.0625)).into());
     }
 }
