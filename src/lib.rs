@@ -3,10 +3,16 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! Pixel and [Raster](struct.Raster.html) image crate.
+//! Pixel and [Raster] image crate.
 //!
-//! `Raster`s are made up of pixels in one of many possible
-//! [Format](trait.Format.html)s.
+//! A `Raster` is a rectangular array of pixels.  The [Format] is parameterized
+//! by [channel], [alpha mode], [gamma mode] and color model.
+//!
+//! [alpha mode]: alpha/trait.Mode.html
+//! [Channel]: trait.Channel.html
+//! [Format]: trait.Format.html
+//! [gamma mode]: gamma/trait.Mode.html
+//! [Raster]: struct.Raster.html
 //!
 pub mod alpha;
 mod channel;
@@ -15,6 +21,7 @@ pub mod gamma;
 mod gray;
 mod mask;
 mod palette;
+mod private;
 mod raster;
 mod rgb;
 

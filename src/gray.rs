@@ -4,61 +4,31 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{
-    Alpha, AlphaMode, AlphaModeID, Opaque, PremultipliedAlpha, StraightAlpha,
-    Translucent,
+    self, Alpha, Mode as _, Opaque, Premultiplied, Straight, Translucent,
 };
-use crate::gamma::{GammaMode, GammaModeID, LinearGamma, SrgbGamma};
+use crate::gamma::{self, Linear, Srgb};
 use crate::{Ch16, Ch32, Ch8, Channel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// Gray pixel [Format](trait.Format.html), with optional
-/// [Alpha](trait.Alpha.html) channel.
+/// Gray color model, with optional [Alpha](alpha/trait.Alpha.html) channel.
 ///
-/// For types, see: [Gray8](type.Gray8.html), [Gray16](type.Gray16.html),
-/// [Gray32](type.Gray32.html), [GrayAlpha8](type.GrayAlpha8.html),
-/// [GrayAlpha16](type.GrayAlpha16.html), [GrayAlpha32](type.GrayAlpha32.html)
+/// The `Channel` is grayscale, from *black* to *white*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Gray<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> {
+pub struct Gray<C: Channel, A: Alpha, M: alpha::Mode, G: gamma::Mode> {
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
     value: C,
     alpha: A,
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> GammaMode
-    for Gray<C, A, M, G>
-{
-    const ID: GammaModeID = G::ID;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<H: Channel>(h: H) -> H {
-        G::encode(h)
-    }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<H: Channel>(h: H) -> H {
-        G::decode(h)
-    }
-}
-
-impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> AlphaMode
-    for Gray<C, A, M, G>
-{
-    const ID: AlphaModeID = M::ID;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        M::encode::<H, B>(h, b)
-    }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        M::decode::<H, B>(h, b)
-    }
-}
-
-impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Iterator
-    for Gray<C, A, M, G>
+impl<C, A, M, G> Iterator for Gray<C, A, M, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     type Item = Self;
 
@@ -67,58 +37,58 @@ impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Iterator
     }
 }
 
-impl<C, M: AlphaMode, G: GammaMode> From<Gray<C, Translucent<C>, M, G>>
-    for Gray<C, Opaque<C>, M, G>
+impl<C, M, G> From<Gray<C, Translucent<C>, M, G>> for Gray<C, Opaque<C>, M, G>
 where
     C: Channel,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     fn from(c: Gray<C, Translucent<C>, M, G>) -> Self {
         Gray::new(c.value())
     }
 }
 
-impl<C, M: AlphaMode, G: GammaMode> From<Gray<C, Opaque<C>, M, G>>
-    for Gray<C, Translucent<C>, M, G>
+impl<C, M, G> From<Gray<C, Opaque<C>, M, G>> for Gray<C, Translucent<C>, M, G>
 where
     C: Channel,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     fn from(c: Gray<C, Opaque<C>, M, G>) -> Self {
         Gray::with_alpha(c.value(), C::MAX)
     }
 }
 
-impl<C, A, G: GammaMode> From<Gray<C, A, StraightAlpha, G>>
-    for Gray<C, A, PremultipliedAlpha, G>
+impl<C, A, G> From<Gray<C, A, Straight, G>> for Gray<C, A, Premultiplied, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    G: gamma::Mode,
 {
-    fn from(c: Gray<C, A, StraightAlpha, G>) -> Self {
-        let value = PremultipliedAlpha::encode::<C, A>(c.value, c.alpha);
-
-        Gray::with_alpha(value, c.alpha())
-    }
-}
-
-impl<C, A, G: GammaMode> From<Gray<C, A, PremultipliedAlpha, G>>
-    for Gray<C, A, StraightAlpha, G>
-where
-    C: Channel,
-    A: Alpha<Chan = C>,
-{
-    fn from(c: Gray<C, A, PremultipliedAlpha, G>) -> Self {
-        let value = PremultipliedAlpha::decode::<C, A>(c.value, c.alpha);
-
+    fn from(c: Gray<C, A, Straight, G>) -> Self {
+        let value = Premultiplied::encode::<C, A>(c.value, c.alpha);
         Gray::with_alpha(value, c.alpha)
     }
 }
 
-impl<C, A, M: AlphaMode, G: GammaMode> From<u8> for Gray<C, A, M, G>
+impl<C, A, G> From<Gray<C, A, Premultiplied, G>> for Gray<C, A, Straight, G>
 where
     C: Channel,
-    C: From<Ch8>,
-    A: Alpha,
-    A: From<Opaque<C>>,
+    A: Alpha<Chan = C>,
+    G: gamma::Mode,
+{
+    fn from(c: Gray<C, A, Premultiplied, G>) -> Self {
+        let value = Premultiplied::decode::<C, A>(c.value, c.alpha);
+        Gray::with_alpha(value, c.alpha)
+    }
+}
+
+impl<C, A, M, G> From<u8> for Gray<C, A, M, G>
+where
+    C: Channel + From<Ch8>,
+    A: Alpha<Chan = C> + From<Opaque<C>>,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
@@ -126,8 +96,12 @@ where
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Mul<Self>
-    for Gray<C, A, M, G>
+impl<C, A, M, G> Mul<Self> for Gray<C, A, M, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     type Output = Self;
     fn mul(mut self, rhs: Self) -> Self::Output {
@@ -137,8 +111,14 @@ impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Mul<Self>
     }
 }
 
-impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Gray<C, A, M, G> {
-    /// Create an [Opaque](struct.Opaque.html) gray value.
+impl<C, A, M, G> Gray<C, A, M, G>
+where
+    C: Channel,
+    A: Alpha<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create an [Opaque](alpha/struct.Opaque.html) gray value.
     pub fn new<H>(value: H) -> Self
     where
         C: From<H>,
@@ -155,7 +135,7 @@ impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Gray<C, A, M, G> {
             mode,
         }
     }
-    /// Create a [Translucent](struct.Translucent.html) gray value.
+    /// Create a [Translucent](alpha/struct.Translucent.html) gray value.
     pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
     where
         C: From<H>,
@@ -182,12 +162,16 @@ impl<C: Channel, A: Alpha, M: AlphaMode, G: GammaMode> Gray<C, A, M, G> {
     }
 }
 
-impl<C, A, M: AlphaMode, G: GammaMode> Format for Gray<C, A, M, G>
+impl<C, A, M, G> Format for Gray<C, A, M, G>
 where
     C: Channel,
     A: Alpha<Chan = C> + From<C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
 {
     type Chan = C;
+    type Alpha = M;
+    type Gamma = G;
 
     /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
@@ -223,89 +207,89 @@ where
 }
 
 /// [Gray](struct.Gray.html) 8-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
-pub type Gray8 = Gray<Ch8, Opaque<Ch8>, StraightAlpha, LinearGamma>;
+pub type Gray8 = Gray<Ch8, Opaque<Ch8>, Straight, Linear>;
 /// [Gray](struct.Gray.html) 16-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
-pub type Gray16 = Gray<Ch16, Opaque<Ch16>, StraightAlpha, LinearGamma>;
+pub type Gray16 = Gray<Ch16, Opaque<Ch16>, Straight, Linear>;
 /// [Gray](struct.Gray.html) 32-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
-pub type Gray32 = Gray<Ch32, Opaque<Ch32>, StraightAlpha, LinearGamma>;
+pub type Gray32 = Gray<Ch32, Opaque<Ch32>, Straight, Linear>;
 
-type GrayAlpha<C, A> = Gray<C, A, StraightAlpha, LinearGamma>;
+type GrayAlpha<C, A> = Gray<C, A, Straight, Linear>;
 /// [Gray](struct.Gray.html) 8-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [straight alpha](alpha/struct.Straight.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha8 = GrayAlpha<Ch8, Translucent<Ch8>>;
 /// [Gray](struct.Gray.html) 16-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [straight alpha](alpha/struct.Straight.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha16 = GrayAlpha<Ch16, Translucent<Ch16>>;
 /// [Gray](struct.Gray.html) 32-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [straight alpha](alpha/struct.Straight.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha32 = GrayAlpha<Ch32, Translucent<Ch32>>;
 
-type GrayAlphap<C, A> = Gray<C, A, PremultipliedAlpha, LinearGamma>;
+type GrayAlphap<C, A> = Gray<C, A, Premultiplied, Linear>;
 /// [Gray](struct.Gray.html) 8-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha8p = GrayAlphap<Ch8, Translucent<Ch8>>;
 /// [Gray](struct.Gray.html) 16-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha16p = GrayAlphap<Ch16, Translucent<Ch16>>;
 /// [Gray](struct.Gray.html) 32-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [linear gamma](gamma/struct.LinearGamma.html)
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [linear gamma](gamma/struct.Linear.html)
 /// pixel [format](trait.Format.html).
 pub type GrayAlpha32p = GrayAlphap<Ch32, Translucent<Ch32>>;
 
-type SGray<C, A> = Gray<C, A, StraightAlpha, SrgbGamma>;
+type SGray<C, A> = Gray<C, A, Straight, Srgb>;
 /// [Gray](struct.Gray.html) 8-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGray8 = SGray<Ch8, Opaque<Ch8>>;
 /// [Gray](struct.Gray.html) 16-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGray16 = SGray<Ch16, Opaque<Ch16>>;
 /// [Gray](struct.Gray.html) 32-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGray32 = SGray<Ch32, Opaque<Ch32>>;
 
-type SGrayAlpha<C, A> = Gray<C, A, StraightAlpha, SrgbGamma>;
+type SGrayAlpha<C, A> = Gray<C, A, Straight, Srgb>;
 /// [Gray](struct.Gray.html) 8-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [straight alpha](alpha/struct.Straight.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha8 = SGrayAlpha<Ch8, Translucent<Ch8>>;
 /// [Gray](struct.Gray.html) 16-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [straight alpha](alpha/struct.Straight.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha16 = SGrayAlpha<Ch16, Translucent<Ch16>>;
 /// [Gray](struct.Gray.html) 32-bit
-/// [straight alpha](alpha/struct.StraightAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [straight alpha](alpha/struct.Straight.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha32 = SGrayAlpha<Ch32, Translucent<Ch32>>;
 
-type SGrayAlphap<C, A> = Gray<C, A, PremultipliedAlpha, SrgbGamma>;
+type SGrayAlphap<C, A> = Gray<C, A, Premultiplied, Srgb>;
 /// [Gray](struct.Gray.html) 8-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha8p = SGrayAlphap<Ch8, Translucent<Ch8>>;
 /// [Gray](struct.Gray.html) 16-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha16p = SGrayAlphap<Ch16, Translucent<Ch16>>;
 /// [Gray](struct.Gray.html) 32-bit
-/// [premultiplied alpha](alpha/struct.PremultipliedAlpha.html)
-/// [sRGB gamma](gamma/struct.SrgbGamma.html) pixel [format](trait.Format.html).
+/// [premultiplied alpha](alpha/struct.Premultiplied.html)
+/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
 pub type SGrayAlpha32p = SGrayAlphap<Ch32, Translucent<Ch32>>;
 
 #[cfg(test)]

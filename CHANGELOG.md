@@ -1,5 +1,15 @@
 ## [Unreleased]
 
+### Changed
+* Use Any/TypeId instead of GammaModeID
+* Renamed GammaMode to gamma::Mode + sealed trait
+* Renamed LinearGamma to gamma::Linear
+* Renamed SrgbGamma to gamma::Srgb
+* Use Any/TypeId instead of AlphaModeID
+* Renamed AlphaMode to alpha::Mode + sealed trait
+* Renamed StraightAlpha to alpha::Straight
+* Renamed PremultipliedAlpha to alpha::Premultiplied
+
 ## [0.9.0] - 2020-03-08
 ### Changed
 * Simplified type aliases to shorter names

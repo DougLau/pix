@@ -3,23 +3,24 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{AlphaMode, AlphaModeID, Translucent};
-use crate::gamma::{GammaMode, GammaModeID};
+use crate::alpha::{self, Mode as _, Translucent};
+use crate::gamma::{self, Mode as _};
 use crate::Channel;
+use std::any::{Any, TypeId};
 
-/// Pixel format determines bit depth ([Channel](trait.Channel.html)),
-/// color components, [alpha mode](alpha/trait.AlphaMode.html),
-/// and [gamma mode](gamma/trait.GammaMode.html).
+/// Pixel format determines color model, bit depth,
+/// [alpha mode](alpha/trait.Mode.html) and [gamma mode](gamma/trait.Mode.html).
 ///
 /// The naming scheme for type aliases goes:
 ///
-/// * `S` for [sRGB gamma](gamma/struct.SrgbGamma.html) colorspace;
-///   [linear gamma](gamma/struct.LinearGamma.html) if omitted.
-/// * `Gray`/`GrayAlpha`/`Mask`/`Rgb`/`Rgba` for [Gray](struct.Gray.html),
-///   [Mask](struct.Mask.html), and [Rgb](struct.Rgb.html).
-/// * `8`/`16`/`32` for 8-bit integer, 16-bit integer, and 32-bit floating-point
-///   [channels](trait.Channel.html).
-/// * `p` for [premultiplied](alpha/struct.PremultipliedAlpha.html) alpha.
+/// * Gamma: `S` for [sRGB](gamma/struct.Srgb.html) colorspace;
+///   [linear](gamma/struct.Linear.html) if omitted.
+/// * Color model: [Gray](struct.Gray.html) / `GrayAlpha` /
+///   [Rgb](struct.Rgb.html) / `Rgba` / [Mask](struct.Mask.html).
+/// * Bit depth: `8` / `16` / `32` for 8-bit integer, 16-bit integer, and 32-bit
+///   floating-point [channels](trait.Channel.html).
+/// * Alpha mode: `p` for [premultiplied](alpha/struct.Premultiplied.html);
+///   [straight](alpha/struct.Straight.html) if omitted.
 ///
 /// The following types are defined:
 ///
@@ -70,11 +71,15 @@ use crate::Channel;
 ///   [Mask16](type.Mask16.html),
 ///   [Mask32](type.Mask32.html)
 ///
-pub trait Format:
-    Clone + Copy + Default + PartialEq + AlphaMode + GammaMode
-{
+pub trait Format: Any + Clone + Copy + Default + PartialEq {
     /// `Channel` type
     type Chan: Channel;
+
+    /// Alpha mode
+    type Alpha: alpha::Mode;
+
+    /// Gamma mode
+    type Gamma: gamma::Mode;
 
     /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4];
@@ -97,23 +102,23 @@ pub trait Format:
         C: Channel + From<Self::Chan>,
     {
         let rgba = self.rgba();
-        // Decode gamma
-        let rgba = if <Self as GammaMode>::ID != <F as GammaMode>::ID {
+        // Convert gamma mode
+        let rgba = if TypeId::of::<Self::Gamma>() != TypeId::of::<F::Gamma>() {
             [
-                <Self as GammaMode>::decode(rgba[0]),
-                <Self as GammaMode>::decode(rgba[1]),
-                <Self as GammaMode>::decode(rgba[2]),
+                Self::Gamma::to_linear(rgba[0]),
+                Self::Gamma::to_linear(rgba[1]),
+                Self::Gamma::to_linear(rgba[2]),
                 rgba[3],
             ]
         } else {
             rgba
         };
-        // Remove premultiplied alpha
-        let rgba = if <Self as AlphaMode>::ID != <F as AlphaMode>::ID {
+        // Decode alpha
+        let rgba = if TypeId::of::<Self::Alpha>() != TypeId::of::<F::Alpha>() {
             [
-                <Self as AlphaMode>::decode(rgba[0], Translucent::new(rgba[3])),
-                <Self as AlphaMode>::decode(rgba[1], Translucent::new(rgba[3])),
-                <Self as AlphaMode>::decode(rgba[2], Translucent::new(rgba[3])),
+                Self::Alpha::decode(rgba[0], Translucent::new(rgba[3])),
+                Self::Alpha::decode(rgba[1], Translucent::new(rgba[3])),
+                Self::Alpha::decode(rgba[2], Translucent::new(rgba[3])),
                 rgba[3],
             ]
         } else {
@@ -124,27 +129,23 @@ pub trait Format:
         let green = C::from(rgba[1]);
         let blue = C::from(rgba[2]);
         let alpha = C::from(rgba[3]);
-        // Apply alpha (only if source alpha mode was set)
-        let rgba = if <F as AlphaMode>::ID != <Self as AlphaMode>::ID
-            && <F as AlphaMode>::ID != AlphaModeID::UnknownAlpha
-        {
+        // Encode alpha
+        let rgba = if TypeId::of::<Self::Alpha>() != TypeId::of::<F::Alpha>() {
             [
-                <F as AlphaMode>::encode(red, Translucent::new(alpha)),
-                <F as AlphaMode>::encode(green, Translucent::new(alpha)),
-                <F as AlphaMode>::encode(blue, Translucent::new(alpha)),
+                F::Alpha::encode(red, Translucent::new(alpha)),
+                F::Alpha::encode(green, Translucent::new(alpha)),
+                F::Alpha::encode(blue, Translucent::new(alpha)),
                 alpha,
             ]
         } else {
             [red, green, blue, alpha]
         };
-        // Encode gamma (only if source gamma mode was set)
-        let rgba = if <F as GammaMode>::ID != <Self as GammaMode>::ID
-            && <F as GammaMode>::ID != GammaModeID::UnknownGamma
-        {
+        // Convert to requested gamma
+        let rgba = if TypeId::of::<Self::Gamma>() != TypeId::of::<F::Gamma>() {
             [
-                <F as GammaMode>::encode(rgba[0]),
-                <F as GammaMode>::encode(rgba[1]),
-                <F as GammaMode>::encode(rgba[2]),
+                F::Gamma::from_linear(rgba[0]),
+                F::Gamma::from_linear(rgba[1]),
+                F::Gamma::from_linear(rgba[2]),
                 rgba[3],
             ]
         } else {

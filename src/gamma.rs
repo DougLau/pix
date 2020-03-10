@@ -1,21 +1,41 @@
-// gamma.rs     Gamma encoding/decoding for sRGB
+// gamma.rs     Gamma encoding/decoding
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for gamma encoding items
-use crate::{Ch16, Ch32, Ch8, Channel};
+use crate::{Channel, Ch16, Ch32, Ch8};
+use crate::private::Sealed;
+use std::any::Any;
 use std::fmt::Debug;
 
-/// Trait to encode/decode gamma
-pub trait Gamma {
+/// Trait for handling gamma mode conversions
+pub trait Mode: Any + Copy + Clone + Debug + Default + PartialEq + Sealed {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C;
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C;
+}
+
+/// Linear gamma (no gamma correction)
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Linear;
+
+/// Gamma correction using the sRGB formula
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Srgb;
+
+// TODO: add PowerLawGamma when const generics feature is stable
+
+/// Trait to encode/decode sRGB values
+pub trait SrgbValue {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self;
     /// Decode an sRGB gamma value into linear intensity
     fn decode_srgb(self) -> Self;
 }
 
-impl Gamma for u8 {
+impl SrgbValue for u8 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         ENCODE_SRGB_U8[usize::from(self)]
@@ -82,7 +102,7 @@ const DECODE_SRGB_U8: &[u8] = &[
     0xEF, 0xF2, 0xF4, 0xF6, 0xF8, 0xFA, 0xFD, 0xFF, // 256
 ];
 
-impl Gamma for Ch8 {
+impl SrgbValue for Ch8 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         Self::new(u8::from(self).encode_srgb())
@@ -93,7 +113,7 @@ impl Gamma for Ch8 {
     }
 }
 
-impl Gamma for u16 {
+impl SrgbValue for u16 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         let s = f32::from(self) / 65535.0;
@@ -106,7 +126,7 @@ impl Gamma for u16 {
     }
 }
 
-impl Gamma for Ch16 {
+impl SrgbValue for Ch16 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         Self::new(u16::from(self).encode_srgb())
@@ -117,7 +137,7 @@ impl Gamma for Ch16 {
     }
 }
 
-impl Gamma for f32 {
+impl SrgbValue for f32 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         if self <= 0.0 {
@@ -144,7 +164,7 @@ impl Gamma for f32 {
     }
 }
 
-impl Gamma for Ch32 {
+impl SrgbValue for Ch32 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         Self::new(f32::from(self).encode_srgb())
@@ -155,7 +175,7 @@ impl Gamma for Ch32 {
     }
 }
 
-impl Gamma for f64 {
+impl SrgbValue for f64 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
         if self <= 0.0 {
@@ -182,92 +202,26 @@ impl Gamma for f64 {
     }
 }
 
-/// No gamma correction applied
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct LinearGamma;
-
-/// Gamma correction using the sRGB formula
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct SrgbGamma;
-
-/// Gamma correction with a specified value
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct PowerLawGamma(f32);
-
-/// Trait for handling gamma encoding/decoding
-pub trait GammaMode: Copy + Clone + Debug + PartialEq + Default {
-    const ID: GammaModeID;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel>(c: C) -> C;
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel>(c: C) -> C;
-}
-
-impl GammaMode for LinearGamma {
-    const ID: GammaModeID = GammaModeID::Linear;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel>(c: C) -> C {
+impl Mode for Linear {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C {
         c
     }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel>(c: C) -> C {
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C {
         c
     }
 }
 
-impl GammaMode for SrgbGamma {
-    const ID: GammaModeID = GammaModeID::Srgb;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<C: Channel>(c: C) -> C {
-        encode_srgb(c)
+impl Mode for Srgb {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C {
+        c.decode_srgb()
     }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<C: Channel>(c: C) -> C {
-        decode_srgb(c)
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C {
+        c.encode_srgb()
     }
-}
-
-impl PowerLawGamma {
-    /// Encode one `Channel` using the gamma mode.
-    pub fn encode<C: Channel>(c: C, g: f32) -> C {
-        encode_power_law(c, g)
-    }
-    /// Decode one `Channel` using the gamma mode.
-    pub fn decode<C: Channel>(c: C, g: f32) -> C {
-        decode_power_law(c, g)
-    }
-}
-
-/// Mode for handling gamma encoding / decoding.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum GammaModeID {
-    /// No gamma correction applied
-    Linear,
-    /// Gamma correction using the sRGB formula
-    Srgb,
-    /// Gamma correction with a specified value
-    PowerLaw(f32),
-    /// Unknown Gamma
-    UnknownGamma,
-}
-
-fn encode_srgb<C: Channel>(c: C) -> C {
-    c.encode_srgb()
-}
-
-fn decode_srgb<C: Channel>(c: C) -> C {
-    c.decode_srgb()
-}
-
-fn encode_power_law<C: Channel>(c: C, g: f32) -> C {
-    c.powf(g)
-}
-
-fn decode_power_law<C: Channel>(c: C, g: f32) -> C {
-    c.powf(1.0 / g)
 }
 
 #[cfg(test)]

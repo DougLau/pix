@@ -5,37 +5,62 @@
 //
 //! Module for alpha channel items
 use crate::{Ch16, Ch32, Ch8, Channel};
+use crate::private::Sealed;
+use std::any::Any;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// [Channel](trait.Channel.html) for defining the opacity of pixels.
+/// [Channel](../trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
 pub trait Alpha:
-    Copy + Debug + Default + PartialEq + Mul<Output = Self>
+    Any + Copy + Debug + Default + PartialEq + Mul<Output = Self>
 {
     /// `Channel` type
     type Chan: Channel;
 
     /// Get the alpha `Channel` value.
     ///
-    /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
+    /// [Channel::MIN](../trait.Channel.html#associatedconstant.MIN) is fully
     /// transparent, and
-    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) is fully
+    /// [Channel::MAX](../trait.Channel.html#associatedconstant.MAX) is fully
     /// opaque.
     fn value(&self) -> Self::Chan;
 }
 
 /// [Alpha](trait.Alpha.html) `Channel` for fully opaque pixels and
-/// [Raster](struct.Raster.html)s.
+/// [Raster](../struct.Raster.html)s.
 ///
-/// Pixel [Format](trait.Format.html)s with `Opaque` alpha channels take less
+/// Pixel [Format](../trait.Format.html)s with `Opaque` alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Opaque<C> {
     value: PhantomData<C>,
 }
+
+/// [Alpha](trait.Alpha.html) channel for translucent or transparent pixels and
+/// [Raster](../struct.Raster.html)s.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Translucent<C: Channel> {
+    value: C,
+}
+
+/// Trait for handling straight versus premultiplied alpha
+pub trait Mode: Any + Copy + Clone + Debug + Default + PartialEq + Sealed {
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+}
+
+/// Each `Channel` is "straight" (not premultiplied with alpha)
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Straight;
+
+/// Each `Channel` is premultiplied, or associated, with alpha
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
+pub struct Premultiplied;
 
 impl<C, H> From<H> for Opaque<C>
 where
@@ -86,18 +111,11 @@ impl<C: Channel> Alpha for Opaque<C> {
     /// Get the alpha `Channel` value.
     ///
     /// Always returns
-    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) (fully
+    /// [Channel::MAX](../trait.Channel.html#associatedconstant.MAX) (fully
     /// opaque).
     fn value(&self) -> C {
         C::MAX
     }
-}
-
-/// [Alpha](trait.Alpha.html) channel for translucent or transparent pixels and
-/// [Raster](struct.Raster.html)s.
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct Translucent<C: Channel> {
-    value: C,
 }
 
 impl<C, H> From<H> for Translucent<C>
@@ -157,36 +175,16 @@ impl<C: Channel> Alpha for Translucent<C> {
 
     /// Get the alpha `Channel` value.
     ///
-    /// [Channel::MIN](trait.Channel.html#associatedconstant.MIN) is fully
+    /// [Channel::MIN](../trait.Channel.html#associatedconstant.MIN) is fully
     /// transparent, and
-    /// [Channel::MAX](trait.Channel.html#associatedconstant.MAX) is fully
+    /// [Channel::MAX](../trait.Channel.html#associatedconstant.MAX) is fully
     /// opaque.
     fn value(&self) -> C {
         self.value
     }
 }
 
-/// Each `Channel` is not premultiplied with alpha
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct StraightAlpha;
-
-/// Each `Channel` is premultiplied, or associated, with alpha
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
-pub struct PremultipliedAlpha;
-
-/// Trait for handling straight versus premultiplied alpha
-pub trait AlphaMode: Copy + Clone + Debug + PartialEq + Default {
-    const ID: AlphaModeID;
-
-    /// Encode one `Channel` using the alpha mode.
-    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
-    /// Decode one `Channel` using the alpha mode.
-    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
-}
-
-impl AlphaMode for PremultipliedAlpha {
-    const ID: AlphaModeID = AlphaModeID::Premultiplied;
-
+impl Mode for Premultiplied {
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
         c * a.value()
@@ -197,9 +195,7 @@ impl AlphaMode for PremultipliedAlpha {
     }
 }
 
-impl AlphaMode for StraightAlpha {
-    const ID: AlphaModeID = AlphaModeID::Straight;
-
+impl Mode for Straight {
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
         c
@@ -208,15 +204,4 @@ impl AlphaMode for StraightAlpha {
     fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
         c
     }
-}
-
-/// Mode for handling premultiplied alpha.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum AlphaModeID {
-    /// Each `Channel` is not premultiplied with alpha
-    Straight,
-    /// Each `Channel` is premultiplied, or associated, with alpha
-    Premultiplied,
-    /// Unknown alpha mode
-    UnknownAlpha,
 }

@@ -3,50 +3,16 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{
-    Alpha, AlphaMode, AlphaModeID, PremultipliedAlpha, StraightAlpha,
-    Translucent,
-};
-use crate::gamma::{GammaMode, GammaModeID, LinearGamma};
+use crate::alpha::{Alpha, Premultiplied, Straight, Translucent};
+use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, Format, Gray, Rgb};
 use std::ops::Mul;
 
-/// [Translucent](struct.Translucent.html) alpha mask pixel
-/// [Format](trait.Format.html).
+/// [Translucent](alpha/struct.Translucent.html) alpha mask color model.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Mask<A: Alpha> {
     alpha: A,
-}
-
-impl<A: Alpha> GammaMode for Mask<A> {
-    const ID: GammaModeID = GammaModeID::UnknownGamma;
-
-    /// Encode one `Channel` using the gamma mode.
-    fn encode<H: Channel>(h: H) -> H {
-        // Gamma Mode is a no-op on Mask
-        LinearGamma::encode(h)
-    }
-    /// Decode one `Channel` using the gamma mode.
-    fn decode<H: Channel>(h: H) -> H {
-        // Gamma Mode is a no-op on Mask
-        LinearGamma::decode(h)
-    }
-}
-
-impl<A: Alpha> AlphaMode for Mask<A> {
-    const ID: AlphaModeID = AlphaModeID::UnknownAlpha;
-
-    /// Encode one `Channel` using the alpha mode.
-    fn encode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        // Alpha Mode is a no-op on Mask
-        StraightAlpha::encode::<H, B>(h, b)
-    }
-    /// Decode one `Channel` using the alpha mode.
-    fn decode<H: Channel, B: Alpha<Chan = H>>(h: H, b: B) -> H {
-        // Alpha Mode is a no-op on Mask
-        StraightAlpha::decode::<H, B>(h, b)
-    }
 }
 
 impl<A: Alpha> Iterator for Mask<A> {
@@ -78,10 +44,11 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, StraightAlpha, G>
+impl<C, A, G> From<Mask<A>> for Rgb<C, A, Straight, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    G: gamma::Mode,
 {
     /// Get an `Rgb` from a `Mask`
     fn from(c: Mask<A>) -> Self {
@@ -93,10 +60,11 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Rgb<C, A, PremultipliedAlpha, G>
+impl<C, A, G> From<Mask<A>> for Rgb<C, A, Premultiplied, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    G: gamma::Mode,
 {
     /// Get an `Rgb` from a `Mask`
     fn from(c: Mask<A>) -> Self {
@@ -108,10 +76,11 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, StraightAlpha, G>
+impl<C, A, G> From<Mask<A>> for Gray<C, A, Straight, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    G: gamma::Mode,
 {
     /// Get a `Gray` from a `Mask`
     fn from(c: Mask<A>) -> Self {
@@ -121,10 +90,11 @@ where
     }
 }
 
-impl<C, A, G: GammaMode> From<Mask<A>> for Gray<C, A, PremultipliedAlpha, G>
+impl<C, A, G> From<Mask<A>> for Gray<C, A, Premultiplied, G>
 where
     C: Channel,
     A: Alpha<Chan = C>,
+    G: gamma::Mode,
 {
     /// Get a `Gray` from a `Mask`
     fn from(c: Mask<A>) -> Self {
@@ -163,6 +133,8 @@ where
     A: Alpha<Chan = C> + From<C>,
 {
     type Chan = C;
+    type Alpha = Straight;
+    type Gamma = Linear;
 
     /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
@@ -191,16 +163,16 @@ where
     }
 }
 
-/// [Translucent](struct.Translucent.html) 8-bit alpha [Mask](struct.Mask.html)
-/// pixel [Format](trait.Format.html).
+/// [Translucent](alpha/struct.Translucent.html) 8-bit alpha
+/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
 pub type Mask8 = Mask<Translucent<Ch8>>;
 
-/// [Translucent](struct.Translucent.html) 16-bit alpha [Mask](struct.Mask.html)
-/// pixel [Format](trait.Format.html).
+/// [Translucent](alpha/struct.Translucent.html) 16-bit alpha
+/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
 pub type Mask16 = Mask<Translucent<Ch16>>;
 
-/// [Translucent](struct.Translucent.html) 32-bit alpha [Mask](struct.Mask.html)
-/// pixel [Format](trait.Format.html).
+/// [Translucent](alpha/struct.Translucent.html) 32-bit alpha
+/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
 pub type Mask32 = Mask<Translucent<Ch32>>;
 
 #[cfg(test)]

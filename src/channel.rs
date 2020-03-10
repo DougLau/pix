@@ -1,9 +1,10 @@
 // channel.rs       Color channels
 //
-// Copyright (c) 2019  Douglas P Lau
+// Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::gamma::Gamma;
+use crate::gamma::SrgbValue;
+use std::any::Any;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Sub};
@@ -16,7 +17,8 @@ use std::ops::{Add, Div, Mul, Sub};
 /// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
 pub trait Channel:
-    Copy
+    Any
+    + Copy
     + Debug
     + Default
     + Ord
@@ -24,7 +26,7 @@ pub trait Channel:
     + Mul<Output = Self>
     + Div<Output = Self>
     + Add<Output = Self>
-    + Gamma
+    + SrgbValue
 {
     /// Minimum intensity (*zero*)
     const MIN: Self;
