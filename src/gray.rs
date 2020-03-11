@@ -126,13 +126,13 @@ where
     {
         let value = C::from(value);
         let alpha = A::from(Opaque::default());
-        let gamma = PhantomData;
         let mode = PhantomData;
+        let gamma = PhantomData;
         Gray {
             value,
             alpha,
-            gamma,
             mode,
+            gamma,
         }
     }
     /// Create a [Translucent](alpha/struct.Translucent.html) gray value.
@@ -143,13 +143,13 @@ where
     {
         let value = C::from(value);
         let alpha = A::from(alpha);
-        let gamma = PhantomData;
         let mode = PhantomData;
+        let gamma = PhantomData;
         Gray {
             value,
             alpha,
-            gamma,
             mode,
+            gamma,
         }
     }
     /// Get the gray value.

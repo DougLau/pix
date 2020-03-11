@@ -141,12 +141,12 @@ where
         let blue = self.blue * rhs.blue;
         let alpha = self.alpha * rhs.alpha;
         Rgb {
-            mode: std::marker::PhantomData,
-            gamma: std::marker::PhantomData,
             red,
             green,
             blue,
             alpha,
+            mode: PhantomData,
+            gamma: PhantomData,
         }
     }
 }
@@ -194,12 +194,12 @@ where
         let blue = C::from(blue);
         let alpha = A::from(alpha);
         Rgb {
-            mode: std::marker::PhantomData,
-            gamma: std::marker::PhantomData,
             red,
             green,
             blue,
             alpha,
+            mode: PhantomData,
+            gamma: PhantomData,
         }
     }
     /// Get the red `Channel`.
