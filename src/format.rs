@@ -8,8 +8,12 @@ use crate::gamma::{self, Mode as _};
 use crate::Channel;
 use std::any::{Any, TypeId};
 
-/// Pixel format determines color model, bit depth,
-/// [alpha mode](alpha/trait.Mode.html) and [gamma mode](gamma/trait.Mode.html).
+/// Pixel format determines [color model], bit depth, [alpha mode] and
+/// [gamma mode].
+///
+/// [alpha mode]: alpha/trait.Mode.html
+/// [color model]: trait.ColorModel.html
+/// [gamma mode]: gamma/trait.Mode.html
 ///
 /// The naming scheme for type aliases goes:
 ///
@@ -155,10 +159,7 @@ mod test {
             SRgb8::new(0x33, 0x33, 0x33),
             SGray16::new(0x337F).convert()
         );
-        assert_eq!(
-            SRgb8::new(0x40, 0x40, 0x40),
-            SGray32::new(0.25).convert()
-        );
+        assert_eq!(SRgb8::new(0x40, 0x40, 0x40), SGray32::new(0.25).convert());
         assert_eq!(
             SRgb16::new(0x2929, 0x2929, 0x2929),
             SGray8::new(0x29).convert()
@@ -179,10 +180,7 @@ mod test {
             SRgb32::new(0.75001144, 0.75001144, 0.75001144),
             SGray16::new(0xC000).convert(),
         );
-        assert_eq!(
-            SRgb32::new(0.33, 0.33, 0.33),
-            SGray32::new(0.33).convert(),
-        );
+        assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert());
     }
     #[test]
     fn linear_to_srgb() {
