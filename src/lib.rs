@@ -3,16 +3,16 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! Pixel and [Raster] image crate.
+//! A library for pixels and raster images.
 //!
-//! A `Raster` is a rectangular array of pixels.  The [Format] is parameterized
+//! A [raster] is a rectangular array of pixels whose [format] is parameterized
 //! by [channel], [alpha mode], [gamma mode] and color model.
 //!
 //! [alpha mode]: alpha/trait.Mode.html
-//! [Channel]: trait.Channel.html
-//! [Format]: trait.Format.html
+//! [channel]: trait.Channel.html
+//! [format]: trait.Format.html
 //! [gamma mode]: gamma/trait.Mode.html
-//! [Raster]: struct.Raster.html
+//! [raster]: struct.Raster.html
 //!
 pub mod alpha;
 mod channel;
