@@ -16,16 +16,19 @@ use std::ops::{Add, Div, Mul, Sub};
 ///
 /// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
 /// and [Ch32](struct.Ch32.html).
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Channel:
     Any
     + Copy
     + Debug
     + Default
+    + From<f32>
     + Ord
-    + Sub<Output = Self>
-    + Mul<Output = Self>
-    + Div<Output = Self>
     + Add<Output = Self>
+    + Div<Output = Self>
+    + Mul<Output = Self>
+    + Sub<Output = Self>
     + SrgbValue
 {
     /// Minimum intensity (*zero*)
@@ -102,9 +105,29 @@ impl Ch8 {
     }
 }
 
+impl Channel for Ch8 {
+    /// Minimum intensity (*zero*)
+    const MIN: Ch8 = Ch8(0);
+
+    /// Maximum intensity (*one*)
+    const MAX: Ch8 = Ch8(0xFF);
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self {
+        let v = f32::from(Ch32::from(self)).powf(g);
+        Ch32::new(v).into()
+    }
+}
+
 impl From<u8> for Ch8 {
     fn from(value: u8) -> Self {
         Ch8(value)
+    }
+}
+
+impl From<f32> for Ch8 {
+    fn from(value: f32) -> Self {
+        Ch32::new(value).into()
     }
 }
 
@@ -120,9 +143,8 @@ where
 {
     type Output = Self;
     fn add(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0.saturating_add(rhs.0);
-        Ch8(value)
+        let rhs = Self::from(rhs);
+        Ch8(self.0.saturating_add(rhs.0))
     }
 }
 
@@ -132,9 +154,8 @@ where
 {
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0 - rhs.0;
-        Ch8(value)
+        let rhs = Self::from(rhs);
+        Ch8(self.0.saturating_sub(rhs.0))
     }
 }
 
@@ -144,21 +165,13 @@ where
 {
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
+        let rhs = Self::from(rhs);
         let l = u32::from(self.0);
         let l = (l << 4) | (l >> 4);
         let r = u32::from(rhs.0);
         let r = (r << 4) | (r >> 4);
         let value = ((l * r) >> 16) as u8;
         Ch8(value)
-    }
-}
-
-impl Mul<f32> for Ch8 {
-    type Output = Self;
-    fn mul(self, rhs: f32) -> Self {
-        let rhs: Self = Ch32::new(rhs).into();
-        self * rhs
     }
 }
 
@@ -169,7 +182,7 @@ where
     type Output = Self;
     fn div(self, rhs: R) -> Self {
         #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
-        let rhs: Self = rhs.into();
+        let rhs = Self::from(rhs);
         if rhs.0 > 0 {
             let ss = u32::from(self.0) << 8;
             let rr = u32::from(rhs.0);
@@ -181,20 +194,19 @@ where
     }
 }
 
-impl Div<f32> for Ch8 {
-    type Output = Self;
-    fn div(self, rhs: f32) -> Self {
-        let rhs: Self = Ch32::new(rhs).into();
-        self / rhs
+impl Ch16 {
+    /// Create a new 16-bit `Channel` value.
+    pub fn new(value: u16) -> Self {
+        Ch16(value)
     }
 }
 
-impl Channel for Ch8 {
+impl Channel for Ch16 {
     /// Minimum intensity (*zero*)
-    const MIN: Ch8 = Ch8(0);
+    const MIN: Ch16 = Ch16(0);
 
     /// Maximum intensity (*one*)
-    const MAX: Ch8 = Ch8(0xFF);
+    const MAX: Ch16 = Ch16(0xFFFF);
 
     /// Raise to given power
     fn powf(self, g: f32) -> Self {
@@ -203,24 +215,22 @@ impl Channel for Ch8 {
     }
 }
 
-impl Ch16 {
-    /// Create a new 16-bit `Channel` value.
-    pub fn new(value: u16) -> Self {
-        Ch16(value)
-    }
-}
-
 impl From<Ch8> for Ch16 {
     fn from(c: Ch8) -> Self {
         let value = u16::from(c.0);
-        let value = value << 8 | value;
-        Ch16(value)
+        Ch16(value << 8 | value)
     }
 }
 
 impl From<u16> for Ch16 {
     fn from(value: u16) -> Self {
         Ch16(value)
+    }
+}
+
+impl From<f32> for Ch16 {
+    fn from(value: f32) -> Self {
+        Ch32::new(value).into()
     }
 }
 
@@ -242,9 +252,8 @@ where
 {
     type Output = Self;
     fn add(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0.saturating_add(rhs.0);
-        Ch16(value)
+        let rhs = Self::from(rhs);
+        Ch16(self.0.saturating_add(rhs.0))
     }
 }
 
@@ -254,9 +263,8 @@ where
 {
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0 - rhs.0;
-        Ch16(value)
+        let rhs = Self::from(rhs);
+        Ch16(self.0.saturating_sub(rhs.0))
     }
 }
 
@@ -266,21 +274,13 @@ where
 {
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
+        let rhs = Self::from(rhs);
         let l = u64::from(self.0);
         let l = (l << 8) | (l >> 8);
         let r = u64::from(rhs.0);
         let r = (r << 8) | (r >> 8);
         let value = ((l * r) >> 32) as u16;
         Ch16(value)
-    }
-}
-
-impl Mul<f32> for Ch16 {
-    type Output = Self;
-    fn mul(self, rhs: f32) -> Self {
-        let rhs: Self = Ch32::new(rhs).into();
-        self * rhs
     }
 }
 
@@ -291,7 +291,7 @@ where
     type Output = Self;
     fn div(self, rhs: R) -> Self {
         #![allow(clippy::single_match, clippy::suspicious_arithmetic_impl)]
-        let rhs: Self = rhs.into();
+        let rhs = Self::from(rhs);
         if rhs.0 > 0 {
             let ss = u64::from(self.0) << 16;
             let rr = u64::from(rhs.0);
@@ -300,28 +300,6 @@ where
         } else {
             Ch16(0)
         }
-    }
-}
-
-impl Div<f32> for Ch16 {
-    type Output = Self;
-    fn div(self, rhs: f32) -> Self {
-        let rhs: Self = Ch32::new(rhs).into();
-        self / rhs
-    }
-}
-
-impl Channel for Ch16 {
-    /// Minimum intensity (*zero*)
-    const MIN: Ch16 = Ch16(0);
-
-    /// Maximum intensity (*one*)
-    const MAX: Ch16 = Ch16(0xFFFF);
-
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self {
-        let v = f32::from(Ch32::from(self)).powf(g);
-        Ch32::new(v).into()
     }
 }
 
@@ -344,10 +322,22 @@ impl Ch32 {
     }
 }
 
+impl Channel for Ch32 {
+    /// Minimum intensity (*zero*)
+    const MIN: Ch32 = Ch32(0.0);
+
+    /// Maximum intensity (*one*)
+    const MAX: Ch32 = Ch32(1.0);
+
+    /// Raise to given power
+    fn powf(self, g: f32) -> Self {
+        Ch32::new(self.0.powf(g))
+    }
+}
+
 impl From<Ch8> for Ch32 {
     fn from(c: Ch8) -> Self {
-        let value = f32::from(c.0) / 255.0;
-        Ch32(value)
+        Ch32(f32::from(c.0) / 255.0)
     }
 }
 
@@ -385,8 +375,7 @@ impl From<Ch32> for Ch16 {
 
 impl From<Ch16> for Ch32 {
     fn from(c: Ch16) -> Self {
-        let value = f32::from(c.0) / 65535.0;
-        Ch32(value)
+        Ch32(f32::from(c.0) / 65535.0)
     }
 }
 
@@ -400,58 +389,48 @@ impl Ord for Ch32 {
 
 impl<R> Add<R> for Ch32
 where
-    Self: From<R>,
+    f32: From<R>,
 {
     type Output = Self;
     fn add(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0 + rhs.0;
-        Ch32(value)
+        let value = self.0 + f32::from(rhs);
+        Ch32(value.min(1.0))
     }
 }
 
 impl<R> Sub<R> for Ch32
 where
-    Self: From<R>,
+    f32: From<R>,
 {
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
-        let rhs: Self = rhs.into();
-        let value = self.0 - rhs.0;
-        Ch32(value)
+        let value = self.0 - f32::from(rhs);
+        Ch32(value.max(0.0))
     }
 }
 
-impl Mul for Ch32 {
+impl<R> Mul<R> for Ch32
+where
+    f32: From<R>,
+{
     type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        Ch32(self.0 * rhs.0)
+    fn mul(self, rhs: R) -> Self {
+        Ch32(self.0 * f32::from(rhs))
     }
 }
 
-impl Div for Ch32 {
+impl<R> Div<R> for Ch32
+where
+    f32: From<R>,
+{
     type Output = Self;
-    fn div(self, rhs: Self) -> Self {
-        let v = rhs.0;
+    fn div(self, rhs: R) -> Self {
+        let v = f32::from(rhs);
         if v > 0.0 {
-            let value = (self.0 / v).min(1.0);
-            Ch32(value)
+            Ch32((self.0 / v).min(1.0))
         } else {
             Ch32(0.0)
         }
-    }
-}
-
-impl Channel for Ch32 {
-    /// Minimum intensity (*zero*)
-    const MIN: Ch32 = Ch32(0.0);
-
-    /// Maximum intensity (*one*)
-    const MAX: Ch32 = Ch32(1.0);
-
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self {
-        Ch32::new(self.0.powf(g))
     }
 }
 
@@ -546,14 +525,14 @@ mod test {
     }
     #[test]
     fn ch32_mul() {
-        assert_eq!(Ch8::new(255), (Ch32::new(1.0) * Ch32::new(1.0)).into());
-        assert_eq!(Ch8::new(128), (Ch32::new(1.0) * Ch32::new(0.5)).into());
-        assert_eq!(Ch8::new(64), (Ch32::new(1.0) * Ch32::new(0.25)).into());
-        assert_eq!(Ch8::new(32), (Ch32::new(1.0) * Ch32::new(0.125)).into());
-        assert_eq!(Ch8::new(16), (Ch32::new(1.0) * Ch32::new(0.0625)).into());
-        assert_eq!(Ch8::new(64), (Ch32::new(0.5) * Ch32::new(0.5)).into());
-        assert_eq!(Ch8::new(32), (Ch32::new(0.5) * Ch32::new(0.25)).into());
-        assert_eq!(Ch8::new(16), (Ch32::new(0.5) * Ch32::new(0.125)).into());
-        assert_eq!(Ch8::new(8), (Ch32::new(0.5) * Ch32::new(0.0625)).into());
+        assert_eq!(Ch32::new(1.0), Ch32::new(1.0) * 1.0);
+        assert_eq!(Ch32::new(0.5), Ch32::new(1.0) * 0.5);
+        assert_eq!(Ch32::new(0.25), Ch32::new(1.0) * 0.25);
+        assert_eq!(Ch32::new(0.125), Ch32::new(1.0) * 0.125);
+        assert_eq!(Ch32::new(0.0625), Ch32::new(1.0) * 0.0625);
+        assert_eq!(Ch32::new(0.25), Ch32::new(0.5) * 0.5);
+        assert_eq!(Ch32::new(0.125), Ch32::new(0.5) * 0.25);
+        assert_eq!(Ch32::new(0.0625), Ch32::new(0.5) * 0.125);
+        assert_eq!(Ch32::new(0.03125), Ch32::new(0.5) * 0.0625);
     }
 }
