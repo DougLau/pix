@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{Alpha, Premultiplied, Straight, Translucent};
+use crate::alpha::{AChannel, Premultiplied, Straight, Translucent};
 use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, Format, Gray, Rgb};
 use std::ops::Mul;
@@ -11,11 +11,11 @@ use std::ops::Mul;
 /// [Translucent](alpha/struct.Translucent.html) alpha mask color model.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Mask<A: Alpha> {
-    alpha: A,
+pub struct Mask<C: Channel> {
+    alpha: Translucent<C>,
 }
 
-impl<A: Alpha> Iterator for Mask<A> {
+impl<C: Channel> Iterator for Mask<C> {
     type Item = Self;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -44,14 +44,14 @@ impl From<f32> for Mask32 {
     }
 }
 
-impl<C, A, G> From<Mask<A>> for Rgb<C, A, Straight, G>
+impl<C, A, G> From<Mask<C>> for Rgb<C, A, Straight, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     /// Get an `Rgb` from a `Mask`
-    fn from(c: Mask<A>) -> Self {
+    fn from(c: Mask<C>) -> Self {
         let red = C::MAX;
         let green = C::MAX;
         let blue = C::MAX;
@@ -60,51 +60,51 @@ where
     }
 }
 
-impl<C, A, G> From<Mask<A>> for Rgb<C, A, Premultiplied, G>
+impl<C, A, G> From<Mask<C>> for Rgb<C, A, Premultiplied, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     /// Get an `Rgb` from a `Mask`
-    fn from(c: Mask<A>) -> Self {
-        let red = c.alpha().value();
-        let green = c.alpha().value();
-        let blue = c.alpha().value();
+    fn from(c: Mask<C>) -> Self {
+        let red = c.alpha();
+        let green = c.alpha();
+        let blue = c.alpha();
         let alpha = c.alpha();
         Rgb::with_alpha(red, green, blue, alpha)
     }
 }
 
-impl<C, A, G> From<Mask<A>> for Gray<C, A, Straight, G>
+impl<C, A, G> From<Mask<C>> for Gray<C, A, Straight, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     /// Get a `Gray` from a `Mask`
-    fn from(c: Mask<A>) -> Self {
+    fn from(c: Mask<C>) -> Self {
         let value = C::MAX;
         let alpha = c.alpha();
         Gray::with_alpha(value, alpha)
     }
 }
 
-impl<C, A, G> From<Mask<A>> for Gray<C, A, Premultiplied, G>
+impl<C, A, G> From<Mask<C>> for Gray<C, A, Premultiplied, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     /// Get a `Gray` from a `Mask`
-    fn from(c: Mask<A>) -> Self {
-        let value = c.alpha().value();
+    fn from(c: Mask<C>) -> Self {
+        let value = c.alpha();
         let alpha = c.alpha();
         Gray::with_alpha(value, alpha)
     }
 }
 
-impl<A: Alpha> Mul<Self> for Mask<A> {
+impl<C: Channel> Mul<Self> for Mask<C> {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         let alpha = self.alpha * rhs.alpha;
@@ -112,25 +112,24 @@ impl<A: Alpha> Mul<Self> for Mask<A> {
     }
 }
 
-impl<A: Alpha> Mask<A> {
+impl<C: Channel> Mask<C> {
     /// Create a new `Mask` value.
-    pub fn new<B>(alpha: B) -> Self
+    pub fn new<A>(alpha: A) -> Self
     where
-        A: From<B>,
+        C: From<A>,
     {
-        let alpha = A::from(alpha);
+        let alpha = C::from(alpha).into();
         Mask { alpha }
     }
     /// Get the alpha value.
-    pub fn alpha(self) -> A {
-        self.alpha
+    pub fn alpha(self) -> C {
+        self.alpha.value()
     }
 }
 
-impl<C, A> Format for Mask<A>
+impl<C> Format for Mask<C>
 where
     C: Channel,
-    A: Alpha<Chan = C> + From<C>,
 {
     type Chan = C;
     type Alpha = Straight;
@@ -138,7 +137,7 @@ where
 
     /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
-        [C::MAX, C::MAX, C::MAX, self.alpha.value()]
+        [C::MAX, C::MAX, C::MAX, self.alpha()]
     }
 
     /// Make a pixel with given RGBA `Channel`s
@@ -149,31 +148,31 @@ where
 
     /// Get channel-wise difference
     fn difference(self, rhs: Self) -> Self {
-        let a = if self.alpha.value() > rhs.alpha.value() {
-            self.alpha.value() - rhs.alpha.value()
+        let a = if self.alpha() > rhs.alpha() {
+            self.alpha() - rhs.alpha()
         } else {
-            rhs.alpha.value() - self.alpha.value()
+            rhs.alpha() - self.alpha()
         };
         Mask::new(a)
     }
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
-        self.alpha.value() <= rhs.alpha.value()
+        self.alpha() <= rhs.alpha()
     }
 }
 
 /// [Translucent](alpha/struct.Translucent.html) 8-bit alpha
 /// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
-pub type Mask8 = Mask<Translucent<Ch8>>;
+pub type Mask8 = Mask<Ch8>;
 
 /// [Translucent](alpha/struct.Translucent.html) 16-bit alpha
 /// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
-pub type Mask16 = Mask<Translucent<Ch16>>;
+pub type Mask16 = Mask<Ch16>;
 
 /// [Translucent](alpha/struct.Translucent.html) 32-bit alpha
 /// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
-pub type Mask32 = Mask<Translucent<Ch32>>;
+pub type Mask32 = Mask<Ch32>;
 
 #[cfg(test)]
 mod test {

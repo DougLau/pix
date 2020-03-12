@@ -11,11 +11,11 @@ use std::fmt::Debug;
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// [Channel](../trait.Channel.html) for defining the opacity of pixels.
+/// Alpha [channel](../trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
-pub trait Alpha:
-    Any + Copy + Debug + Default + PartialEq + Mul<Output = Self>
+pub trait AChannel:
+    Any + Copy + Debug + Default + Mul<Output = Self> + PartialEq + Sealed
 {
     /// `Channel` type
     type Chan: Channel;
@@ -29,7 +29,7 @@ pub trait Alpha:
     fn value(&self) -> Self::Chan;
 }
 
-/// [Alpha](trait.Alpha.html) `Channel` for fully opaque pixels and
+/// [Alpha channel](trait.AChannel.html) for fully opaque pixels and
 /// [Raster](../struct.Raster.html)s.
 ///
 /// Pixel [Format](../trait.Format.html)s with `Opaque` alpha channels take less
@@ -39,8 +39,8 @@ pub struct Opaque<C> {
     value: PhantomData<C>,
 }
 
-/// [Alpha](trait.Alpha.html) channel for translucent or transparent pixels and
-/// [Raster](../struct.Raster.html)s.
+/// [Alpha channel](trait.AChannel.html) for translucent or transparent pixels
+/// and [Raster](../struct.Raster.html)s.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Translucent<C: Channel> {
     value: C,
@@ -51,9 +51,9 @@ pub trait Mode:
     Any + Copy + Clone + Debug + Default + PartialEq + Sealed
 {
     /// Encode one `Channel` using the alpha mode.
-    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+    fn encode<C: Channel>(c: C, a: C) -> C;
     /// Decode one `Channel` using the alpha mode.
-    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C;
+    fn decode<C: Channel>(c: C, a: C) -> C;
 }
 
 /// Each `Channel` is "straight" (not premultiplied with alpha)
@@ -107,7 +107,7 @@ impl<C: Channel> Mul<Self> for Opaque<C> {
     }
 }
 
-impl<C: Channel> Alpha for Opaque<C> {
+impl<C: Channel> AChannel for Opaque<C> {
     type Chan = C;
 
     /// Get the alpha `Channel` value.
@@ -172,7 +172,7 @@ where
     }
 }
 
-impl<C: Channel> Alpha for Translucent<C> {
+impl<C: Channel> AChannel for Translucent<C> {
     type Chan = C;
 
     /// Get the alpha `Channel` value.
@@ -186,24 +186,24 @@ impl<C: Channel> Alpha for Translucent<C> {
     }
 }
 
-impl Mode for Premultiplied {
+impl Mode for Straight {
     /// Encode one `Channel` using the alpha mode.
-    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
-        c * a.value()
+    fn encode<C: Channel>(c: C, _a: C) -> C {
+        c
     }
     /// Decode one `Channel` using the alpha mode.
-    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, a: A) -> C {
-        c / a.value()
+    fn decode<C: Channel>(c: C, _a: C) -> C {
+        c
     }
 }
 
-impl Mode for Straight {
+impl Mode for Premultiplied {
     /// Encode one `Channel` using the alpha mode.
-    fn encode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
-        c
+    fn encode<C: Channel>(c: C, a: C) -> C {
+        c * a
     }
     /// Decode one `Channel` using the alpha mode.
-    fn decode<C: Channel, A: Alpha<Chan = C>>(c: C, _a: A) -> C {
-        c
+    fn decode<C: Channel>(c: C, a: C) -> C {
+        c / a
     }
 }

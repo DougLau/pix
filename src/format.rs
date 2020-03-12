@@ -3,7 +3,7 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{self, Mode as _, Translucent};
+use crate::alpha::{self, Mode as _};
 use crate::gamma::{self, Mode as _};
 use crate::Channel;
 use std::any::{Any, TypeId};
@@ -93,64 +93,170 @@ pub trait Format: Any + Clone + Copy + Default + PartialEq {
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool;
 
-    /// Convert a pixel from one `Format` to another
+    /// Convert a pixel to another `Format`
     ///
-    /// * `p` Source pixel to convert.
-    fn convert<C, F>(self) -> F
+    /// * `D` Destination format.
+    fn convert<D>(self) -> D
     where
-        F: Format<Chan = C>,
-        C: Channel + From<Self::Chan>,
+        D: Format,
+        D::Chan: From<Self::Chan>,
     {
         let rgba = self.rgba();
-        // Convert gamma mode
-        let rgba = if TypeId::of::<Self::Gamma>() != TypeId::of::<F::Gamma>() {
-            [
-                Self::Gamma::to_linear(rgba[0]),
-                Self::Gamma::to_linear(rgba[1]),
-                Self::Gamma::to_linear(rgba[2]),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        // Decode alpha
-        let rgba = if TypeId::of::<Self::Alpha>() != TypeId::of::<F::Alpha>() {
-            [
-                Self::Alpha::decode(rgba[0], Translucent::new(rgba[3])),
-                Self::Alpha::decode(rgba[1], Translucent::new(rgba[3])),
-                Self::Alpha::decode(rgba[2], Translucent::new(rgba[3])),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        // Convert bit depth
-        let red = C::from(rgba[0]);
-        let green = C::from(rgba[1]);
-        let blue = C::from(rgba[2]);
-        let alpha = C::from(rgba[3]);
-        // Encode alpha
-        let rgba = if TypeId::of::<Self::Alpha>() != TypeId::of::<F::Alpha>() {
-            [
-                F::Alpha::encode(red, Translucent::new(alpha)),
-                F::Alpha::encode(green, Translucent::new(alpha)),
-                F::Alpha::encode(blue, Translucent::new(alpha)),
-                alpha,
-            ]
-        } else {
-            [red, green, blue, alpha]
-        };
-        // Convert to requested gamma
-        let rgba = if TypeId::of::<Self::Gamma>() != TypeId::of::<F::Gamma>() {
-            [
-                F::Gamma::from_linear(rgba[0]),
-                F::Gamma::from_linear(rgba[1]),
-                F::Gamma::from_linear(rgba[2]),
-                rgba[3],
-            ]
-        } else {
-            rgba
-        };
-        F::with_rgba(rgba)
+        // Convert to destination bit depth
+        let mut rgba = [
+            D::Chan::from(rgba[0]),
+            D::Chan::from(rgba[1]),
+            D::Chan::from(rgba[2]),
+            D::Chan::from(rgba[3]),
+        ];
+        if TypeId::of::<Self::Alpha>() != TypeId::of::<D::Alpha>() ||
+           TypeId::of::<Self::Gamma>() != TypeId::of::<D::Gamma>()
+        {
+            convert_alpha_gamma::<Self, D>(&mut rgba);
+        }
+        D::with_rgba(rgba)
+    }
+}
+
+/// Convert alpha/gamma between two pixel formats
+fn convert_alpha_gamma<S, D>(rgba: &mut [D::Chan; 4])
+where
+    S: Format,
+    D: Format,
+{
+    // Convert to linear gamma
+    rgba[0] = S::Gamma::to_linear(rgba[0]);
+    rgba[1] = S::Gamma::to_linear(rgba[1]);
+    rgba[2] = S::Gamma::to_linear(rgba[2]);
+    if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
+        // Decode source alpha
+        rgba[0] = S::Alpha::decode(rgba[0], rgba[3]);
+        rgba[1] = S::Alpha::decode(rgba[1], rgba[3]);
+        rgba[2] = S::Alpha::decode(rgba[2], rgba[3]);
+        // Encode destination alpha
+        rgba[0] = D::Alpha::encode(rgba[0], rgba[3]);
+        rgba[1] = D::Alpha::encode(rgba[1], rgba[3]);
+        rgba[2] = D::Alpha::encode(rgba[2], rgba[3]);
+    }
+    // Convert to destination gamma
+    rgba[0] = D::Gamma::from_linear(rgba[0]);
+    rgba[1] = D::Gamma::from_linear(rgba[1]);
+    rgba[2] = D::Gamma::from_linear(rgba[2]);
+}
+
+#[cfg(test)]
+mod test {
+    use super::super::*;
+    use super::*;
+    #[test]
+    fn gray_to_rgb() {
+        assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert());
+        assert_eq!(
+            SRgb8::new(0x33, 0x33, 0x33),
+            SGray16::new(0x337F).convert()
+        );
+        assert_eq!(
+            SRgb8::new(0x40, 0x40, 0x40),
+            SGray32::new(0.25).convert()
+        );
+        assert_eq!(
+            SRgb16::new(0x2929, 0x2929, 0x2929),
+            SGray8::new(0x29).convert()
+        );
+        assert_eq!(
+            SRgb16::new(0x5593, 0x5593, 0x5593),
+            SGray16::new(0x5593).convert()
+        );
+        assert_eq!(
+            SRgb16::new(0xFFFF, 0xFFFF, 0xFFFF),
+            SGray32::new(1.0).convert()
+        );
+        assert_eq!(
+            SRgb32::new(0.5019608, 0.5019608, 0.5019608),
+            SGray8::new(0x80).convert(),
+        );
+        assert_eq!(
+            SRgb32::new(0.75001144, 0.75001144, 0.75001144),
+            SGray16::new(0xC000).convert(),
+        );
+        assert_eq!(
+            SRgb32::new(0.33, 0.33, 0.33),
+            SGray32::new(0.33).convert(),
+        );
+    }
+    #[test]
+    fn linear_to_srgb() {
+        assert_eq!(
+            SRgb8::new(0xEF, 0x8C, 0xC7),
+            Rgb8::new(0xDC, 0x43, 0x91).convert()
+        );
+        assert_eq!(
+            SRgb8::new(0x66, 0xF4, 0xB5),
+            Rgb16::new(0x2205, 0xE699, 0x7654).convert()
+        );
+        assert_eq!(
+            SRgb8::new(0xBC, 0x89, 0xE0),
+            Rgb32::new(0.5, 0.25, 0.75).convert()
+        );
+    }
+    #[test]
+    fn srgb_to_linear() {
+        assert_eq!(
+            Rgb8::new(0xDC, 0x43, 0x92),
+            SRgb8::new(0xEF, 0x8C, 0xC7).convert(),
+        );
+        assert_eq!(
+            Rgb8::new(0x22, 0xE7, 0x76),
+            SRgb16::new(0x6673, 0xF453, 0xB593).convert(),
+        );
+        assert_eq!(
+            Rgb8::new(0x37, 0x0D, 0x85),
+            SRgb32::new(0.5, 0.25, 0.75).convert(),
+        );
+    }
+    #[test]
+    fn straight_to_premultiplied() {
+        assert_eq!(
+            Rgba8p::with_alpha(0x10, 0x20, 0x40, 0x80),
+            Rgba8::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+        );
+        assert_eq!(
+            Rgba8p::with_alpha(0x04, 0x10, 0x20, 0x40),
+            Rgba16::with_alpha(0x1000, 0x4000, 0x8000, 0x4000).convert(),
+        );
+        assert_eq!(
+            Rgba8p::with_alpha(0x60, 0xBF, 0x8F, 0xBF),
+            Rgba32::with_alpha(0.5, 1.0, 0.75, 0.75).convert(),
+        );
+    }
+    #[test]
+    fn premultiplied_to_straight() {
+        assert_eq!(
+            Rgba8::with_alpha(0x40, 0x80, 0xFF, 0x80),
+            Rgba8p::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+        );
+        assert_eq!(
+            Rgba8::with_alpha(0x40, 0xFF, 0x80, 0x40),
+            Rgba16p::with_alpha(0x1000, 0x4000, 0x2000, 0x4000).convert(),
+        );
+        assert_eq!(
+            Rgba8::with_alpha(0xAB, 0x55, 0xFF, 0xBF),
+            Rgba32p::with_alpha(0.5, 0.25, 0.75, 0.75).convert(),
+        );
+    }
+    #[test]
+    fn straight_to_premultiplied_srgb() {
+        assert_eq!(
+            SRgba8p::with_alpha(0x16, 0x2A, 0x5C, 0x80),
+            SRgba8::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+        );
+        assert_eq!(
+            SRgba8p::with_alpha(0x0D, 0x1C, 0x40, 0x40),
+            SRgba16::with_alpha(0x2000, 0x4000, 0x8000, 0x4000).convert(),
+        );
+        assert_eq!(
+            SRgba8p::with_alpha(0x70, 0xE0, 0xA7, 0xBF),
+            SRgba32::with_alpha(0.5, 1.0, 0.75, 0.75).convert(),
+        );
     }
 }

@@ -9,6 +9,8 @@
 * Renamed AlphaMode to alpha::Mode + sealed trait
 * Renamed StraightAlpha to alpha::Straight
 * Renamed PremultipliedAlpha to alpha::Premultiplied
+* Mask can only have Translucent alpha (not Opaque)
+* Renamed alpha::Alpha to alpha::AChannel
 
 ## [0.9.0] - 2020-03-08
 ### Changed

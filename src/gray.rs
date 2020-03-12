@@ -4,29 +4,35 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{
-    self, Alpha, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear, Srgb};
 use crate::{Ch16, Ch32, Ch8, Channel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// Gray color model, with optional [Alpha](alpha/trait.Alpha.html) channel.
+/// Gray color model, with optional [alpha channel](alpha/trait.AChannel.html).
 ///
 /// The `Channel` is grayscale, from *black* to *white*.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
-pub struct Gray<C: Channel, A: Alpha, M: alpha::Mode, G: gamma::Mode> {
-    mode: PhantomData<M>,
-    gamma: PhantomData<G>,
+pub struct Gray<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
     value: C,
     alpha: A,
+    mode: PhantomData<M>,
+    gamma: PhantomData<G>,
 }
 
 impl<C, A, M, G> Iterator for Gray<C, A, M, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -62,11 +68,11 @@ where
 impl<C, A, G> From<Gray<C, A, Straight, G>> for Gray<C, A, Premultiplied, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C>,
     G: gamma::Mode,
 {
     fn from(c: Gray<C, A, Straight, G>) -> Self {
-        let value = Premultiplied::encode::<C, A>(c.value, c.alpha);
+        let value = Premultiplied::encode(c.value, c.alpha());
         Gray::with_alpha(value, c.alpha)
     }
 }
@@ -74,11 +80,11 @@ where
 impl<C, A, G> From<Gray<C, A, Premultiplied, G>> for Gray<C, A, Straight, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C>,
     G: gamma::Mode,
 {
     fn from(c: Gray<C, A, Premultiplied, G>) -> Self {
-        let value = Premultiplied::decode::<C, A>(c.value, c.alpha);
+        let value = Premultiplied::decode(c.value, c.alpha());
         Gray::with_alpha(value, c.alpha)
     }
 }
@@ -86,7 +92,7 @@ where
 impl<C, A, M, G> From<u8> for Gray<C, A, M, G>
 where
     C: Channel + From<Ch8>,
-    A: Alpha<Chan = C> + From<Opaque<C>>,
+    A: AChannel<Chan = C> + From<Opaque<C>>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -99,7 +105,7 @@ where
 impl<C, A, M, G> Mul<Self> for Gray<C, A, M, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -114,7 +120,7 @@ where
 impl<C, A, M, G> Gray<C, A, M, G>
 where
     C: Channel,
-    A: Alpha<Chan = C>,
+    A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -157,15 +163,15 @@ where
         self.value
     }
     /// Get the alpha value.
-    pub fn alpha(self) -> A {
-        self.alpha
+    pub fn alpha(self) -> C {
+        self.alpha.value()
     }
 }
 
 impl<C, A, M, G> Format for Gray<C, A, M, G>
 where
     C: Channel,
-    A: Alpha<Chan = C> + From<C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -175,7 +181,7 @@ where
 
     /// Get *red*, *green*, *blue* and *alpha* `Channel`s
     fn rgba(self) -> [Self::Chan; 4] {
-        [self.value, self.value, self.value, self.alpha.value()]
+        [self.value, self.value, self.value, self.alpha()]
     }
 
     /// Make a pixel with given RGBA `Channel`s
@@ -192,17 +198,17 @@ where
         } else {
             rhs.value - self.value
         };
-        let a = if self.alpha.value() > rhs.alpha.value() {
-            self.alpha.value() - rhs.alpha.value()
+        let a = if self.alpha() > rhs.alpha() {
+            self.alpha() - rhs.alpha()
         } else {
-            rhs.alpha.value() - self.alpha.value()
+            rhs.alpha() - self.alpha()
         };
         Gray::with_alpha(v, a)
     }
 
     /// Check if all `Channel`s are within threshold
     fn within_threshold(self, rhs: Self) -> bool {
-        self.value <= rhs.value && self.alpha.value() <= rhs.alpha.value()
+        self.value <= rhs.value && self.alpha() <= rhs.alpha()
     }
 }
 
