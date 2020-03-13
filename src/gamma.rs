@@ -9,7 +9,9 @@ use crate::{Ch16, Ch32, Ch8, Channel};
 use std::any::Any;
 use std::fmt::Debug;
 
-/// Trait for handling gamma mode conversions
+/// Trait for handling gamma mode conversions.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Mode:
     Any + Copy + Clone + Debug + Default + PartialEq + Sealed
 {
@@ -29,8 +31,10 @@ pub struct Srgb;
 
 // TODO: add PowerLawGamma when const generics feature is stable
 
-/// Trait to encode/decode sRGB values
-pub trait SrgbValue {
+/// Trait to encode/decode sRGB values.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
+pub trait SrgbValue: Sealed {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self;
     /// Decode an sRGB gamma value into linear intensity

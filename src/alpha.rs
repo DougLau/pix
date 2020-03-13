@@ -14,6 +14,8 @@ use std::ops::Mul;
 /// Alpha [channel](../trait.Channel.html) for defining the opacity of pixels.
 ///
 /// It is the inverse of translucency.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait AChannel:
     Any + Copy + Debug + Default + Mul<Output = Self> + PartialEq + Sealed
 {
@@ -46,7 +48,9 @@ pub struct Translucent<C: Channel> {
     value: C,
 }
 
-/// Trait for handling straight versus premultiplied alpha
+/// Trait for handling straight versus premultiplied alpha.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Mode:
     Any + Copy + Clone + Debug + Default + PartialEq + Sealed
 {
