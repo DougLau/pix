@@ -5,14 +5,37 @@
 //
 use crate::alpha::{AChannel, Premultiplied, Straight, Translucent};
 use crate::gamma::{self, Linear};
-use crate::{Ch16, Ch32, Ch8, Channel, Format, Gray, Rgb};
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Format, Gray, Rgb};
 use std::ops::Mul;
 
-/// [Translucent](alpha/struct.Translucent.html) alpha mask color model.
+/// [Translucent] alpha mask [color model].
+///
+/// [color model]: trait.ColorModel.html
+/// [translucent]: alpha/struct.Translucent.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Mask<C: Channel> {
     alpha: Translucent<C>,
+}
+
+impl<C: Channel> Mask<C> {
+    /// Create a new `Mask` value.
+    pub fn new<A>(alpha: A) -> Self
+    where
+        C: From<A>,
+    {
+        let alpha = C::from(alpha).into();
+        Mask { alpha }
+    }
+    /// Get the alpha value.
+    pub fn alpha(self) -> C {
+        self.alpha.value()
+    }
+}
+
+impl<C: Channel> ColorModel for Mask<C> {
+    /// `Mask` contains 1 channel (*alpha*)
+    const NUM_CHANNELS: usize = 1;
 }
 
 impl<C: Channel> Iterator for Mask<C> {
@@ -109,21 +132,6 @@ impl<C: Channel> Mul<Self> for Mask<C> {
     fn mul(self, rhs: Self) -> Self::Output {
         let alpha = self.alpha * rhs.alpha;
         Mask { alpha }
-    }
-}
-
-impl<C: Channel> Mask<C> {
-    /// Create a new `Mask` value.
-    pub fn new<A>(alpha: A) -> Self
-    where
-        C: From<A>,
-    {
-        let alpha = C::from(alpha).into();
-        Mask { alpha }
-    }
-    /// Get the alpha value.
-    pub fn alpha(self) -> C {
-        self.alpha.value()
     }
 }
 

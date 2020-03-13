@@ -7,13 +7,16 @@ use crate::alpha::{
     self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
-use crate::{Ch16, Ch32, Ch8, Channel, Format};
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// RGB color model, with optional [alpha channel](alpha/trait.AChannel.html).
+/// RGB [color model], with optional [alpha channel].
 ///
 /// The `Channel`s are *red*, *green* and *blue*.
+///
+/// [alpha channel]: alpha/trait.AChannel.html
+/// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Rgb<C, A, M, G>
@@ -29,6 +32,17 @@ where
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
+}
+
+impl<C, A, M, G> ColorModel for Rgb<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// `Rgb` contains 4 channels (*red*, *green*, *blue* and *alpha*)
+    const NUM_CHANNELS: usize = 4;
 }
 
 impl<C, A, M, G> Iterator for Rgb<C, A, M, G>

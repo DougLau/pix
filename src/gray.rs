@@ -7,13 +7,18 @@ use crate::alpha::{
     self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear, Srgb};
-use crate::{Ch16, Ch32, Ch8, Channel, Format};
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Format};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// Gray color model, with optional [alpha channel](alpha/trait.AChannel.html).
+/// Gray [color model], with optional [alpha channel].
 ///
-/// The `Channel` is grayscale, from *black* to *white*.
+/// The `Channel` is either *luma* or *luminance* (depending on [gamma mode]),
+/// ranging from *black* to *white*.
+///
+/// [alpha channel]: alpha/trait.AChannel.html
+/// [color model]: trait.ColorModel.html
+/// [gamma mode]: gamma/trait.Mode.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
 pub struct Gray<C, A, M, G>
@@ -27,6 +32,68 @@ where
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
+}
+
+impl<C, A, M, G> Gray<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create an [Opaque](alpha/struct.Opaque.html) gray value.
+    pub fn new<H>(value: H) -> Self
+    where
+        C: From<H>,
+        A: From<Opaque<C>>,
+    {
+        let value = C::from(value);
+        let alpha = A::from(Opaque::default());
+        let mode = PhantomData;
+        let gamma = PhantomData;
+        Gray {
+            value,
+            alpha,
+            mode,
+            gamma,
+        }
+    }
+    /// Create a [Translucent](alpha/struct.Translucent.html) gray value.
+    pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
+    where
+        C: From<H>,
+        A: From<B>,
+    {
+        let value = C::from(value);
+        let alpha = A::from(alpha);
+        let mode = PhantomData;
+        let gamma = PhantomData;
+        Gray {
+            value,
+            alpha,
+            mode,
+            gamma,
+        }
+    }
+    /// Get the *luma* / *luminance* value.
+    pub fn value(self) -> C {
+        self.value
+    }
+    /// Get the *alpha* value.
+    pub fn alpha(self) -> C {
+        self.alpha.value()
+    }
+}
+
+impl<C, A, M, G> ColorModel for Gray<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// `Gray` contains 2 channels (*luma* / *luminance* and *alpha*)
+    const NUM_CHANNELS: usize = 2;
 }
 
 impl<C, A, M, G> Iterator for Gray<C, A, M, G>
@@ -114,57 +181,6 @@ where
         self.value = self.value * rhs.value;
         self.alpha = self.alpha * rhs.alpha;
         self
-    }
-}
-
-impl<C, A, M, G> Gray<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Create an [Opaque](alpha/struct.Opaque.html) gray value.
-    pub fn new<H>(value: H) -> Self
-    where
-        C: From<H>,
-        A: From<Opaque<C>>,
-    {
-        let value = C::from(value);
-        let alpha = A::from(Opaque::default());
-        let mode = PhantomData;
-        let gamma = PhantomData;
-        Gray {
-            value,
-            alpha,
-            mode,
-            gamma,
-        }
-    }
-    /// Create a [Translucent](alpha/struct.Translucent.html) gray value.
-    pub fn with_alpha<H, B>(value: H, alpha: B) -> Self
-    where
-        C: From<H>,
-        A: From<B>,
-    {
-        let value = C::from(value);
-        let alpha = A::from(alpha);
-        let mode = PhantomData;
-        let gamma = PhantomData;
-        Gray {
-            value,
-            alpha,
-            mode,
-            gamma,
-        }
-    }
-    /// Get the gray value.
-    pub fn value(self) -> C {
-        self.value
-    }
-    /// Get the alpha value.
-    pub fn alpha(self) -> C {
-        self.alpha.value()
     }
 }
 

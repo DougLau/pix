@@ -14,12 +14,16 @@
 //! [gamma mode]: gamma/trait.Mode.html
 //! [raster]: struct.Raster.html
 //!
+#![warn(missing_docs)]
+#![warn(missing_doc_code_examples)]
+
 pub mod alpha;
 mod channel;
 mod format;
 pub mod gamma;
 mod gray;
 mod mask;
+mod model;
 mod palette;
 mod private;
 mod raster;
@@ -34,6 +38,7 @@ pub use crate::gray::{
     SGrayAlpha8p,
 };
 pub use crate::mask::{Mask, Mask16, Mask32, Mask8};
+pub use crate::model::ColorModel;
 pub use crate::palette::Palette;
 pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
 pub use crate::rgb::{

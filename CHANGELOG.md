@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Added
+* ColorModel trait
+
 ### Changed
 * Use Any/TypeId instead of GammaModeID
 * Renamed GammaMode to gamma::Mode + sealed trait
