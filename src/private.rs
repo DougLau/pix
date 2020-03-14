@@ -4,7 +4,7 @@
 //
 use crate::alpha::{self, AChannel, Opaque, Translucent};
 use crate::gamma;
-use crate::{Channel, Ch16, Ch32, Ch8, Gray, Mask, Rgb, Hsv};
+use crate::{Channel, Ch16, Ch32, Ch8, Gray, Mask, Rgb, Hsv, YCbCr};
 
 /// Sealed trait to prevent outside crates from implementing traits
 pub trait Sealed {}
@@ -54,6 +54,14 @@ where
 {}
 
 impl<C, A, M, G> Sealed for Hsv<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{}
+
+impl<C, A, M, G> Sealed for YCbCr<C, A, M, G>
 where
     C: Channel,
     A: AChannel<Chan = C>,

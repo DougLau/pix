@@ -38,6 +38,7 @@ mod private;
 mod raster;
 mod rgb;
 mod hsv;
+mod ycc;
 
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::pixel::Pixel;
@@ -58,4 +59,8 @@ pub use crate::rgb::{
 };
 pub use crate::hsv::{
     Hsv, Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
+};
+pub use crate::ycc::{
+    YCbCr, YCbCr16, YCbCr32, YCbCr8, YCbCrAlpha16, YCbCrAlpha16p, YCbCrAlpha32,
+    YCbCrAlpha32p, YCbCrAlpha8, YCbCrAlpha8p,
 };

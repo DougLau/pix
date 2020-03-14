@@ -1,4 +1,4 @@
-// rgb.rs       HSV color model.
+// hsv.rs       HSV color model.
 //
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
