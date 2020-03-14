@@ -1,32 +1,41 @@
-// format.rs     Pixel format.
+// pixel.rs     Pixel format.
 //
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{self, Mode as _};
 use crate::gamma::{self, Mode as _};
-use crate::Channel;
+use crate::ColorModel;
 use std::any::{Any, TypeId};
 
 /// Pixel format determines [color model], bit depth, [alpha mode] and
 /// [gamma mode].
 ///
+/// A pixel can be converted to another format using the [convert] method.
+///
 /// [alpha mode]: alpha/trait.Mode.html
 /// [color model]: trait.ColorModel.html
+/// [convert]: trait.Pixel.html#method.convert
 /// [gamma mode]: gamma/trait.Mode.html
 ///
-/// The naming scheme for type aliases goes:
+/// ### Type Alias Naming Scheme
 ///
-/// * Gamma: `S` for [sRGB](gamma/struct.Srgb.html) colorspace;
-///   [linear](gamma/struct.Linear.html) if omitted.
-/// * Color model: [Gray](struct.Gray.html) / `GrayAlpha` /
-///   [Rgb](struct.Rgb.html) / `Rgba` / [Mask](struct.Mask.html).
-/// * Bit depth: `8` / `16` / `32` for 8-bit integer, 16-bit integer, and 32-bit
-///   floating-point [channels](trait.Channel.html).
-/// * Alpha mode: `p` for [premultiplied](alpha/struct.Premultiplied.html);
-///   [straight](alpha/struct.Straight.html) if omitted.
+/// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
+/// * _Color model_: [Gray] / `GrayAlpha` / [Rgb] / `Rgba` / [Mask].
+/// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
+///   32-bit floating-point [channels].
+/// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
-/// The following types are defined:
+/// [channels]: trait.Channel.html
+/// [gray]: struct.Gray.html
+/// [linear]: gamma/struct.Linear.html
+/// [Mask]: struct.Mask.html
+/// [premultiplied]: alpha/struct.Premultiplied.html
+/// [Rgb]: struct.Rgb.html
+/// [sRGB]: gamma/struct.Srgb.html
+/// [straight]: alpha/struct.Straight.html
+///
+/// ### Type Aliases
 ///
 /// * Opaque, linear gamma:
 ///   [Gray8](type.Gray8.html),
@@ -75,9 +84,8 @@ use std::any::{Any, TypeId};
 ///   [Mask16](type.Mask16.html),
 ///   [Mask32](type.Mask32.html)
 ///
-pub trait Format: Any + Clone + Copy + Default + PartialEq {
-    /// `Channel` type
-    type Chan: Channel;
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
+pub trait Pixel: Any + Clone + Copy + Default + PartialEq + ColorModel {
 
     /// Alpha mode
     type Alpha: alpha::Mode;
@@ -85,27 +93,15 @@ pub trait Format: Any + Clone + Copy + Default + PartialEq {
     /// Gamma mode
     type Gamma: gamma::Mode;
 
-    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
-    fn rgba(self) -> [Self::Chan; 4];
-
-    /// Make a pixel with given RGBA `Channel`s
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self;
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self;
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool;
-
-    /// Convert a pixel to another `Format`
+    /// Convert a pixel to another format
     ///
     /// * `D` Destination format.
     fn convert<D>(self) -> D
     where
-        D: Format,
+        D: Pixel,
         D::Chan: From<Self::Chan>,
     {
-        let rgba = self.rgba();
+        let rgba = self.to_rgba();
         // Convert to destination bit depth
         let mut rgba = [
             D::Chan::from(rgba[0]),
@@ -116,36 +112,35 @@ pub trait Format: Any + Clone + Copy + Default + PartialEq {
         if TypeId::of::<Self::Alpha>() != TypeId::of::<D::Alpha>() ||
            TypeId::of::<Self::Gamma>() != TypeId::of::<D::Gamma>()
         {
-            convert_alpha_gamma::<Self, D>(&mut rgba);
+            let (mut components, alpha) = rgba.split_at_mut(3);
+            convert_alpha_gamma::<Self, D>(&mut components, alpha[0]);
         }
         D::with_rgba(rgba)
     }
 }
 
 /// Convert alpha/gamma between two pixel formats
-fn convert_alpha_gamma<S, D>(rgba: &mut [D::Chan; 4])
+fn convert_alpha_gamma<S, D>(components: &mut [D::Chan], alpha: D::Chan)
 where
-    S: Format,
-    D: Format,
+    S: Pixel,
+    D: Pixel,
 {
     // Convert to linear gamma
-    rgba[0] = S::Gamma::to_linear(rgba[0]);
-    rgba[1] = S::Gamma::to_linear(rgba[1]);
-    rgba[2] = S::Gamma::to_linear(rgba[2]);
+    for c in components.iter_mut() {
+        *c = S::Gamma::to_linear(*c);
+    }
     if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
-        // Decode source alpha
-        rgba[0] = S::Alpha::decode(rgba[0], rgba[3]);
-        rgba[1] = S::Alpha::decode(rgba[1], rgba[3]);
-        rgba[2] = S::Alpha::decode(rgba[2], rgba[3]);
-        // Encode destination alpha
-        rgba[0] = D::Alpha::encode(rgba[0], rgba[3]);
-        rgba[1] = D::Alpha::encode(rgba[1], rgba[3]);
-        rgba[2] = D::Alpha::encode(rgba[2], rgba[3]);
+        for c in components.iter_mut() {
+            // Decode source alpha
+            *c = S::Alpha::decode(*c, alpha);
+            // Encode destination alpha
+            *c = D::Alpha::encode(*c, alpha);
+        }
     }
     // Convert to destination gamma
-    rgba[0] = D::Gamma::from_linear(rgba[0]);
-    rgba[1] = D::Gamma::from_linear(rgba[1]);
-    rgba[2] = D::Gamma::from_linear(rgba[2]);
+    for c in components.iter_mut() {
+        *c = D::Gamma::from_linear(*c);
+    }
 }
 
 #[cfg(test)]

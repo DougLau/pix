@@ -1,4 +1,4 @@
-// rgb.rs       RGB pixel format.
+// rgb.rs       RGB color model.
 //
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
@@ -7,15 +7,16 @@ use crate::alpha::{
     self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
-use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Format};
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// RGB [color model], with optional [alpha channel].
+/// RGB additive [color model].
 ///
-/// The `Channel`s are *red*, *green* and *blue*.
+/// The components are *red*, *green* and *blue*, with optional *[alpha]*.
 ///
-/// [alpha channel]: alpha/trait.AChannel.html
+/// [alpha]: alpha/trait.AChannel.html
+/// [channel]: trait.Channel.html
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -26,9 +27,7 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    red: C,
-    green: C,
-    blue: C,
+    components: [C; 3],
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -37,12 +36,79 @@ where
 impl<C, A, M, G> ColorModel for Rgb<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    /// `Rgb` contains 4 channels (*red*, *green*, *blue* and *alpha*)
-    const NUM_CHANNELS: usize = 4;
+    type Chan = C;
+
+    /// Get all non-alpha components
+    fn components(&self) -> &[Self::Chan] {
+        &self.components
+    }
+
+    /// Get the *alpha* component
+    fn alpha(self) -> Self::Chan {
+        self.alpha.value()
+    }
+
+    /// Convert to *red*, *green*, *blue* and *alpha* components
+    fn to_rgba(self) -> [Self::Chan; 4] {
+        [self.red(), self.green(), self.blue(), self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        let red = rgba[0];
+        let green = rgba[1];
+        let blue = rgba[2];
+        let alpha = rgba[3];
+        Rgb::with_alpha(red, green, blue, alpha)
+    }
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self {
+        let r = if self.red() > rhs.red() {
+            self.red() - rhs.red()
+        } else {
+            rhs.red() - self.red()
+        };
+        let g = if self.green() > rhs.green() {
+            self.green() - rhs.green()
+        } else {
+            rhs.green() - self.green()
+        };
+        let b = if self.blue() > rhs.blue() {
+            self.blue() - rhs.blue()
+        } else {
+            rhs.blue() - self.blue()
+        };
+        let a = if self.alpha() > rhs.alpha() {
+            self.alpha() - rhs.alpha()
+        } else {
+            rhs.alpha() - self.alpha()
+        };
+        Rgb::with_alpha(r, g, b, a)
+    }
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool {
+        self.red() <= rhs.red()
+            && self.green() <= rhs.green()
+            && self.blue() <= rhs.blue()
+            && self.alpha() <= rhs.alpha()
+    }
+}
+
+impl<C, A, M, G> Pixel for Rgb<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C> + From<C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Alpha = M;
+    type Gamma = G;
 }
 
 impl<C, A, M, G> Iterator for Rgb<C, A, M, G>
@@ -84,27 +150,27 @@ where
 impl<C, A, G> From<Rgb<C, A, Straight, G>> for Rgb<C, A, Premultiplied, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     fn from(c: Rgb<C, A, Straight, G>) -> Self {
-        let red = Premultiplied::encode(c.red, c.alpha());
-        let green = Premultiplied::encode(c.green, c.alpha());
-        let blue = Premultiplied::encode(c.blue, c.alpha());
-        Rgb::with_alpha(red, green, blue, c.alpha)
+        let red = Premultiplied::encode(c.red(), c.alpha());
+        let green = Premultiplied::encode(c.green(), c.alpha());
+        let blue = Premultiplied::encode(c.blue(), c.alpha());
+        Rgb::with_alpha(red, green, blue, c.alpha())
     }
 }
 
 impl<C, A, G> From<Rgb<C, A, Premultiplied, G>> for Rgb<C, A, Straight, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     fn from(c: Rgb<C, A, Premultiplied, G>) -> Self {
-        let red = Premultiplied::decode(c.red, c.alpha());
-        let green = Premultiplied::decode(c.green, c.alpha());
-        let blue = Premultiplied::decode(c.blue, c.alpha());
+        let red = Premultiplied::decode(c.red(), c.alpha());
+        let green = Premultiplied::decode(c.green(), c.alpha());
+        let blue = Premultiplied::decode(c.blue(), c.alpha());
         Rgb::with_alpha(red, green, blue, c.alpha)
     }
 }
@@ -130,7 +196,7 @@ impl<C, A, M, G> From<Rgb<C, A, M, G>> for i32
 where
     C: Channel,
     Ch8: From<C>,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -156,14 +222,13 @@ where
 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
-        let red = self.red * rhs.red;
-        let green = self.green * rhs.green;
-        let blue = self.blue * rhs.blue;
+        let red = self.red() * rhs.red();
+        let green = self.green() * rhs.green();
+        let blue = self.blue() * rhs.blue();
+        let components = [red, green, blue];
         let alpha = self.alpha * rhs.alpha;
         Rgb {
-            red,
-            green,
-            blue,
+            components,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
@@ -174,7 +239,7 @@ where
 impl<C, A, G> Mul<Self> for Rgb<C, A, Premultiplied, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     G: gamma::Mode,
 {
     type Output = Self;
@@ -212,175 +277,96 @@ where
         let red = C::from(red);
         let green = C::from(green);
         let blue = C::from(blue);
+        let components = [red, green, blue];
         let alpha = A::from(alpha);
         Rgb {
-            red,
-            green,
-            blue,
+            components,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
         }
     }
-    /// Get the red `Channel`.
+    /// Get the red component.
     pub fn red(self) -> C {
-        self.red
+        self.components[0]
     }
-    /// Get the green `Channel`.
+    /// Get the green component.
     pub fn green(self) -> C {
-        self.green
+        self.components[1]
     }
-    /// Get the blue `Channel`.
+    /// Get the blue component.
     pub fn blue(self) -> C {
-        self.blue
-    }
-    /// Get the alpha `Channel`.
-    pub fn alpha(self) -> C {
-        self.alpha.value()
+        self.components[2]
     }
 }
 
-impl<C, A, M, G> Format for Rgb<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Chan = C;
-    type Alpha = M;
-    type Gamma = G;
-
-    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
-    fn rgba(self) -> [Self::Chan; 4] {
-        [self.red, self.green, self.blue, self.alpha()]
-    }
-
-    /// Make a pixel with given RGBA `Channel`s
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
-        let alpha = rgba[3];
-        Rgb::with_alpha(red, green, blue, alpha)
-    }
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
-        let r = if self.red > rhs.red {
-            self.red - rhs.red
-        } else {
-            rhs.red - self.red
-        };
-        let g = if self.green > rhs.green {
-            self.green - rhs.green
-        } else {
-            rhs.green - self.green
-        };
-        let b = if self.blue > rhs.blue {
-            self.blue - rhs.blue
-        } else {
-            rhs.blue - self.blue
-        };
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
-        } else {
-            rhs.alpha() - self.alpha()
-        };
-        Rgb::with_alpha(r, g, b, a)
-    }
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
-        self.red <= rhs.red
-            && self.green <= rhs.green
-            && self.blue <= rhs.blue
-            && self.alpha() <= rhs.alpha()
-    }
-}
-
-/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgb8 = Rgb<Ch8, Opaque<Ch8>, Straight, Linear>;
-/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgb16 = Rgb<Ch16, Opaque<Ch16>, Straight, Linear>;
-/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgb32 = Rgb<Ch32, Opaque<Ch32>, Straight, Linear>;
 
-/// [Rgb](struct.Rgb.html) 8-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 8-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba8 = Rgb<Ch8, Translucent<Ch8>, Straight, Linear>;
-/// [Rgb](struct.Rgb.html) 16-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 16-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba16 = Rgb<Ch16, Translucent<Ch16>, Straight, Linear>;
-/// [Rgb](struct.Rgb.html) 32-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 32-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba32 = Rgb<Ch32, Translucent<Ch32>, Straight, Linear>;
 
 /// [Rgb](struct.Rgb.html) 8-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba8p = Rgb<Ch8, Translucent<Ch8>, Premultiplied, Linear>;
 /// [Rgb](struct.Rgb.html) 16-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba16p = Rgb<Ch16, Translucent<Ch16>, Premultiplied, Linear>;
 /// [Rgb](struct.Rgb.html) 32-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [linear gamma](gamma/struct.Linear.html)
-/// pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Rgba32p = Rgb<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
 
 type SRgb<C, A> = Rgb<C, A, Straight, gamma::Srgb>;
-/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 8-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgb8 = SRgb<Ch8, Opaque<Ch8>>;
-/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 16-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgb16 = SRgb<Ch16, Opaque<Ch16>>;
-/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 32-bit [opaque](alpha/struct.Opaque.html) (no alpha)
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgb32 = SRgb<Ch32, Opaque<Ch32>>;
 
 type SRgba<C, A> = Rgb<C, A, Straight, gamma::Srgb>;
-/// [Rgb](struct.Rgb.html) 8-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 8-bit [straight](alpha/struct.Straight.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba8 = SRgba<Ch8, Translucent<Ch8>>;
-/// [Rgb](struct.Rgb.html) 16-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 16-bit [straight](alpha/struct.Straight.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba16 = SRgba<Ch16, Translucent<Ch16>>;
-/// [Rgb](struct.Rgb.html) 32-bit
-/// [straight alpha](alpha/struct.Straight.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [Rgb](struct.Rgb.html) 32-bit [straight](alpha/struct.Straight.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba32 = SRgba<Ch32, Translucent<Ch32>>;
 
 type SRgbap<C, A> = Rgb<C, A, Premultiplied, gamma::Srgb>;
 /// [Rgb](struct.Rgb.html) 8-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba8p = SRgbap<Ch8, Translucent<Ch8>>;
 /// [Rgb](struct.Rgb.html) 16-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba16p = SRgbap<Ch16, Translucent<Ch16>>;
 /// [Rgb](struct.Rgb.html) 32-bit
-/// [premultiplied alpha](alpha/struct.Premultiplied.html)
-/// [sRGB gamma](gamma/struct.Srgb.html) pixel [format](trait.Format.html).
+/// [premultiplied](alpha/struct.Premultiplied.html) alpha
+/// [sRGB](gamma/struct.Srgb.html) gamma [pixel](trait.Pixel.html) format.
 pub type SRgba32p = SRgbap<Ch32, Translucent<Ch32>>;
 
 #[cfg(test)]

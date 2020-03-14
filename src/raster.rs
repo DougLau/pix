@@ -3,7 +3,7 @@
 // Copyright (c) 2017-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::{Ch16, Ch8, Channel, Format};
+use crate::{Ch16, Ch8, Pixel};
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -23,8 +23,8 @@ use std::marker::PhantomData;
 /// # use pix::*;
 /// let r = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
 /// ```
-pub struct RasterBuilder<F: Format> {
-    _format: PhantomData<F>,
+pub struct RasterBuilder<P: Pixel> {
+    _pixel: PhantomData<P>,
 }
 
 /// Image arranged as a rectangular array of pixels.
@@ -35,10 +35,10 @@ pub struct RasterBuilder<F: Format> {
 /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(10, 10);
 /// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
-pub struct Raster<F: Format> {
+pub struct Raster<P: Pixel> {
     width: u32,
     height: u32,
-    pixels: Box<[F]>,
+    pixels: Box<[P]>,
 }
 
 /// `Iterator` for pixels within a [Raster](struct.Raster.html).
@@ -62,8 +62,8 @@ pub struct Raster<F: Format> {
 /// let region = gray.region().intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
 /// ```
-pub struct RasterIter<'a, F: Format> {
-    raster: &'a Raster<F>,
+pub struct RasterIter<'a, P: Pixel> {
+    raster: &'a Raster<P>,
     left: u32,
     right: u32,
     bottom: u32,
@@ -93,35 +93,35 @@ pub struct Region {
     height: u32,
 }
 
-impl<F: Format> Into<Box<[F]>> for Raster<F> {
+impl<P: Pixel> Into<Box<[P]>> for Raster<P> {
     /// Get internal pixel data as boxed slice.
-    fn into(self) -> Box<[F]> {
+    fn into(self) -> Box<[P]> {
         self.pixels
     }
 }
 
-impl<F: Format> Into<Vec<F>> for Raster<F> {
+impl<P: Pixel> Into<Vec<P>> for Raster<P> {
     /// Get internal pixel data as `Vec` of pixels.
-    fn into(self) -> Vec<F> {
+    fn into(self) -> Vec<P> {
         self.pixels.into()
     }
 }
 
-impl<F: Format> Default for RasterBuilder<F> {
+impl<P: Pixel> Default for RasterBuilder<P> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<F: Format> RasterBuilder<F> {
+impl<P: Pixel> RasterBuilder<P> {
     /// Create a new raster builder.
     ///
-    /// * `F` Pixel [Format](trait.Format.html).
+    /// * `P` [Pixel](trait.Pixel.html) format.
     pub fn new() -> Self {
-        let _format = PhantomData;
-        RasterBuilder { _format }
+        let _pixel = PhantomData;
+        RasterBuilder { _pixel }
     }
-    /// Build a `Raster` with all pixels clear.
+    /// Build a `Raster` with all pixels set to the default value.
     ///
     /// ## Examples
     /// ```
@@ -131,8 +131,8 @@ impl<F: Format> RasterBuilder<F> {
     /// let r3 = RasterBuilder::<SRgb16>::new().with_clear(10, 10);
     /// let r4 = RasterBuilder::<SGrayAlpha32>::new().with_clear(100, 250);
     /// ```
-    pub fn with_clear(self, width: u32, height: u32) -> Raster<F> {
-        self.with_color(width, height, F::default())
+    pub fn with_clear(self, width: u32, height: u32) -> Raster<P> {
+        self.with_color(width, height, P::default())
     }
     /// Build a `Raster` with all pixels set to one color.
     ///
@@ -142,7 +142,7 @@ impl<F: Format> RasterBuilder<F> {
     /// let clr = SRgb8::new(0x40, 0xAA, 0xBB);
     /// let r = RasterBuilder::<SRgb8>::new().with_color(15, 15, clr);
     /// ```
-    pub fn with_color(self, width: u32, height: u32, clr: F) -> Raster<F> {
+    pub fn with_color(self, width: u32, height: u32, clr: P) -> Raster<P> {
         let len = (width * height) as usize;
         let pixels = vec![clr; len].into_boxed_slice();
         Raster {
@@ -153,9 +153,7 @@ impl<F: Format> RasterBuilder<F> {
     }
     /// Build a `Raster` by copying another `Raster`.
     ///
-    /// * `C` Destination `Channel`.
-    /// * `H` Source `Channel`.
-    /// * `P` Source `Format`.
+    /// * `S` `Pixel` format of source `Raster`.
     ///
     /// ### Convert from Rgb8 to Rgba16
     /// ```
@@ -164,20 +162,18 @@ impl<F: Format> RasterBuilder<F> {
     /// // load pixels into raster
     /// let r1 = RasterBuilder::<SRgba16>::new().with_raster(&r0);
     /// ```
-    pub fn with_raster<C, H, P>(self, o: &Raster<P>) -> Raster<F>
+    pub fn with_raster<S>(self, src: &Raster<S>) -> Raster<P>
     where
-        C: Channel + From<H>,
-        H: Channel,
-        F: Format<Chan = C>,
-        P: Format<Chan = H>,
+        S: Pixel,
+        P::Chan: From<S::Chan>,
     {
-        let mut r = RasterBuilder::new().with_clear(o.width(), o.height());
-        let reg = o.region();
-        r.set_region(reg, o.region_iter(reg));
+        let mut r = RasterBuilder::new().with_clear(src.width(), src.height());
+        let reg = src.region();
+        r.set_region(reg, src.region_iter(reg));
         r
     }
     /// Build a `Raster` with owned pixel data.  You can get ownership of the
-    /// pixel data back from the `Raster` as either a `Vec<F>` or a `Box<[F]>`
+    /// pixel data back from the `Raster` as either a `Vec<P>` or a `Box<[P]>`
     /// by calling `into()`.
     ///
     /// * `B` Owned pixed type (`Vec` or boxed slice).
@@ -199,9 +195,9 @@ impl<F: Format> RasterBuilder<F> {
     /// r.set_region((2, 0, 1, 3), clr);           // make stripe
     /// let p2 = Into::<Vec<SRgb8>>::into(r);      // convert back to vec
     /// ```
-    pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<F>
+    pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<P>
     where
-        B: Into<Box<[F]>>,
+        B: Into<Box<[P]>>,
     {
         let len = (width * height) as usize;
         let pixels = pixels.into();
@@ -222,24 +218,24 @@ impl<F: Format> RasterBuilder<F> {
     /// # Panics
     ///
     /// Panics if `buffer` length is not equal to `width` * `height` *
-    /// `std::mem::size_of::<F>()`.
+    /// `std::mem::size_of::<P>()`.
     pub fn with_u8_buffer<B>(
         self,
         width: u32,
         height: u32,
         buffer: B,
-    ) -> Raster<F>
+    ) -> Raster<P>
     where
         B: Into<Box<[u8]>>,
-        F: Format<Chan = Ch8>,
+        P: Pixel<Chan = Ch8>,
     {
         let len = (width * height) as usize;
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
-        assert_eq!(len * std::mem::size_of::<F>(), capacity);
+        assert_eq!(len * std::mem::size_of::<P>(), capacity);
         let slice = std::boxed::Box::<[u8]>::into_raw(buffer);
-        let pixels: Box<[F]> = unsafe {
-            let ptr = (*slice).as_mut_ptr() as *mut F;
+        let pixels: Box<[P]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut P;
             let slice = std::slice::from_raw_parts_mut(ptr, len);
             Box::from_raw(slice)
         };
@@ -259,27 +255,27 @@ impl<F: Format> RasterBuilder<F> {
     /// # Panics
     ///
     /// Panics if `buffer` length is not equal to `width` * `height` *
-    /// `std::mem::size_of::<F>()`.
+    /// `std::mem::size_of::<P>()`.
     pub fn with_u16_buffer<B>(
         self,
         width: u32,
         height: u32,
         buffer: B,
-    ) -> Raster<F>
+    ) -> Raster<P>
     where
         B: Into<Box<[u16]>>,
-        F: Format<Chan = Ch16>,
+        P: Pixel<Chan = Ch16>,
     {
         let len = (width * height) as usize;
         let buffer: Box<[u16]> = buffer.into();
         let capacity = buffer.len();
         assert_eq!(
-            len * std::mem::size_of::<F>(),
+            len * std::mem::size_of::<P>(),
             capacity * std::mem::size_of::<u16>()
         );
         let slice = std::boxed::Box::<[u16]>::into_raw(buffer);
-        let pixels: Box<[F]> = unsafe {
-            let ptr = (*slice).as_mut_ptr() as *mut F;
+        let pixels: Box<[P]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut P;
             let slice = std::slice::from_raw_parts_mut(ptr, len);
             Box::from_raw(slice)
         };
@@ -291,7 +287,7 @@ impl<F: Format> RasterBuilder<F> {
     }
 }
 
-impl<F: Format> Raster<F> {
+impl<P: Pixel> Raster<P> {
     /// Get width of `Raster`.
     pub fn width(&self) -> u32 {
         self.width
@@ -301,22 +297,22 @@ impl<F: Format> Raster<F> {
         self.height
     }
     /// Get one pixel.
-    pub fn pixel(&self, x: u32, y: u32) -> F {
+    pub fn pixel(&self, x: u32, y: u32) -> P {
         let row = &self.as_slice_row(y);
         row[x as usize]
     }
     /// Set one pixel value.
-    pub fn set_pixel<P>(&mut self, x: u32, y: u32, p: P)
+    pub fn set_pixel<S>(&mut self, x: u32, y: u32, p: S)
     where
-        F: From<P>,
+        P: From<S>,
     {
         let row = &mut self.as_slice_row_mut(y);
         row[x as usize] = p.into();
     }
-    /// Clear all pixels to [Format](trait.Format.html) default.
+    /// Clear all pixels to format default.
     pub fn clear(&mut self) {
         for p in self.pixels.iter_mut() {
-            *p = F::default();
+            *p = P::default();
         }
     }
     /// Get `Region` of entire `Raster`.
@@ -326,7 +322,7 @@ impl<F: Format> Raster<F> {
     /// Get an `Iterator` of pixels within a `Region`.
     ///
     /// * `reg` Region within `Raster`.
-    pub fn region_iter<R>(&self, reg: R) -> RasterIter<F>
+    pub fn region_iter<R>(&self, reg: R) -> RasterIter<P>
     where
         R: Into<Region>,
     {
@@ -360,14 +356,12 @@ impl<F: Format> Raster<F> {
     /// // Regions must have the same shape!
     /// rgb.set_region(dst, gray.region_iter(src));
     /// ```
-    pub fn set_region<C, R, I, P, H>(&mut self, reg: R, mut it: I)
+    pub fn set_region<R, S, I>(&mut self, reg: R, mut it: I)
     where
-        F: Format<Chan = C>,
-        C: Channel + From<H>,
-        H: Channel,
-        P: Format<Chan = H>,
         R: Into<Region>,
-        I: Iterator<Item = P>,
+        S: Pixel,
+        P::Chan: From<S::Chan>,
+        I: Iterator<Item = S>,
     {
         let reg = reg.into();
         let x0 = if reg.x >= 0 {
@@ -395,22 +389,22 @@ impl<F: Format> Raster<F> {
         }
     }
     /// Get view of pixels as a slice.
-    pub fn as_slice(&self) -> &[F] {
+    pub fn as_slice(&self) -> &[P] {
         &self.pixels
     }
     /// Get view of pixels as a mutable slice.
-    pub fn as_slice_mut(&mut self) -> &mut [F] {
+    pub fn as_slice_mut(&mut self) -> &mut [P] {
         &mut self.pixels
     }
     /// Get view of a row of pixels as a slice.
-    pub fn as_slice_row(&self, y: u32) -> &[F] {
+    pub fn as_slice_row(&self, y: u32) -> &[P] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
         &self.pixels[s..t]
     }
     /// Get view of a row of pixels as a mutable slice.
-    pub fn as_slice_row_mut(&mut self, y: u32) -> &mut [F] {
+    pub fn as_slice_row_mut(&mut self, y: u32) -> &mut [P] {
         debug_assert!(y < self.height);
         let s = (y * self.width) as usize;
         let t = s + self.width as usize;
@@ -424,7 +418,7 @@ impl<F: Format> Raster<F> {
         Self::u8_slice(&self.pixels[s..t])
     }
     /// Get view of a pixel slice as a `u8` slice.
-    fn u8_slice(pix: &[F]) -> &[u8] {
+    fn u8_slice(pix: &[P]) -> &[u8] {
         unsafe { pix.align_to::<u8>().1 }
     }
     /// Get view of pixels as a `u8` slice.
@@ -432,7 +426,7 @@ impl<F: Format> Raster<F> {
         Self::u8_slice(&self.pixels)
     }
     /// Get view of a pixel slice as a mutable `u8` slice.
-    fn u8_slice_mut(pix: &mut [F]) -> &mut [u8] {
+    fn u8_slice_mut(pix: &mut [P]) -> &mut [u8] {
         unsafe { pix.align_to_mut::<u8>().1 }
     }
     /// Get view of pixels as a mutable `u8` slice.
@@ -441,11 +435,11 @@ impl<F: Format> Raster<F> {
     }
 }
 
-impl<'a, F: Format> RasterIter<'a, F> {
+impl<'a, P: Pixel> RasterIter<'a, P> {
     /// Create a new `Raster` pixel `Iterator`.
     ///
     /// * `region` Region of pixels to iterate.
-    fn new(raster: &'a Raster<F>, region: Region) -> Self {
+    fn new(raster: &'a Raster<P>, region: Region) -> Self {
         let y = u32::try_from(region.y).unwrap_or(0);
         let bottom = u32::try_from(region.bottom()).unwrap_or(0);
         let x = u32::try_from(region.x).unwrap_or(0);
@@ -462,8 +456,8 @@ impl<'a, F: Format> RasterIter<'a, F> {
     }
 }
 
-impl<'a, F: Format> Iterator for RasterIter<'a, F> {
-    type Item = F;
+impl<'a, P: Pixel> Iterator for RasterIter<'a, P> {
+    type Item = P;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.x >= self.right {

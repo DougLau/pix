@@ -1,11 +1,11 @@
-// mask.rs      Alpha mask pixel format.
+// mask.rs      Alpha mask color model.
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{AChannel, Premultiplied, Straight, Translucent};
 use crate::gamma::{self, Linear};
-use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Format, Gray, Rgb};
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Gray, Pixel, Rgb};
 use std::ops::Mul;
 
 /// [Translucent] alpha mask [color model].
@@ -27,15 +27,53 @@ impl<C: Channel> Mask<C> {
         let alpha = C::from(alpha).into();
         Mask { alpha }
     }
-    /// Get the alpha value.
-    pub fn alpha(self) -> C {
-        self.alpha.value()
-    }
 }
 
 impl<C: Channel> ColorModel for Mask<C> {
-    /// `Mask` contains 1 channel (*alpha*)
-    const NUM_CHANNELS: usize = 1;
+    type Chan = C;
+
+    /// Get all non-alpha components
+    fn components(&self) -> &[Self::Chan] {
+        &[]
+    }
+
+    /// Get the *alpha* component
+    fn alpha(self) -> Self::Chan {
+        self.alpha.value()
+    }
+
+    /// Convert to *red*, *green*, *blue* and *alpha* components
+    fn to_rgba(self) -> [Self::Chan; 4] {
+        [C::MAX, C::MAX, C::MAX, self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        Mask::new(rgba[3])
+    }
+
+    /// Get channel-wise difference
+    fn difference(self, rhs: Self) -> Self {
+        let a = if self.alpha() > rhs.alpha() {
+            self.alpha() - rhs.alpha()
+        } else {
+            rhs.alpha() - self.alpha()
+        };
+        Mask::new(a)
+    }
+
+    /// Check if all `Channel`s are within threshold
+    fn within_threshold(self, rhs: Self) -> bool {
+        self.alpha() <= rhs.alpha()
+    }
+}
+
+impl<C> Pixel for Mask<C>
+where
+    C: Channel,
+{
+    type Alpha = Straight;
+    type Gamma = Linear;
 }
 
 impl<C: Channel> Iterator for Mask<C> {
@@ -135,51 +173,16 @@ impl<C: Channel> Mul<Self> for Mask<C> {
     }
 }
 
-impl<C> Format for Mask<C>
-where
-    C: Channel,
-{
-    type Chan = C;
-    type Alpha = Straight;
-    type Gamma = Linear;
-
-    /// Get *red*, *green*, *blue* and *alpha* `Channel`s
-    fn rgba(self) -> [Self::Chan; 4] {
-        [C::MAX, C::MAX, C::MAX, self.alpha()]
-    }
-
-    /// Make a pixel with given RGBA `Channel`s
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let alpha = rgba[3];
-        Mask::new(alpha)
-    }
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
-        } else {
-            rhs.alpha() - self.alpha()
-        };
-        Mask::new(a)
-    }
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
-        self.alpha() <= rhs.alpha()
-    }
-}
-
-/// [Translucent](alpha/struct.Translucent.html) 8-bit alpha
-/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
+/// [Mask](struct.Mask.html) 8-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Mask8 = Mask<Ch8>;
 
-/// [Translucent](alpha/struct.Translucent.html) 16-bit alpha
-/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
+/// [Mask](struct.Mask.html) 16-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Mask16 = Mask<Ch16>;
 
-/// [Translucent](alpha/struct.Translucent.html) 32-bit alpha
-/// [Mask](struct.Mask.html) pixel [Format](trait.Format.html).
+/// [Mask](struct.Mask.html) 32-bit [straight](alpha/struct.Straight.html) alpha
+/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type Mask32 = Mask<Ch32>;
 
 #[cfg(test)]

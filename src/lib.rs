@@ -3,23 +3,32 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! A library for pixels and raster images.
+//! Pixel and raster image library.
 //!
-//! A [raster] is a rectangular array of pixels whose [format] is parameterized
-//! by [channel], [alpha mode], [gamma mode] and color model.
+//! A [raster] is a rectangular array of [pixel]s whose format is parameterized
+//! by [color model], [channel], [alpha mode] and [gamma mode].
 //!
 //! [alpha mode]: alpha/trait.Mode.html
 //! [channel]: trait.Channel.html
-//! [format]: trait.Format.html
+//! [color model]: trait.ColorModel.html
 //! [gamma mode]: gamma/trait.Mode.html
+//! [pixel]: trait.Pixel.html
 //! [raster]: struct.Raster.html
+//!
+//! ### Example: Convert Raster Format
+//! ```
+//! # use pix::*;
+//! let mut src = RasterBuilder::<SRgb8>::new().with_clear(120, 120);
+//! // ... load pixels into raster
+//! let dst: Raster<Rgba8p> = RasterBuilder::new().with_raster(&src);
+//! ```
 //!
 #![warn(missing_docs)]
 #![warn(missing_doc_code_examples)]
 
 pub mod alpha;
 mod channel;
-mod format;
+mod pixel;
 pub mod gamma;
 mod gray;
 mod mask;
@@ -30,7 +39,7 @@ mod raster;
 mod rgb;
 
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
-pub use crate::format::Format;
+pub use crate::pixel::Pixel;
 pub use crate::gray::{
     Gray, Gray16, Gray32, Gray8, GrayAlpha16, GrayAlpha16p, GrayAlpha32,
     GrayAlpha32p, GrayAlpha8, GrayAlpha8p, SGray16, SGray32, SGray8,

@@ -34,7 +34,7 @@ pub trait AChannel:
 /// [Alpha channel](trait.AChannel.html) for fully opaque pixels and
 /// [Raster](../struct.Raster.html)s.
 ///
-/// Pixel [Format](../trait.Format.html)s with `Opaque` alpha channels take less
+/// [Pixel](../trait.Pixel.html) formats with `Opaque` alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Opaque<C> {

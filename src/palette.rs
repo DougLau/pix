@@ -2,28 +2,28 @@
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 //
-use crate::{Ch8, Format};
+use crate::{Ch8, Pixel};
 
 /// Color table for use with indexed `Raster`s.
 #[derive(Clone)]
-pub struct Palette<F>
+pub struct Palette<P>
 where
-    F: Format<Chan = Ch8>,
+    P: Pixel<Chan = Ch8>,
 {
-    table: Vec<F>,
-    threshold_fn: fn(usize) -> F,
+    table: Vec<P>,
+    threshold_fn: fn(usize) -> P,
 }
 
-impl<F> Palette<F>
+impl<P> Palette<P>
 where
-    F: Format<Chan = Ch8>,
+    P: Pixel<Chan = Ch8>,
 {
     /// Create a new color `Palette`.
     ///
     /// * `capacity` Maximum number of entries.
     pub fn new(capacity: usize) -> Self {
         let table = Vec::with_capacity(capacity);
-        let threshold_fn = |_| F::default();
+        let threshold_fn = |_| P::default();
         Palette {
             table,
             threshold_fn,
@@ -43,11 +43,11 @@ where
     ///                  existing entry.  The parameter is the palette table
     ///                  size.  Returns the maximum `Channel`-wise difference
     ///                  to match.
-    pub fn set_threshold_fn(&mut self, threshold_fn: fn(usize) -> F) {
+    pub fn set_threshold_fn(&mut self, threshold_fn: fn(usize) -> P) {
         self.threshold_fn = threshold_fn;
     }
     /// Get view of a color slice as a `u8` slice.
-    fn u8_slice(colors: &[F]) -> &[u8] {
+    fn u8_slice(colors: &[P]) -> &[u8] {
         unsafe { colors.align_to::<u8>().1 }
     }
     /// Get view of `Palette` as a `u8` slice.
@@ -57,7 +57,7 @@ where
     /// Get a `Palette` entry.
     ///
     /// * `i` Index of entry.
-    pub fn entry(&self, i: usize) -> Option<F> {
+    pub fn entry(&self, i: usize) -> Option<P> {
         if i < self.table.len() {
             Some(self.table[i])
         } else {
@@ -74,7 +74,7 @@ where
     /// # Returns
     /// Index of best matching or added entry if successful.  Otherwise, when
     /// no matches are found and the table is full, `None` is returned.
-    pub fn set_entry(&mut self, clr: F) -> Option<usize> {
+    pub fn set_entry(&mut self, clr: P) -> Option<usize> {
         if let Some((i, dif)) = self.best_match(clr) {
             if dif.within_threshold((self.threshold_fn)(self.table.len())) {
                 return Some(i);
@@ -91,7 +91,7 @@ where
     /// Find the best match for a color.
     ///
     /// The first of equal matches will be returned.
-    fn best_match(&self, clr: F) -> Option<(usize, F)> {
+    fn best_match(&self, clr: P) -> Option<(usize, P)> {
         let mut best = None;
         for (i, c) in self.table.iter().enumerate() {
             let dif = clr.difference(*c);
@@ -111,7 +111,7 @@ where
     ///
     /// # Returns
     /// Previous entry, or `None` if index is larger than table size.
-    pub fn replace_entry(&mut self, i: usize, clr: F) -> Option<F> {
+    pub fn replace_entry(&mut self, i: usize, clr: P) -> Option<P> {
         if i < self.table.len() {
             let old = self.table[i];
             self.table[i] = clr;
