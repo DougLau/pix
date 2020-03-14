@@ -9,15 +9,16 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Sub};
 
-/// One *component* of a pixel [Format](trait.Format.html).
+/// A [color model] *component* which determines *bit depth*.
 ///
-/// For example, in [Rgb](struct.Rgb.html) there are *red*, *green* and *blue*
-/// `Channel`s.
-///
-/// Defined `Channel`s are [Ch8](struct.Ch8.html), [Ch16](struct.Ch16.html)
-/// and [Ch32](struct.Ch32.html).
+/// Existing `Channel`s are [Ch8], [Ch16] and [Ch32].
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
+///
+/// [Ch8]: struct.Ch8.html
+/// [Ch16]: struct.Ch16.html
+/// [Ch32]: struct.Ch32.html
+/// [color model]: trait.ColorModel.html
 pub trait Channel:
     Any
     + Copy
@@ -357,8 +358,8 @@ impl From<Ch32> for Ch8 {
     fn from(c: Ch32) -> Self {
         let value = c.0;
         debug_assert!(value >= 0.0 && value <= 1.0);
-        // cast is not UB since the value is guaranteed to
-        // be between 0.0 and 1.0 (see bug #10184)
+        // this cast is not UB since the value is guaranteed
+        // to be between 0.0 and 1.0 (see bug #10184)
         Ch8::new((value * 255.0).round() as u8)
     }
 }
@@ -367,8 +368,8 @@ impl From<Ch32> for Ch16 {
     fn from(c: Ch32) -> Self {
         let value = c.0;
         debug_assert!(value >= 0.0 && value <= 1.0);
-        // cast is not UB since the value is guaranteed to
-        // be between 0.0 and 1.0 (see bug #10184)
+        // this cast is not UB since the value is guaranteed
+        // to be between 0.0 and 1.0 (see bug #10184)
         Ch16::new((value * 65535.0).round() as u16)
     }
 }
