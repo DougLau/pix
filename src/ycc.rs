@@ -14,7 +14,9 @@ use std::ops::Mul;
 // FIXME: It seems like whether or not YCbCr is in the linear colorspace is
 // undefined, so probably add an SYCbCr type.
 
-/// YCbCr [color model].
+/// YCbCr (ITU601 / ITU-T 709 / ITU-T T.871) [color model].
+///
+/// Video cameras and JPEGS use this format.
 ///
 /// The components are *y*, *cb* and *cr*, with optional *[alpha]*.
 ///
@@ -63,9 +65,9 @@ where
         let cb = self.cb();
         let cr = self.cr();
 
-        let r = y + 1.402 * (cr - 128.0);
-        let g = y - 0.344136 * (cb - 128.0) - 0.714136 * (cr - 128.0);
-        let b = y + 1.772 * (cb - 128.0);
+        let r = y + 1.402 * (cr - 0.5);
+        let g = y - 0.344136 * (cb - 0.5) - 0.714136 * (cr - 0.5);
+        let b = y + 1.772 * (cb - 0.5);
         [r as u8, g as u8, b as u8, 255]*/
         todo!()
     }
@@ -80,8 +82,8 @@ where
         let alpha = rgba[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
-        let cb = 128.0 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
-        let cr = 128.0 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
+        let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
+        let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
 
         YCbCr::with_alpha(y, cb, cr, alpha)*/
         todo!()
@@ -367,9 +369,9 @@ mod test {
         assert_eq!(std::mem::size_of::<YCbCr8>(), 3);
         assert_eq!(std::mem::size_of::<YCbCr16>(), 6);
         assert_eq!(std::mem::size_of::<YCbCr32>(), 12);
-        assert_eq!(std::mem::size_of::<YCbCra8>(), 4);
-        assert_eq!(std::mem::size_of::<YCbCra16>(), 8);
-        assert_eq!(std::mem::size_of::<YCbCra32>(), 16);
+        assert_eq!(std::mem::size_of::<YCbCrAlpha8>(), 4);
+        assert_eq!(std::mem::size_of::<YCbCrAlpha16>(), 8);
+        assert_eq!(std::mem::size_of::<YCbCrAlpha32>(), 16);
     }
 
     #[test]
