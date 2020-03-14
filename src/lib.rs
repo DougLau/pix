@@ -37,6 +37,8 @@ mod palette;
 mod private;
 mod raster;
 mod rgb;
+mod hsv;
+mod ycc;
 
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::pixel::Pixel;
@@ -54,4 +56,11 @@ pub use crate::rgb::{
     Rgb, Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
     SRgba8p,
+};
+pub use crate::hsv::{
+    Hsv, Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
+};
+pub use crate::ycc::{
+    YCbCr, YCbCr16, YCbCr32, YCbCr8, YCbCrAlpha16, YCbCrAlpha16p, YCbCrAlpha32,
+    YCbCrAlpha32p, YCbCrAlpha8, YCbCrAlpha8p,
 };
