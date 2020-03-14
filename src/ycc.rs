@@ -11,9 +11,6 @@ use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-// FIXME: It seems like whether or not YCbCr is in the linear colorspace is
-// undefined, so probably add an SYCbCr type.
-
 /// YCbCr (ITU601 / ITU-T 709 / ITU-T T.871) [color model].
 ///
 /// Video cameras and JPEGS use this format.
