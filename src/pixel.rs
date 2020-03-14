@@ -126,9 +126,7 @@ where
     D: Pixel,
 {
     // Convert to linear gamma
-    for c in components.iter_mut() {
-        *c = S::Gamma::to_linear(*c);
-    }
+    components.iter_mut().for_each(|c| *c = S::Gamma::to_linear(*c));
     if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
         for c in components.iter_mut() {
             // Decode source alpha
@@ -138,9 +136,7 @@ where
         }
     }
     // Convert to destination gamma
-    for c in components.iter_mut() {
-        *c = D::Gamma::from_linear(*c);
-    }
+    components.iter_mut().for_each(|c| *c = D::Gamma::from_linear(*c));
 }
 
 #[cfg(test)]
