@@ -1,7 +1,7 @@
 // hsv.rs       HSV color model.
 //
-// Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
+// Copyright (c) 2020  Douglas P Lau
 //
 use crate::alpha::{
     self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
@@ -42,7 +42,7 @@ where
 {
     type Chan = C;
 
-    /// Get all non-alpha components
+    /// Get all components affected by alpha/gamma
     fn components(&self) -> &[Self::Chan] {
         &self.components
     }
@@ -323,7 +323,7 @@ where
     G: gamma::Mode,
 {
     /// Create an [Opaque](alpha/struct.Opaque.html) color by specifying *hue*,
-    /// *saturation* and *value* values.
+    /// *saturation* and *value*.
     pub fn new<H>(hue: H, saturation: H, value: H) -> Self
     where
         C: From<H>,

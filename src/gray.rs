@@ -96,7 +96,7 @@ where
 {
     type Chan = C;
 
-    /// Get all non-alpha components
+    /// Get all components affected by alpha/gamma
     fn components(&self) -> &[Self::Chan] {
         &self.components
     }

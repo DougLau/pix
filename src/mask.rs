@@ -24,7 +24,7 @@ impl<C: Channel> Mask<C> {
     where
         C: From<A>,
     {
-        let alpha = C::from(alpha).into();
+        let alpha = Translucent::new(C::from(alpha));
         Mask { alpha }
     }
 }
@@ -32,7 +32,7 @@ impl<C: Channel> Mask<C> {
 impl<C: Channel> ColorModel for Mask<C> {
     type Chan = C;
 
-    /// Get all non-alpha components
+    /// Get all components affected by alpha/gamma
     fn components(&self) -> &[Self::Chan] {
         &[]
     }

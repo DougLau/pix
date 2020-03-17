@@ -14,7 +14,7 @@ pub trait ColorModel: Sealed {
     /// Component `Channel` type
     type Chan: Channel;
 
-    /// Get all non-alpha components
+    /// Get all components affected by alpha/gamma
     fn components(&self) -> &[Self::Chan];
 
     /// Get the *alpha* component
