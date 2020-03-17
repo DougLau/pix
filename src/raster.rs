@@ -506,19 +506,17 @@ impl Region {
     /// Get right side
     fn right(self) -> i32 {
         let x = i64::from(self.x) + i64::from(self.width);
-        if x < std::i32::MAX.into() {
-            x as i32
-        } else {
-            self.x
+        match i32::try_from(x) {
+            Ok(x) => x,
+            _ => self.x,
         }
     }
     /// Get bottom side
     fn bottom(self) -> i32 {
         let y = i64::from(self.y) + i64::from(self.height);
-        if y < std::i32::MAX.into() {
-            y as i32
-        } else {
-            self.y
+        match i32::try_from(y) {
+            Ok(y) => y,
+            _ => self.y,
         }
     }
 }
@@ -562,10 +560,10 @@ mod test {
             1.0, 0.75, 0.5, 0.25,
         ]
         .iter()
-        .map(|p| Mask::new(Ch32::new(*p)))
+        .map(|p| Mask::new(*p))
         .collect();
         let mut r = RasterBuilder::<Mask32>::new().with_pixels(4, 4, p);
-        let clr = Mask32::new(Ch32::new(0.05));
+        let clr = Mask32::new(0.05);
         r.set_region((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
             0.25, 0.5, 0.75, 1.0,
@@ -574,7 +572,7 @@ mod test {
             1.0, 0.75, 0.5, 0.25,
         ]
         .iter()
-        .map(|p| Mask::new(Ch32::new(*p)))
+        .map(|p| Mask::new(*p))
         .collect();
         let r2 = RasterBuilder::<Mask32>::new().with_pixels(4, 4, v);
         assert_eq!(r.as_slice(), r2.as_slice());
