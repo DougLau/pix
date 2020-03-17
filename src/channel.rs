@@ -25,6 +25,7 @@ pub trait Channel:
     + Debug
     + Default
     + From<f32>
+    + Into<f32>
     + Ord
     + Add<Output = Self>
     + Div<Output = Self>
@@ -40,6 +41,12 @@ pub trait Channel:
 
     /// Raise to given power
     fn powf(self, g: f32) -> Self;
+
+    /// Wrapping addition
+    fn wrapping_add(self, rhs: Self) -> Self;
+
+    /// Wrapping subtraction
+    fn wrapping_sub(self, rhs: Self) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -118,11 +125,29 @@ impl Channel for Ch8 {
         let v = f32::from(Ch32::from(self)).powf(g);
         Ch32::new(v).into()
     }
+
+    /// Wrapping addition
+    fn wrapping_add(self, rhs: Self) -> Self {
+        let v = self.0.wrapping_add(rhs.0);
+        Self::new(v)
+    }
+
+    /// Wrapping subtraction
+    fn wrapping_sub(self, rhs: Self) -> Self {
+        let v = self.0.wrapping_sub(rhs.0);
+        Self::new(v)
+    }
 }
 
 impl From<u8> for Ch8 {
     fn from(value: u8) -> Self {
         Ch8(value)
+    }
+}
+
+impl From<Ch8> for u8 {
+    fn from(c: Ch8) -> u8 {
+        c.0
     }
 }
 
@@ -132,9 +157,9 @@ impl From<f32> for Ch8 {
     }
 }
 
-impl From<Ch8> for u8 {
-    fn from(c: Ch8) -> u8 {
-        c.0
+impl From<Ch8> for f32 {
+    fn from(c: Ch8) -> f32 {
+        Ch32::from(c).into()
     }
 }
 
@@ -214,6 +239,18 @@ impl Channel for Ch16 {
         let v = f32::from(Ch32::from(self)).powf(g);
         Ch32::new(v).into()
     }
+
+    /// Wrapping addition
+    fn wrapping_add(self, rhs: Self) -> Self {
+        let v = self.0.wrapping_add(rhs.0);
+        Self::new(v)
+    }
+
+    /// Wrapping subtraction
+    fn wrapping_sub(self, rhs: Self) -> Self {
+        let v = self.0.wrapping_sub(rhs.0);
+        Self::new(v)
+    }
 }
 
 impl From<Ch8> for Ch16 {
@@ -232,6 +269,12 @@ impl From<u16> for Ch16 {
 impl From<f32> for Ch16 {
     fn from(value: f32) -> Self {
         Ch32::new(value).into()
+    }
+}
+
+impl From<Ch16> for f32 {
+    fn from(c: Ch16) -> f32 {
+        Ch32::from(c).into()
     }
 }
 
@@ -333,6 +376,26 @@ impl Channel for Ch32 {
     /// Raise to given power
     fn powf(self, g: f32) -> Self {
         Ch32::new(self.0.powf(g))
+    }
+
+    /// Wrapping addition
+    fn wrapping_add(self, rhs: Self) -> Self {
+        let v = self.0 + rhs.0;
+        if v <= 1.0 {
+            Self::new(v)
+        } else {
+            Self::new(v - 1.0)
+        }
+    }
+
+    /// Wrapping subtraction
+    fn wrapping_sub(self, rhs: Self) -> Self {
+        let v = self.0 - rhs.0;
+        if v >= 0.0 {
+            Self::new(v)
+        } else {
+            Self::new(v + 1.0)
+        }
     }
 }
 
@@ -449,12 +512,8 @@ mod test {
             let c16: Ch16 = c8.into();
             assert_eq!(c8, c16.into());
         }
-        assert_eq!(Ch16::new(0), Ch8::new(0).into());
         assert_eq!(Ch8::new(128), Ch16::new(32768).into());
-        assert_eq!(Ch16::new(65535), Ch8::new(255).into());
-        assert_eq!(Ch32::new(0.0), Ch8::new(0).into());
         assert_eq!(Ch8::new(128), Ch32::new(0.5).into());
-        assert_eq!(Ch32::new(1.0), Ch8::new(255).into());
     }
     #[test]
     fn ch16_into() {
@@ -462,6 +521,8 @@ mod test {
         assert_eq!(Ch16::new(32768), 32768.into());
         assert_eq!(Ch16::new(16384), 16384.into());
         assert_eq!(Ch16::new(8192), 8192.into());
+        assert_eq!(Ch16::new(0), Ch8::new(0).into());
+        assert_eq!(Ch16::new(65535), Ch8::new(255).into());
     }
     #[test]
     fn ch32_into() {
@@ -469,6 +530,8 @@ mod test {
         assert_eq!(Ch32::new(0.5), 0.5.into());
         assert_eq!(Ch32::new(0.25), 0.25.into());
         assert_eq!(Ch32::new(0.125), 0.125.into());
+        assert_eq!(Ch32::new(0.0), Ch8::new(0).into());
+        assert_eq!(Ch32::new(1.0), Ch8::new(255).into());
     }
     #[test]
     fn ch8_mul() {

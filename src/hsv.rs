@@ -11,6 +11,57 @@ use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
+/// Hexcone for color hue
+#[derive(Clone, Copy, Debug)]
+enum Hexcone {
+    Red, // 0
+    Yellow, // 1
+    Green, // 2
+    Cyan, // 3
+    Blue, // 4
+    Magenta, // 5
+}
+
+impl Hexcone {
+    /// Look up a Hexcone value from hue'
+    ///
+    /// * `hp` Hue / 60 degrees (ranging from 0.0 to 6.0)
+    fn from_hue_prime(hp: f32) -> Self {
+        use Hexcone::*;
+        let h = hp as i32; // 0..=6
+        match h {
+            1 => Yellow,
+            2 => Green,
+            3 => Cyan,
+            4 => Blue,
+            5 => Magenta,
+            _ => Red,
+        }
+    }
+
+    /// Get the secondary component (after chroma)
+    fn secondary<C: Channel>(self, hp: f32, chroma: C) -> C {
+        use Hexcone::*;
+        match self {
+            Red | Green | Blue => chroma * C::from(hp.fract()),
+            _ => chroma * (C::MAX - C::from(hp.fract())),
+        }
+    }
+
+    /// Get base red, green and blue components
+    fn rgb<C: Channel>(self, chroma: C, secondary: C) -> (C, C, C) {
+        use Hexcone::*;
+        match self {
+            Red => (chroma, secondary, C::MIN),
+            Yellow => (secondary, chroma, C::MIN),
+            Green => (C::MIN, chroma, secondary),
+            Cyan => (C::MIN, secondary, chroma),
+            Blue => (secondary, C::MIN, chroma),
+            Magenta => (chroma, C::MIN, secondary),
+        }
+    }
+}
+
 /// HSV hexcone [color model].
 ///
 /// The components are *hue*, *saturation* and *value*, with optional *[alpha]*.
@@ -27,7 +78,8 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    components: [C; 3],
+    hue: C,
+    components: [C; 2],
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -54,59 +106,35 @@ where
 
     /// Convert to *red*, *green*, *blue* and *alpha* components
     fn to_rgba(self) -> [Self::Chan; 4] {
-        // Convert HSV to Linear RGBA
-        // FIXME
-        /*let fh = self.hue() * 6.0; // Get range 0-6
-        let h = fh as i8; // int 0-6
-        let s = self.saturation();
         let v = self.value();
-        let alpha = self.alpha();
-
-        if s == 0 {
-            // if saturation is 0, then it's gray
-            return [v, v, v, alpha];
-        }
-
-        let f = fh - (h as f32); // get difference from rounding to 0-6
-        let p = v * (1.0 - s);
-        let q = v * (1.0 - s * f);
-        let t = v * (1.0 - s * (1.0 - f));
-
-        let (red, green, blue) = match h {
-            1 => (q, v, p),
-            2 => (p, v, t),
-            3 => (p, q, v),
-            4 => (t, p, v),
-            5 => (v, p, q),
-            _ => (v, t, p), // 0 or 6
-        };
-
-        [red, green, blue, alpha]*/
-        todo!()
+        let chroma = v * self.saturation();
+        let hp = self.hue().into() * 6.0; // 0.0..=6.0
+        let hc = Hexcone::from_hue_prime(hp);
+        let secondary = hc.secondary(hp, chroma);
+        let (red, green, blue) = hc.rgb(chroma, secondary);
+        let m = v - chroma;
+        [red + m, green + m, blue + m, self.alpha()]
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        // Linear RGBA to HSV
-        // FIXME
-        /*let red = rgba[0];
+        let red = rgba[0];
         let green = rgba[1];
         let blue = rgba[2];
         let alpha = rgba[3];
 
-        let max = red.max(green).max(blue);
+        let val = red.max(green).max(blue);
         let min = red.min(green).min(blue);
-        let delta = max - min;
+        let chroma = val - min;
 
-        let hue = if delta != 0.0 {
-            let mut hue = if red == max {
-                (green - blue) / delta
-            } else if green == max {
-                2.0 + (blue - red) / delta
+        let hue = if chroma > C::MIN {
+            let mut hue = if val == red {
+                green.into() - blue.into()
+            } else if green == val {
+                2.0 + blue.into() - red.into()
             } else {
-                4.0 + (red - green) / delta
-            };
-
+                4.0 + red.into() - green.into()
+            } / chroma.into();
             if hue < 0.0 {
                 hue += 6.0;
             }
@@ -114,12 +142,13 @@ where
         } else {
             0.0
         };
-
-        let sat = if max == 0.0 { 0.0 } else { (max - min) / max };
-        let val = max;
-
-        Hsv::with_alpha(hue, sat, val, alpha)*/
-        todo!()
+        let hue = C::from(hue);
+        let sat = if val > C::MIN {
+            chroma / val
+        } else {
+            C::MIN
+        };
+        Hsv::with_alpha(hue, sat, val, alpha)
     }
 
     /// Get channel-wise difference
@@ -341,9 +370,10 @@ where
         let hue = C::from(hue);
         let saturation = C::from(saturation);
         let value = C::from(value);
-        let components = [hue, saturation, value];
+        let components = [saturation, value];
         let alpha = A::from(alpha);
         Hsv {
+            hue,
             components,
             alpha,
             mode: PhantomData,
@@ -352,15 +382,15 @@ where
     }
     /// Get the hue component.
     pub fn hue(self) -> C {
-        self.components[0]
+        self.hue
     }
     /// Get the saturation component.
     pub fn saturation(self) -> C {
-        self.components[1]
+        self.components[0]
     }
     /// Get the value component.
     pub fn value(self) -> C {
-        self.components[2]
+        self.components[1]
     }
 }
 
@@ -399,6 +429,7 @@ pub type Hsva32p = Hsv<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {
+    use super::super::*;
     use super::*;
 
     #[test]
@@ -409,6 +440,62 @@ mod test {
         assert_eq!(std::mem::size_of::<Hsva8>(), 4);
         assert_eq!(std::mem::size_of::<Hsva16>(), 8);
         assert_eq!(std::mem::size_of::<Hsva32>(), 16);
+    }
+
+    #[test]
+    fn convert_to_rgb() {
+        assert_eq!(Rgb8::new(255, 0, 0), Hsv8::new(0, 255, 255).convert());
+        assert_eq!(
+            Rgb8::new(255, 255, 0),
+            Hsv32::new(60.0 / 360.0, 1.0, 1.0).convert(),
+        );
+        assert_eq!(
+            Rgb8::new(0, 255, 0),
+            Hsv32::new(120.0 / 360.0, 1.0, 1.0).convert(),
+        );
+        assert_eq!(
+            Rgb8::new(0, 255, 0),
+            Hsv16::new(21845, 65535, 65535).convert(),
+        );
+        assert_eq!(Rgb8::new(0, 255, 255), Hsv32::new(0.5, 1.0, 1.0).convert());
+        assert_eq!(
+            Rgb8::new(0, 0, 255),
+            Hsv32::new(240.0 / 360.0, 1.0, 1.0).convert(),
+        );
+        assert_eq!(
+            Rgb8::new(255, 0, 255),
+            Hsv32::new(300.0 / 360.0, 1.0, 1.0).convert(),
+        );
+        assert_eq!(Rgb8::new(255, 255, 255), Hsv8::new(0, 0, 255).convert());
+        assert_eq!(Rgb8::new(128, 128, 128), Hsv8::new(100, 0, 128).convert());
+    }
+
+    #[test]
+    fn convert_from_rgb() {
+        assert_eq!(Hsv8::new(0, 255, 255), Rgb8::new(255, 0, 0).convert());
+        assert_eq!(
+            Hsv32::new(60.0 / 360.0, 1.0, 1.0),
+            Rgb8::new(255, 255, 0).convert(),
+        );
+        assert_eq!(
+            Hsv32::new(120.0 / 360.0, 1.0, 1.0),
+            Rgb8::new(0, 255, 0).convert(),
+        );
+        assert_eq!(
+            Hsv16::new(21845, 65535, 65535),
+            Rgb8::new(0, 255, 0).convert(),
+        );
+        assert_eq!(Hsv32::new(0.5, 1.0, 1.0), Rgb8::new(0, 255, 255).convert());
+        assert_eq!(
+            Hsv32::new(240.0 / 360.0, 1.0, 1.0),
+            Rgb8::new(0, 0, 255).convert(),
+        );
+        assert_eq!(
+            Hsv32::new(300.0 / 360.0, 1.0, 1.0),
+            Rgb8::new(255, 0, 255).convert(),
+        );
+        assert_eq!(Hsv8::new(0, 0, 255), Rgb8::new(255, 255, 255).convert());
+        assert_eq!(Hsv8::new(0, 0, 128), Rgb8::new(128, 128, 128).convert());
     }
 
     #[test]
