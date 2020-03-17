@@ -12,7 +12,7 @@ Currently a work-in-progress.
 * Tristimulus, additive, subtractive, cylindrical
 * RGB: additive
 * CMYK: subtractive
-* HSV / HSL: cylindrical
+* HSV / HSL / HSI: cylindrical
 * LAB, LCH
 * XYZ: tristimulus
 * White point
