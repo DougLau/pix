@@ -9,7 +9,7 @@ use crate::{Channel, Ch16, Ch32, Ch8, Gray, Mask, Rgb, Hsv, YCbCr};
 /// Sealed trait to prevent outside crates from implementing traits
 pub trait Sealed {}
 
-impl<C> Sealed for Opaque<C> {}
+impl<C: Channel> Sealed for Opaque<C> {}
 
 impl<C: Channel> Sealed for Translucent<C> {}
 

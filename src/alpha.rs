@@ -37,7 +37,7 @@ pub trait AChannel:
 /// [Pixel](../trait.Pixel.html) formats with `Opaque` alpha channels take less
 /// memory than those with [translucent](struct.Translucent.html) ones.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct Opaque<C> {
+pub struct Opaque<C: Channel> {
     value: PhantomData<C>,
 }
 
@@ -130,7 +130,7 @@ where
     H: Channel,
 {
     fn from(value: H) -> Self {
-        let value = value.into();
+        let value = C::from(value);
         Translucent { value }
     }
 }
