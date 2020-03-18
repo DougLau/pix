@@ -11,7 +11,7 @@ use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// RGB additive [color model].
+/// `RGB` additive [color model].
 ///
 /// The components are *red*, *green* and *blue*, with optional *[alpha]*.
 ///

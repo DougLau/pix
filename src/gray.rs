@@ -11,7 +11,7 @@ use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// Gray [color model], with optional [alpha channel].
+/// `Gray` [color model], with optional [alpha channel].
 ///
 /// The `Channel` ranges from *black* to *white*.
 /// With [sRGB] gamma it is *luma*, but with [linear] gamma it is *relative

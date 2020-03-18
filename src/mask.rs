@@ -8,7 +8,7 @@ use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Gray, Pixel, Rgb};
 use std::ops::Mul;
 
-/// [Translucent] alpha mask [color model].
+/// [Translucent] alpha `Mask` [color model].
 ///
 /// [color model]: trait.ColorModel.html
 /// [translucent]: alpha/struct.Translucent.html

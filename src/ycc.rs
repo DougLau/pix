@@ -1,7 +1,7 @@
 // ycc.rs       YCbCr color model.
 //
-// Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
+// Copyright (c) 2020  Douglas P Lau
 //
 use crate::alpha::{
     self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
@@ -11,7 +11,7 @@ use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
 use std::ops::Mul;
 
-/// YCbCr (ITU601 / ITU-T 709 / ITU-T T.871) [color model].
+/// `YCbCr` (ITU601 / ITU-T 709 / ITU-T T.871) [color model].
 ///
 /// Video cameras and JPEGS use this format.
 ///
@@ -33,6 +33,45 @@ where
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
+}
+
+impl<C, A, M, G> YCbCr<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create a `YCbCr` color.
+    pub fn new<H, B>(y: H, cb: H, cr: H, alpha: B) -> Self
+    where
+        C: From<H>,
+        A: From<B>,
+    {
+        let y = C::from(y);
+        let cb = C::from(cb);
+        let cr = C::from(cr);
+        let components = [y, cb, cr];
+        let alpha = A::from(alpha);
+        YCbCr {
+            components,
+            alpha,
+            mode: PhantomData,
+            gamma: PhantomData,
+        }
+    }
+    /// Get the *y* component.
+    pub fn y(self) -> C {
+        self.components[0]
+    }
+    /// Get the *Cb* component.
+    pub fn cb(self) -> C {
+        self.components[1]
+    }
+    /// Get the *Cr* component.
+    pub fn cr(self) -> C {
+        self.components[2]
+    }
 }
 
 impl<C, A, M, G> ColorModel for YCbCr<C, A, M, G>
@@ -239,55 +278,6 @@ where
         (this * other).into()
     }
 }*/
-
-impl<C, A, M, G> YCbCr<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Create an [Opaque](alpha/struct.Opaque.html) color by specifying *y*,
-    /// *cb* and *cr* values.
-    pub fn new<H>(y: H, cb: H, cr: H) -> Self
-    where
-        C: From<H>,
-        A: From<Opaque<C>>,
-    {
-        Self::with_alpha(y, cb, cr, Opaque::default())
-    }
-    /// Create a [Translucent](alpha/struct.Translucent.html) color by
-    /// specifying *y*, *cb*, *cr* and *alpha* values.
-    pub fn with_alpha<H, B>(y: H, cb: H, cr: H, alpha: B) -> Self
-    where
-        C: From<H>,
-        A: From<B>,
-    {
-        let y = C::from(y);
-        let cb = C::from(cb);
-        let cr = C::from(cr);
-        let components = [y, cb, cr];
-        let alpha = A::from(alpha);
-        YCbCr {
-            components,
-            alpha,
-            mode: PhantomData,
-            gamma: PhantomData,
-        }
-    }
-    /// Get the y component.
-    pub fn y(self) -> C {
-        self.components[0]
-    }
-    /// Get the cb component.
-    pub fn cb(self) -> C {
-        self.components[1]
-    }
-    /// Get the cr component.
-    pub fn cr(self) -> C {
-        self.components[2]
-    }
-}
 
 /// [YCbCr](struct.YCbCr.html) 8-bit [opaque](alpha/struct.Opaque.html) (no alpha)
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
