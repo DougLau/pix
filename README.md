@@ -9,7 +9,6 @@ Currently a work-in-progress.
 * Gradient (linear, radial, etc) and GradientIter
 
 ### Color models / spaces
-* Tristimulus, additive, subtractive, cylindrical
 * RGB: additive
 * CMYK: subtractive
 * HSV / HSL / HSI: cylindrical
