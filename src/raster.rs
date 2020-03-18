@@ -57,7 +57,7 @@ pub struct Raster<P: Pixel> {
 /// ### `Iterator` of `Region` within a `Raster`
 /// ```
 /// # use pix::*;
-/// let mut gray = RasterBuilder::<SGrayAlpha16>::new().with_clear(40, 40);
+/// let mut gray = RasterBuilder::<SGraya16>::new().with_clear(40, 40);
 /// // ... load raster data
 /// let region = gray.region().intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
@@ -129,7 +129,7 @@ impl<P: Pixel> RasterBuilder<P> {
     /// let r1 = RasterBuilder::<SGray8>::new().with_clear(20, 20);
     /// let r2 = RasterBuilder::<Mask8>::new().with_clear(64, 64);
     /// let r3 = RasterBuilder::<SRgb16>::new().with_clear(10, 10);
-    /// let r4 = RasterBuilder::<SGrayAlpha32>::new().with_clear(100, 250);
+    /// let r4 = RasterBuilder::<SGraya32>::new().with_clear(100, 250);
     /// ```
     pub fn with_clear(self, width: u32, height: u32) -> Raster<P> {
         self.with_color(width, height, P::default())
@@ -629,8 +629,8 @@ mod test {
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
         let mut r =
-            RasterBuilder::<SGrayAlpha16>::new().with_u16_buffer(3, 3, b);
-        r.set_region((1, 0, 2, 2), SGrayAlpha16::new(0x4444));
+            RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
+        r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, ()));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
@@ -655,17 +655,17 @@ mod test {
     #[test]
     fn rgb_to_gray() {
         let mut r = RasterBuilder::<SRgb16>::new().with_clear(3, 3);
-        r.set_region((1, 0, 4, 2), SRgb16::new(0x4321, 0x9085, 0x5543));
-        r.set_region((0, 1, 1, 10), SRgb16::new(0x5768, 0x4091, 0x5000));
+        r.set_region((1, 0, 4, 2), SRgb16::new(0x4321, 0x9085, 0x5543, ()));
+        r.set_region((0, 1, 1, 10), SRgb16::new(0x5768, 0x4091, 0x5000, ()));
         let r = RasterBuilder::<SGray8>::new().with_raster(&r);
         let v = vec![0x00,0x90,0x90, 0x57,0x90,0x90, 0x57,0x00,0x00];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
     fn gray_to_mask() {
-        let mut r = RasterBuilder::<SGrayAlpha8>::new().with_clear(3, 3);
-        r.set_region((0, 1, 2, 8), SGrayAlpha8::with_alpha(0x67, 0x94));
-        r.set_region((2, 0, 1, 10), SGrayAlpha8::with_alpha(0xBA, 0xA2));
+        let mut r = RasterBuilder::<SGraya8>::new().with_clear(3, 3);
+        r.set_region((0, 1, 2, 8), SGraya8::new(0x67, 0x94));
+        r.set_region((2, 0, 1, 10), SGraya8::new(0xBA, 0xA2));
         let r = RasterBuilder::<Mask16>::new().with_raster(&r);
         let v = vec![
             0x00,0x00, 0x00,0x00, 0xA2,0xA2,
@@ -679,7 +679,7 @@ mod test {
         let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
         r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
         r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
-        let r = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
+        let r = RasterBuilder::<SGraya8>::new().with_raster(&r);
         let v = vec![
             0xFF,0x00, 0xFF,0x00, 0xFF,0x98,
             0xFF,0xAB, 0xFF,0xAB, 0xFF,0x98,
@@ -712,9 +712,9 @@ mod test {
         let _ = RasterBuilder::<SGray8>::new().with_raster(&r);
         let _ = RasterBuilder::<SGray16>::new().with_raster(&r);
         let _ = RasterBuilder::<SGray32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya32>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
@@ -731,9 +731,9 @@ mod test {
         let _ = RasterBuilder::<SGray8>::new().with_raster(&r);
         let _ = RasterBuilder::<SGray16>::new().with_raster(&r);
         let _ = RasterBuilder::<SGray32>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha8>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha16>::new().with_raster(&r);
-        let _ = RasterBuilder::<SGrayAlpha32>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya8>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya16>::new().with_raster(&r);
+        let _ = RasterBuilder::<SGraya32>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);

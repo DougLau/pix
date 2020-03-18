@@ -21,64 +21,62 @@ use std::any::{Any, TypeId};
 /// ### Type Alias Naming Scheme
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
-/// * _Color model_: [Gray] / `GrayAlpha` / [Rgb] / `Rgba` / [Mask].
+/// * _Color model_: [Rgb] / [Gray] / [Hsv] / [Hsl] / [Mask].
+/// * _Alpha_: `a` to include alpha channel enabling [translucent] pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
 /// [channels]: trait.Channel.html
 /// [gray]: struct.Gray.html
+/// [hsl]: struct.Hsl.html
+/// [hsv]: struct.Hsv.html
 /// [linear]: gamma/struct.Linear.html
 /// [Mask]: struct.Mask.html
 /// [premultiplied]: alpha/struct.Premultiplied.html
 /// [Rgb]: struct.Rgb.html
 /// [sRGB]: gamma/struct.Srgb.html
 /// [straight]: alpha/struct.Straight.html
+/// [translucent]: alpha/struct.Translucent.html
 ///
 /// ### Type Aliases
 ///
 /// * Opaque, linear gamma:
-///   [Gray8](type.Gray8.html),
-///   [Gray16](type.Gray16.html),
-///   [Gray32](type.Gray32.html),
 ///   [Rgb8](type.Rgb8.html),
+///   [Gray8](type.Gray8.html),
+///   [Hsv8](type.Hsv8.html),
+///   [Hsl8](type.Hsl8.html),
 ///   [Rgb16](type.Rgb16.html),
-///   [Rgb32](type.Rgb32.html)
+///   *etc.*
 /// * Opaque, sRGB gamma:
-///   [SGray8](type.SGray8.html),
-///   [SGray16](type.SGray16.html),
-///   [SGray32](type.SGray32.html),
 ///   [SRgb8](type.SRgb8.html),
+///   [SGray8](type.SGray8.html),
 ///   [SRgb16](type.SRgb16.html),
-///   [SRgb32](type.SRgb32.html)
+///   *etc.*
 /// * Translucent (straight alpha), linear gamma:
-///   [GrayAlpha8](type.GrayAlpha8.html),
-///   [GrayAlpha16](type.GrayAlpha16.html),
-///   [GrayAlpha32](type.GrayAlpha32.html)
 ///   [Rgba8](type.Rgba8.html),
+///   [Graya8](type.Graya8.html),
+///   [Hsva8](type.Hsva8.html),
+///   [Hsla8](type.Hsla8.html),
 ///   [Rgba16](type.Rgba16.html),
-///   [Rgba32](type.Rgba32.html)
+///   *etc.*
 /// * Translucent (premultiplied alpha), linear gamma:
-///   [GrayAlpha8p](type.GrayAlpha8p.html),
-///   [GrayAlpha16p](type.GrayAlpha16p.html),
-///   [GrayAlpha32p](type.GrayAlpha32p.html)
 ///   [Rgba8p](type.Rgba8p.html),
+///   [Graya8p](type.Graya8p.html),
+///   [Hsva8p](type.Hsva8p.html),
+///   [Hsla8p](type.Hsla8p.html),
 ///   [Rgba16p](type.Rgba16p.html),
-///   [Rgba32p](type.Rgba32p.html)
+///   *etc.*
 /// * Translucent (straight alpha), sRGB gamma:
-///   [SGrayAlpha8](type.SGrayAlpha8.html),
-///   [SGrayAlpha16](type.SGrayAlpha16.html),
-///   [SGrayAlpha32](type.SGrayAlpha32.html)
 ///   [SRgba8](type.SRgba8.html),
+///   [SGraya8](type.SGraya8.html),
 ///   [SRgba16](type.SRgba16.html),
-///   [SRgba32](type.SRgba32.html)
+///   *etc.*
 /// * Translucent (premultiplied alpha), sRGB gamma:
-///   [SGrayAlpha8p](type.SGrayAlpha8p.html),
-///   [SGrayAlpha16p](type.SGrayAlpha16p.html),
-///   [SGrayAlpha32p](type.SGrayAlpha32p.html)
 ///   [SRgba8p](type.SRgba8p.html),
+///   [SGraya8p](type.SGraya8p.html),
 ///   [SRgba16p](type.SRgba16p.html),
-///   [SRgba32p](type.SRgba32p.html)
+///   *etc.*
 /// * Alpha mask:
 ///   [Mask8](type.Mask8.html),
 ///   [Mask16](type.Mask16.html),

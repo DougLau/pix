@@ -37,16 +37,16 @@ mod palette;
 mod private;
 mod raster;
 mod rgb;
-mod hsv;
+mod hsx;
 mod ycc;
 
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::pixel::Pixel;
 pub use crate::gray::{
-    Gray, Gray16, Gray32, Gray8, GrayAlpha16, GrayAlpha16p, GrayAlpha32,
-    GrayAlpha32p, GrayAlpha8, GrayAlpha8p, SGray16, SGray32, SGray8,
-    SGrayAlpha16, SGrayAlpha16p, SGrayAlpha32, SGrayAlpha32p, SGrayAlpha8,
-    SGrayAlpha8p,
+    Gray, Gray16, Gray32, Gray8, Graya16, Graya16p, Graya32, Graya32p, Graya8,
+    Graya8p,
+    SGray16, SGray32, SGray8, SGraya16, SGraya16p, SGraya32, SGraya32p, SGraya8,
+    SGraya8p,
 };
 pub use crate::mask::{Mask, Mask16, Mask32, Mask8};
 pub use crate::model::ColorModel;
