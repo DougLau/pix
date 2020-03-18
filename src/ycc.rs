@@ -82,43 +82,8 @@ where
         let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
         let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
 
-        YCbCr::with_alpha(y, cb, cr, alpha)*/
+        YCbCr::new(y, cb, cr, alpha)*/
         todo!()
-    }
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
-        let y = if self.y() > rhs.y() {
-            self.y() - rhs.y()
-        } else {
-            rhs.y() - self.y()
-        };
-        let cb = if self.cb() > rhs.cb() {
-            self.cb() - rhs.cb()
-        } else {
-            rhs.cb() - self.cb()
-        };
-        let cr = if self.cr() > rhs.cr() {
-            self.cr() - rhs.cr()
-        } else {
-            rhs.cr() - self.cr()
-        };
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
-        } else {
-            rhs.alpha() - self.alpha()
-        };
-        YCbCr::with_alpha(y, cb, cr, a)
-    }
-
-    // FIXME
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
-        todo!()
-        /*self.red() <= rhs.red()
-            && self.green() <= rhs.green()
-            && self.blue() <= rhs.blue()
-            && self.alpha() <= rhs.alpha()*/
     }
 }
 

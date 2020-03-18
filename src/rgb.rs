@@ -33,41 +33,56 @@ where
     gamma: PhantomData<G>,
 }
 
-impl<C, A, M, G> ColorModel for Rgb<C, A, M, G>
+impl<C, A, M, G> Rgb<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C> + From<C>,
+    A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    type Chan = C;
-
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
+    /// Create an `Rgb` color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let opaque_rgb = Rgb8::new(50, 255, 128, ());
+    /// let translucent_rgb = Rgba8::new(100, 128, 255, 200);
+    /// ```
+    pub fn new<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
+    where
+        C: From<H>,
+        A: From<B>,
+    {
+        let red = C::from(red);
+        let green = C::from(green);
+        let blue = C::from(blue);
+        let components = [red, green, blue];
+        let alpha = A::from(alpha);
+        Rgb {
+            components,
+            alpha,
+            mode: PhantomData,
+            gamma: PhantomData,
+        }
     }
-
-    /// Get the *alpha* component
-    fn alpha(self) -> Self::Chan {
-        self.alpha.value()
+    /// Get the *red* component.
+    pub fn red(self) -> C {
+        self.components[0]
     }
-
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        [self.red(), self.green(), self.blue(), self.alpha()]
+    /// Get the *green* component.
+    pub fn green(self) -> C {
+        self.components[1]
     }
-
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
-        let alpha = rgba[3];
-        Rgb::with_alpha(red, green, blue, alpha)
+    /// Get the *blue* component.
+    pub fn blue(self) -> C {
+        self.components[2]
     }
 
     /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
+    pub fn difference(self, rhs: Self) -> Self
+    where
+        A: From<C>,
+    {
         let r = if self.red() > rhs.red() {
             self.red() - rhs.red()
         } else {

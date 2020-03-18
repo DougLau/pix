@@ -124,27 +124,7 @@ where
         let value = red + green + blue;*/
         let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
         let alpha = rgba[3];
-        Gray::with_alpha(value, alpha)
-    }
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
-        let v = if self.value() > rhs.value() {
-            self.value() - rhs.value()
-        } else {
-            rhs.value() - self.value()
-        };
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
-        } else {
-            rhs.alpha() - self.alpha()
-        };
-        Gray::with_alpha(v, a)
-    }
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
-        self.value() <= rhs.value() && self.alpha() <= rhs.alpha()
+        Gray::new(value, alpha)
     }
 }
 

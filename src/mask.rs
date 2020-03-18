@@ -51,21 +51,6 @@ impl<C: Channel> ColorModel for Mask<C> {
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
         Mask::new(rgba[3])
     }
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self {
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
-        } else {
-            rhs.alpha() - self.alpha()
-        };
-        Mask::new(a)
-    }
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
-        self.alpha() <= rhs.alpha()
-    }
 }
 
 impl<C> Pixel for Mask<C>

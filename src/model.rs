@@ -25,10 +25,4 @@ pub trait ColorModel: Sealed {
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self;
-
-    /// Get channel-wise difference
-    fn difference(self, rhs: Self) -> Self;
-
-    /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool;
 }
