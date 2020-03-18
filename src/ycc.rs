@@ -286,24 +286,4 @@ mod test {
         assert_eq!(std::mem::size_of::<YCbCrAlpha16>(), 8);
         assert_eq!(std::mem::size_of::<YCbCrAlpha32>(), 16);
     }
-
-    #[test]
-    fn check_mul() {
-        // FIXME
-        /*let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::with_alpha(0x00, 0x00, 0x00, 0x00);
-        assert_eq!(a * b, b);
-
-        let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::with_alpha(0x80, 0x80, 0x80, 0x80);
-        assert_eq!(a * b, b);
-
-        let a = SRgba8::with_alpha(0xFF, 0xF0, 0x00, 0x70);
-        let b = SRgba8::with_alpha(0x80, 0x00, 0x60, 0xFF);
-        assert_eq!(a * b, SRgba8::with_alpha(0x80, 0x00, 0x00, 0x70));
-
-        let a = SRgba8::with_alpha(0xFF, 0x00, 0x80, 0xFF);
-        let b = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0x10);
-        assert_eq!(a * b, SRgba8::with_alpha(0xFF, 0x00, 0x80, 0x10));*/
-    }
 }
