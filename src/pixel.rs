@@ -143,107 +143,116 @@ mod test {
     use super::*;
     #[test]
     fn gray_to_rgb() {
-        assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert());
         assert_eq!(
-            SRgb8::new(0x33, 0x33, 0x33),
-            SGray16::new(0x337F).convert()
-        );
-        assert_eq!(SRgb8::new(0x40, 0x40, 0x40), SGray32::new(0.25).convert());
-        assert_eq!(
-            SRgb16::new(0x2929, 0x2929, 0x2929),
-            SGray8::new(0x29).convert()
+            SRgb8::new(0xD9, 0xD9, 0xD9, ()),
+            SGray8::new(0xD9, ()).convert(),
         );
         assert_eq!(
-            SRgb16::new(0x5593, 0x5593, 0x5593),
-            SGray16::new(0x5593).convert()
+            SRgb8::new(0x33, 0x33, 0x33, ()),
+            SGray16::new(0x337F, ()).convert(),
         );
         assert_eq!(
-            SRgb16::new(0xFFFF, 0xFFFF, 0xFFFF),
-            SGray32::new(1.0).convert()
+            SRgb8::new(0x40, 0x40, 0x40, ()),
+            SGray32::new(0.25, ()).convert(),
         );
         assert_eq!(
-            SRgb32::new(0.5019608, 0.5019608, 0.5019608),
-            SGray8::new(0x80).convert(),
+            SRgb16::new(0x2929, 0x2929, 0x2929, ()),
+            SGray8::new(0x29, ()).convert(),
         );
         assert_eq!(
-            SRgb32::new(0.75001144, 0.75001144, 0.75001144),
-            SGray16::new(0xC000).convert(),
+            SRgb16::new(0x5593, 0x5593, 0x5593, ()),
+            SGray16::new(0x5593, ()).convert(),
         );
-        assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert());
+        assert_eq!(
+            SRgb16::new(0xFFFF, 0xFFFF, 0xFFFF, ()),
+            SGray32::new(1.0, ()).convert(),
+        );
+        assert_eq!(
+            SRgb32::new(0.5019608, 0.5019608, 0.5019608, ()),
+            SGray8::new(0x80, ()).convert(),
+        );
+        assert_eq!(
+            SRgb32::new(0.75001144, 0.75001144, 0.75001144, ()),
+            SGray16::new(0xC000, ()).convert(),
+        );
+        assert_eq!(
+            SRgb32::new(0.33, 0.33, 0.33, ()),
+            SGray32::new(0.33, ()).convert(),
+        );
     }
     #[test]
     fn linear_to_srgb() {
         assert_eq!(
-            SRgb8::new(0xEF, 0x8C, 0xC7),
-            Rgb8::new(0xDC, 0x43, 0x91).convert()
+            SRgb8::new(0xEF, 0x8C, 0xC7, ()),
+            Rgb8::new(0xDC, 0x43, 0x91, ()).convert()
         );
         assert_eq!(
-            SRgb8::new(0x66, 0xF4, 0xB5),
-            Rgb16::new(0x2205, 0xE699, 0x7654).convert()
+            SRgb8::new(0x66, 0xF4, 0xB5, ()),
+            Rgb16::new(0x2205, 0xE699, 0x7654, ()).convert()
         );
         assert_eq!(
-            SRgb8::new(0xBC, 0x89, 0xE0),
-            Rgb32::new(0.5, 0.25, 0.75).convert()
+            SRgb8::new(0xBC, 0x89, 0xE0, ()),
+            Rgb32::new(0.5, 0.25, 0.75, ()).convert()
         );
     }
     #[test]
     fn srgb_to_linear() {
         assert_eq!(
-            Rgb8::new(0xDC, 0x43, 0x92),
-            SRgb8::new(0xEF, 0x8C, 0xC7).convert(),
+            Rgb8::new(0xDC, 0x43, 0x92, ()),
+            SRgb8::new(0xEF, 0x8C, 0xC7, ()).convert(),
         );
         assert_eq!(
-            Rgb8::new(0x22, 0xE7, 0x76),
-            SRgb16::new(0x6673, 0xF453, 0xB593).convert(),
+            Rgb8::new(0x22, 0xE7, 0x76, ()),
+            SRgb16::new(0x6673, 0xF453, 0xB593, ()).convert(),
         );
         assert_eq!(
-            Rgb8::new(0x37, 0x0D, 0x85),
-            SRgb32::new(0.5, 0.25, 0.75).convert(),
+            Rgb8::new(0x37, 0x0D, 0x85, ()),
+            SRgb32::new(0.5, 0.25, 0.75, ()).convert(),
         );
     }
     #[test]
     fn straight_to_premultiplied() {
         assert_eq!(
-            Rgba8p::with_alpha(0x10, 0x20, 0x40, 0x80),
-            Rgba8::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+            Rgba8p::new(0x10, 0x20, 0x40, 0x80),
+            Rgba8::new(0x20, 0x40, 0x80, 0x80).convert(),
         );
         assert_eq!(
-            Rgba8p::with_alpha(0x04, 0x10, 0x20, 0x40),
-            Rgba16::with_alpha(0x1000, 0x4000, 0x8000, 0x4000).convert(),
+            Rgba8p::new(0x04, 0x10, 0x20, 0x40),
+            Rgba16::new(0x1000, 0x4000, 0x8000, 0x4000).convert(),
         );
         assert_eq!(
-            Rgba8p::with_alpha(0x60, 0xBF, 0x8F, 0xBF),
-            Rgba32::with_alpha(0.5, 1.0, 0.75, 0.75).convert(),
+            Rgba8p::new(0x60, 0xBF, 0x8F, 0xBF),
+            Rgba32::new(0.5, 1.0, 0.75, 0.75).convert(),
         );
     }
     #[test]
     fn premultiplied_to_straight() {
         assert_eq!(
-            Rgba8::with_alpha(0x40, 0x80, 0xFF, 0x80),
-            Rgba8p::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+            Rgba8::new(0x40, 0x80, 0xFF, 0x80),
+            Rgba8p::new(0x20, 0x40, 0x80, 0x80).convert(),
         );
         assert_eq!(
-            Rgba8::with_alpha(0x40, 0xFF, 0x80, 0x40),
-            Rgba16p::with_alpha(0x1000, 0x4000, 0x2000, 0x4000).convert(),
+            Rgba8::new(0x40, 0xFF, 0x80, 0x40),
+            Rgba16p::new(0x1000, 0x4000, 0x2000, 0x4000).convert(),
         );
         assert_eq!(
-            Rgba8::with_alpha(0xAB, 0x55, 0xFF, 0xBF),
-            Rgba32p::with_alpha(0.5, 0.25, 0.75, 0.75).convert(),
+            Rgba8::new(0xAB, 0x55, 0xFF, 0xBF),
+            Rgba32p::new(0.5, 0.25, 0.75, 0.75).convert(),
         );
     }
     #[test]
     fn straight_to_premultiplied_srgb() {
         assert_eq!(
-            SRgba8p::with_alpha(0x16, 0x2A, 0x5C, 0x80),
-            SRgba8::with_alpha(0x20, 0x40, 0x80, 0x80).convert(),
+            SRgba8p::new(0x16, 0x2A, 0x5C, 0x80),
+            SRgba8::new(0x20, 0x40, 0x80, 0x80).convert(),
         );
         assert_eq!(
-            SRgba8p::with_alpha(0x0D, 0x1C, 0x40, 0x40),
-            SRgba16::with_alpha(0x2000, 0x4000, 0x8000, 0x4000).convert(),
+            SRgba8p::new(0x0D, 0x1C, 0x40, 0x40),
+            SRgba16::new(0x2000, 0x4000, 0x8000, 0x4000).convert(),
         );
         assert_eq!(
-            SRgba8p::with_alpha(0x70, 0xE0, 0xA7, 0xBF),
-            SRgba32::with_alpha(0.5, 1.0, 0.75, 0.75).convert(),
+            SRgba8p::new(0x70, 0xE0, 0xA7, 0xBF),
+            SRgba32::new(0.5, 1.0, 0.75, 0.75).convert(),
         );
     }
 }

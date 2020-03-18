@@ -102,7 +102,7 @@ where
         let green = C::MAX;
         let blue = C::MAX;
         let alpha = c.alpha();
-        Rgb::with_alpha(red, green, blue, alpha)
+        Rgb::new(red, green, blue, alpha)
     }
 }
 
@@ -118,7 +118,7 @@ where
         let green = c.alpha();
         let blue = c.alpha();
         let alpha = c.alpha();
-        Rgb::with_alpha(red, green, blue, alpha)
+        Rgb::new(red, green, blue, alpha)
     }
 }
 
@@ -132,7 +132,7 @@ where
     fn from(c: Mask<C>) -> Self {
         let value = C::MAX;
         let alpha = c.alpha();
-        Gray::with_alpha(value, alpha)
+        Gray::new(value, alpha)
     }
 }
 
@@ -146,7 +146,7 @@ where
     fn from(c: Mask<C>) -> Self {
         let value = c.alpha();
         let alpha = c.alpha();
-        Gray::with_alpha(value, alpha)
+        Gray::new(value, alpha)
     }
 }
 

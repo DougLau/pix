@@ -144,17 +144,17 @@ mod test {
         assert_eq!(p.entry(4), None);
         // test insertion
         for i in 0..16 {
-            let idx = p.set_entry(SRgb8::new(i, i, i)).unwrap();
+            let idx = p.set_entry(SRgb8::new(i, i, i, ())).unwrap();
             assert_eq!(i as usize, idx);
         }
-        assert_eq!(p.set_entry(SRgb8::new(255, 255, 255)), None);
+        assert_eq!(p.set_entry(SRgb8::new(255, 255, 255, ())), None);
         // test lookup
         for i in 0..16 {
-            let idx = p.set_entry(SRgb8::new(i, i, i)).unwrap();
+            let idx = p.set_entry(SRgb8::new(i, i, i, ())).unwrap();
             assert_eq!(i as usize, idx);
         }
-        assert_eq!(p.entry(5), Some(SRgb8::new(5, 5, 5)));
-        p.replace_entry(5, SRgb8::new(0x55, 0x55, 0x55));
+        assert_eq!(p.entry(5), Some(SRgb8::new(5, 5, 5, ())));
+        p.replace_entry(5, SRgb8::new(0x55, 0x55, 0x55, ()));
         let v = vec![
             0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x03, 0x03,
             0x03, 0x04, 0x04, 0x04, 0x55, 0x55, 0x55, 0x06, 0x06, 0x06, 0x07,
@@ -168,7 +168,7 @@ mod test {
     fn check_hist() {
         let mut p = Palette::new(8);
         for i in 0..7 {
-            p.set_entry(SRgb8::new(i, i, i));
+            p.set_entry(SRgb8::new(i, i, i, ()));
         }
         let v: Vec<u8> = vec![
             0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x01, 0x02, 0x04, 0x01,
@@ -182,13 +182,13 @@ mod test {
     #[test]
     fn matching() {
         let mut p = Palette::new(8);
-        assert_eq!(p.set_entry(SRgb8::new(10, 10, 10)), Some(0));
-        assert_eq!(p.set_entry(SRgb8::new(20, 20, 20)), Some(1));
-        assert_eq!(p.set_entry(SRgb8::new(30, 30, 30)), Some(2));
-        assert_eq!(p.set_entry(SRgb8::new(40, 40, 40)), Some(3));
-        p.set_threshold_fn(|_| SRgb8::new(4, 5, 6));
-        assert_eq!(p.set_entry(SRgb8::new(15, 15, 15)), Some(4));
-        p.set_threshold_fn(|_| SRgb8::new(5, 5, 5));
-        assert_eq!(p.set_entry(SRgb8::new(35, 35, 35)), Some(2));
+        assert_eq!(p.set_entry(SRgb8::new(10, 10, 10, ())), Some(0));
+        assert_eq!(p.set_entry(SRgb8::new(20, 20, 20, ())), Some(1));
+        assert_eq!(p.set_entry(SRgb8::new(30, 30, 30, ())), Some(2));
+        assert_eq!(p.set_entry(SRgb8::new(40, 40, 40, ())), Some(3));
+        p.set_threshold_fn(|_| SRgb8::new(4, 5, 6, ()));
+        assert_eq!(p.set_entry(SRgb8::new(15, 15, 15, ())), Some(4));
+        p.set_threshold_fn(|_| SRgb8::new(5, 5, 5, ()));
+        assert_eq!(p.set_entry(SRgb8::new(35, 35, 35, ())), Some(2));
     }
 }

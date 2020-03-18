@@ -158,7 +158,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: YCbCr<C, Translucent<C>, M, G>) -> Self {
-        YCbCr::new(c.y(), c.cb(), c.cr())
+        YCbCr::new(c.y(), c.cb(), c.cr(), ())
     }
 }
 
@@ -169,7 +169,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: YCbCr<C, Opaque<C>, M, G>) -> Self {
-        YCbCr::with_alpha(c.y(), c.cb(), c.cr(), C::MAX)
+        YCbCr::new(c.y(), c.cb(), c.cr(), ())
     }
 }
 
@@ -183,7 +183,7 @@ where
         let y = Premultiplied::encode(c.y(), c.alpha());
         let cb = c.cb();
         let cr = c.cr();
-        YCbCr::with_alpha(y, cb, cr, c.alpha())
+        YCbCr::new(y, cb, cr, c.alpha())
     }
 }
 
@@ -197,46 +197,7 @@ where
         let y = Premultiplied::decode(c.y(), c.alpha());
         let cb = c.cb();
         let cr = c.cr();
-        YCbCr::with_alpha(y, cb, cr, c.alpha())
-    }
-}
-
-impl<C, A, M, G> From<i32> for YCbCr<C, A, M, G>
-where
-    C: Channel + From<Ch8>,
-    A: AChannel<Chan = C> + From<Translucent<Ch8>>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Get an `YCbCr` from an `i32`
-    fn from(c: i32) -> Self {
-        let y = Ch8::from(c as u8);
-        let cb = Ch8::from((c >> 8) as u8);
-        let cr = Ch8::from((c >> 16) as u8);
-        let alpha = Ch8::from((c >> 24) as u8);
-        YCbCr::with_alpha(y, cb, cr, Translucent::new(alpha))
-    }
-}
-
-impl<C, A, M, G> From<YCbCr<C, A, M, G>> for i32
-where
-    C: Channel,
-    Ch8: From<C>,
-    A: AChannel<Chan = C> + From<C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Get an `i32` from an `YCbCr`
-    fn from(c: YCbCr<C, A, M, G>) -> i32 {
-        let y: u8 = Ch8::from(c.y()).into();
-        let y = i32::from(y);
-        let cb: u8 = Ch8::from(c.cb()).into();
-        let cb = i32::from(cb) << 8;
-        let cr: u8 = Ch8::from(c.cr()).into();
-        let cr = i32::from(cr) << 16;
-        let alpha: u8 = Ch8::from(c.alpha()).into();
-        let alpha = i32::from(alpha) << 24;
-        y | cb | cr | alpha
+        YCbCr::new(y, cb, cr, c.alpha())
     }
 }
 

@@ -68,6 +68,14 @@ pub struct Straight;
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Premultiplied;
 
+impl<C> From<()> for Opaque<C>
+where
+    C: Channel
+{
+    fn from(_value: ()) -> Self {
+        Opaque::default()
+    }
+}
 impl<C, H> From<H> for Opaque<C>
 where
     C: Channel + From<H>,
@@ -124,6 +132,15 @@ impl<C: Channel> AChannel for Opaque<C> {
     }
 }
 
+impl<C> From<()> for Translucent<C>
+where
+    C: Channel
+{
+    fn from(_value: ()) -> Self {
+        let value = C::MAX;
+        Translucent { value }
+    }
+}
 impl<C, H> From<H> for Translucent<C>
 where
     C: Channel + From<H>,

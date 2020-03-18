@@ -98,20 +98,54 @@ where
         } else {
             rhs.blue() - self.blue()
         };
-        let a = if self.alpha() > rhs.alpha() {
-            self.alpha() - rhs.alpha()
+        let a = if self.alpha.value() > rhs.alpha.value() {
+            self.alpha.value() - rhs.alpha.value()
         } else {
-            rhs.alpha() - self.alpha()
+            rhs.alpha.value() - self.alpha.value()
         };
-        Rgb::with_alpha(r, g, b, a)
+        Rgb::new(r, g, b, a)
     }
 
     /// Check if all `Channel`s are within threshold
-    fn within_threshold(self, rhs: Self) -> bool {
+    pub fn within_threshold(self, rhs: Self) -> bool {
         self.red() <= rhs.red()
             && self.green() <= rhs.green()
             && self.blue() <= rhs.blue()
-            && self.alpha() <= rhs.alpha()
+            && self.alpha.value() <= rhs.alpha.value()
+    }
+}
+
+impl<C, A, M, G> ColorModel for Rgb<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C> + From<C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+
+    /// Get all components affected by alpha/gamma
+    fn components(&self) -> &[Self::Chan] {
+        &self.components
+    }
+
+    /// Get the *alpha* component
+    fn alpha(self) -> Self::Chan {
+        self.alpha.value()
+    }
+
+    /// Convert to *red*, *green*, *blue* and *alpha* components
+    fn to_rgba(self) -> [Self::Chan; 4] {
+        [self.red(), self.green(), self.blue(), self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+        let red = rgba[0];
+        let green = rgba[1];
+        let blue = rgba[2];
+        let alpha = rgba[3];
+        Rgb::new(red, green, blue, alpha)
     }
 }
 
@@ -147,7 +181,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: Rgb<C, Translucent<C>, M, G>) -> Self {
-        Rgb::new(c.red(), c.green(), c.blue())
+        Rgb::new(c.red(), c.green(), c.blue(), ())
     }
 }
 
@@ -158,7 +192,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: Rgb<C, Opaque<C>, M, G>) -> Self {
-        Rgb::with_alpha(c.red(), c.green(), c.blue(), C::MAX)
+        Rgb::new(c.red(), c.green(), c.blue(), ())
     }
 }
 
@@ -172,7 +206,7 @@ where
         let red = Premultiplied::encode(c.red(), c.alpha());
         let green = Premultiplied::encode(c.green(), c.alpha());
         let blue = Premultiplied::encode(c.blue(), c.alpha());
-        Rgb::with_alpha(red, green, blue, c.alpha())
+        Rgb::new(red, green, blue, c.alpha())
     }
 }
 
@@ -183,10 +217,11 @@ where
     G: gamma::Mode,
 {
     fn from(c: Rgb<C, A, Premultiplied, G>) -> Self {
-        let red = Premultiplied::decode(c.red(), c.alpha());
-        let green = Premultiplied::decode(c.green(), c.alpha());
-        let blue = Premultiplied::decode(c.blue(), c.alpha());
-        Rgb::with_alpha(red, green, blue, c.alpha)
+        let alpha = c.alpha();
+        let red = Premultiplied::decode(c.red(), alpha);
+        let green = Premultiplied::decode(c.green(), alpha);
+        let blue = Premultiplied::decode(c.blue(), alpha);
+        Rgb::new(red, green, blue, alpha)
     }
 }
 
@@ -203,7 +238,7 @@ where
         let green = Ch8::from((c >> 8) as u8);
         let blue = Ch8::from((c >> 16) as u8);
         let alpha = Ch8::from((c >> 24) as u8);
-        Rgb::with_alpha(red, green, blue, Translucent::new(alpha))
+        Rgb::new(red, green, blue, Translucent::new(alpha))
     }
 }
 
@@ -263,55 +298,6 @@ where
         let other: Rgb<C, A, Straight, G> = rhs.into();
 
         (this * other).into()
-    }
-}
-
-impl<C, A, M, G> Rgb<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Create an [Opaque](alpha/struct.Opaque.html) color by specifying *red*,
-    /// *green* and *blue* values.
-    pub fn new<H>(red: H, green: H, blue: H) -> Self
-    where
-        C: From<H>,
-        A: From<Opaque<C>>,
-    {
-        Self::with_alpha(red, green, blue, Opaque::default())
-    }
-    /// Create a [Translucent](alpha/struct.Translucent.html) color by
-    /// specifying *red*, *green*, *blue* and *alpha* values.
-    pub fn with_alpha<H, B>(red: H, green: H, blue: H, alpha: B) -> Self
-    where
-        C: From<H>,
-        A: From<B>,
-    {
-        let red = C::from(red);
-        let green = C::from(green);
-        let blue = C::from(blue);
-        let components = [red, green, blue];
-        let alpha = A::from(alpha);
-        Rgb {
-            components,
-            alpha,
-            mode: PhantomData,
-            gamma: PhantomData,
-        }
-    }
-    /// Get the red component.
-    pub fn red(self) -> C {
-        self.components[0]
-    }
-    /// Get the green component.
-    pub fn green(self) -> C {
-        self.components[1]
-    }
-    /// Get the blue component.
-    pub fn blue(self) -> C {
-        self.components[2]
     }
 }
 
@@ -400,20 +386,20 @@ mod test {
 
     #[test]
     fn check_mul() {
-        let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::with_alpha(0x00, 0x00, 0x00, 0x00);
+        let a = SRgba8::new(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = SRgba8::new(0x00, 0x00, 0x00, 0x00);
         assert_eq!(a * b, b);
 
-        let a = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::with_alpha(0x80, 0x80, 0x80, 0x80);
+        let a = SRgba8::new(0xFF, 0xFF, 0xFF, 0xFF);
+        let b = SRgba8::new(0x80, 0x80, 0x80, 0x80);
         assert_eq!(a * b, b);
 
-        let a = SRgba8::with_alpha(0xFF, 0xF0, 0x00, 0x70);
-        let b = SRgba8::with_alpha(0x80, 0x00, 0x60, 0xFF);
-        assert_eq!(a * b, SRgba8::with_alpha(0x80, 0x00, 0x00, 0x70));
+        let a = SRgba8::new(0xFF, 0xF0, 0x00, 0x70);
+        let b = SRgba8::new(0x80, 0x00, 0x60, 0xFF);
+        assert_eq!(a * b, SRgba8::new(0x80, 0x00, 0x00, 0x70));
 
-        let a = SRgba8::with_alpha(0xFF, 0x00, 0x80, 0xFF);
-        let b = SRgba8::with_alpha(0xFF, 0xFF, 0xFF, 0x10);
-        assert_eq!(a * b, SRgba8::with_alpha(0xFF, 0x00, 0x80, 0x10));
+        let a = SRgba8::new(0xFF, 0x00, 0x80, 0xFF);
+        let b = SRgba8::new(0xFF, 0xFF, 0xFF, 0x10);
+        assert_eq!(a * b, SRgba8::new(0xFF, 0x00, 0x80, 0x10));
     }
 }

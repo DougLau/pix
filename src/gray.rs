@@ -43,28 +43,18 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    /// Create an [Opaque](alpha/struct.Opaque.html) gray value.
-    pub fn new<H>(value: H) -> Self
+    /// Create a `Gray` color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let opaque_gray = Gray8::new(128, ());
+    /// let translucent_gray = Graya8::new(128, 128);
+    /// ```
+    pub fn new<H, B>(value: H, alpha: B) -> Self
     where
         C: From<H>,
-        A: From<Opaque<C>>,
-    {
-        let components = [C::from(value)];
-        let alpha = A::from(Opaque::default());
-        let mode = PhantomData;
-        let gamma = PhantomData;
-        Gray {
-            components,
-            alpha,
-            mode,
-            gamma,
-        }
-    }
-    /// Create a [Translucent](alpha/struct.Translucent.html) gray value.
-    pub fn with_alpha<H>(value: H, alpha: H) -> Self
-    where
-        C: From<H>,
-        A: From<H>,
+        A: From<B>,
     {
         let components = [C::from(value)];
         let alpha = A::from(alpha);
@@ -160,7 +150,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: Gray<C, Translucent<C>, M, G>) -> Self {
-        Gray::new(c.value())
+        Gray::new(c.value(), ())
     }
 }
 
@@ -171,7 +161,7 @@ where
     G: gamma::Mode,
 {
     fn from(c: Gray<C, Opaque<C>, M, G>) -> Self {
-        Gray::with_alpha(c.value(), C::MAX)
+        Gray::new(c.value(), ())
     }
 }
 
@@ -183,7 +173,7 @@ where
 {
     fn from(c: Gray<C, A, Straight, G>) -> Self {
         let value = Premultiplied::encode(c.value(), c.alpha());
-        Gray::with_alpha(value, c.alpha())
+        Gray::new(value, c.alpha())
     }
 }
 
@@ -195,28 +185,27 @@ where
 {
     fn from(c: Gray<C, A, Premultiplied, G>) -> Self {
         let value = Premultiplied::decode(c.value(), c.alpha());
-        Gray::with_alpha(value, c.alpha())
+        Gray::new(value, c.alpha())
     }
 }
 
 impl<C, A, M, G> From<u8> for Gray<C, A, M, G>
 where
     C: Channel + From<Ch8>,
-    A: AChannel<Chan = C> + From<Opaque<C>>,
+    A: AChannel<Chan = C> + From<()>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
     /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
-        Gray::new(Ch8::new(c))
+        Gray::new(Ch8::new(c), ())
     }
 }
 
-impl<C, A, M, G> Mul<Self> for Gray<C, A, M, G>
+impl<C, A, G> Mul<Self> for Gray<C, A, Straight, G>
 where
     C: Channel,
     A: AChannel<Chan = C>,
-    M: alpha::Mode,
     G: gamma::Mode,
 {
     type Output = Self;

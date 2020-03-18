@@ -15,6 +15,11 @@
 * Mask can only have Translucent alpha (not Opaque)
 * Renamed alpha::Alpha to alpha::AChannel
 * Renamed Format trait to Pixel
+* Renamed all GrayAlpha types to Graya
+* Gray/Rgb `new` now takes alpha parameter
+
+### Removed
+* Gray/Rgb with_alpha constructors (use `new` instead)
 
 ## [0.9.0] - 2020-03-08
 ### Changed
