@@ -57,7 +57,8 @@ pub use crate::rgb::{
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
     SRgba8p,
 };
-pub use crate::hsv::{
+pub use crate::hsx::{
+    Hsl, Hsl16, Hsl32, Hsl8, Hsla16, Hsla16p, Hsla32, Hsla32p, Hsla8, Hsla8p,
     Hsv, Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
 };
 pub use crate::ycc::{
