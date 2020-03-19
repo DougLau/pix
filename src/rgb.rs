@@ -16,7 +16,6 @@ use std::ops::Mul;
 /// The components are *red*, *green* and *blue*, with optional *[alpha]*.
 ///
 /// [alpha]: alpha/trait.AChannel.html
-/// [channel]: trait.Channel.html
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]

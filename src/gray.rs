@@ -104,7 +104,7 @@ where
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-/*        const RED_COEF: f32 = 0.2126;
+        /* const RED_COEF: f32 = 0.2126;
         const GREEN_COEF: f32 = 0.7152;
         const BLUE_COEF: f32 = 0.0722;
 

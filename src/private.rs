@@ -43,7 +43,8 @@ where
     A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
-{}
+{
+}
 
 impl<C, A, M, G> Sealed for Rgb<C, A, M, G>
 where
@@ -51,7 +52,17 @@ where
     A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
-{}
+{
+}
+
+impl<C, A, M, G> Sealed for Hsl<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+}
 
 impl<C, A, M, G> Sealed for Hsv<C, A, M, G>
 where
@@ -75,4 +86,5 @@ where
     A: AChannel<Chan = C>,
     M: alpha::Mode,
     G: gamma::Mode,
-{}
+{
+}

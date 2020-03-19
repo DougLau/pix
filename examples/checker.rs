@@ -1,5 +1,3 @@
-extern crate pix;
-
 use pix::{Raster, RasterBuilder, SGray8};
 use std::fs::File;
 use std::io;

@@ -84,7 +84,6 @@ use std::any::{Any, TypeId};
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Pixel: Any + Clone + Copy + Default + PartialEq + ColorModel {
-
     /// Alpha mode
     type Alpha: alpha::Mode;
 
@@ -107,8 +106,8 @@ pub trait Pixel: Any + Clone + Copy + Default + PartialEq + ColorModel {
             D::Chan::from(rgba[2]),
             D::Chan::from(rgba[3]),
         ];
-        if TypeId::of::<Self::Alpha>() != TypeId::of::<D::Alpha>() ||
-           TypeId::of::<Self::Gamma>() != TypeId::of::<D::Gamma>()
+        if TypeId::of::<Self::Alpha>() != TypeId::of::<D::Alpha>()
+            || TypeId::of::<Self::Gamma>() != TypeId::of::<D::Gamma>()
         {
             let (mut components, alpha) = rgba.split_at_mut(3);
             convert_alpha_gamma::<Self, D>(&mut components, alpha[0]);
@@ -124,7 +123,9 @@ where
     D: Pixel,
 {
     // Convert to linear gamma
-    components.iter_mut().for_each(|c| *c = S::Gamma::to_linear(*c));
+    components
+        .iter_mut()
+        .for_each(|c| *c = S::Gamma::to_linear(*c));
     if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
         for c in components.iter_mut() {
             // Decode source alpha
@@ -134,7 +135,9 @@ where
         }
     }
     // Convert to destination gamma
-    components.iter_mut().for_each(|c| *c = D::Gamma::from_linear(*c));
+    components
+        .iter_mut()
+        .for_each(|c| *c = D::Gamma::from_linear(*c));
 }
 
 #[cfg(test)]

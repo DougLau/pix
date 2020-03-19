@@ -622,14 +622,13 @@ mod test {
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
-    fn grayalpha16_buffer() {
+    fn graya16_buffer() {
         let b = vec![
             0x1001,0x5005, 0x1000,0x3002, 0x5004,0x7006,
             0x2002,0x6006, 0x9008,0xB00A, 0xD00C,0xF00E,
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
-        let mut r =
-            RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
+        let mut r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
         r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, ()));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,

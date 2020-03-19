@@ -70,7 +70,7 @@ pub struct Premultiplied;
 
 impl<C> From<()> for Opaque<C>
 where
-    C: Channel
+    C: Channel,
 {
     fn from(_value: ()) -> Self {
         Opaque::default()
@@ -134,7 +134,7 @@ impl<C: Channel> AChannel for Opaque<C> {
 
 impl<C> From<()> for Translucent<C>
 where
-    C: Channel
+    C: Channel,
 {
     fn from(_value: ()) -> Self {
         let value = C::MAX;
