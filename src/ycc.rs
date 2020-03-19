@@ -95,16 +95,14 @@ where
 
     /// Convert to *red*, *green*, *blue* and *alpha* components
     fn to_rgba(self) -> [Self::Chan; 4] {
-        // Convert YCbCr to RGBA
-        // FIXME
         /*let y = self.y();
         let cb = self.cb();
         let cr = self.cr();
 
-        let r = y + 1.402 * (cr - 0.5);
-        let g = y - 0.344136 * (cb - 0.5) - 0.714136 * (cr - 0.5);
-        let b = y + 1.772 * (cb - 0.5);
-        [r as u8, g as u8, b as u8, 255]*/
+        let r = y + (cr - 0.5) * 1.402;
+        let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
+        let b = y + (cb - 0.5) * 1.772;
+        [r, g, b, self.alpha()]*/
         todo!()
     }
 
