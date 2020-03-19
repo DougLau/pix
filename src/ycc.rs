@@ -9,11 +9,8 @@ use crate::alpha::{
 use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
-use std::ops::Mul;
 
-/// `YCbCr` (ITU601 / ITU-T 709 / ITU-T T.871) [color model].
-///
-/// Video cameras and JPEGS use this format.
+/// `YCbCr` [color model] used in JPEG format.
 ///
 /// The components are *y*, *cb* and *cr*, with optional *[alpha]*.
 ///
@@ -95,32 +92,28 @@ where
 
     /// Convert to *red*, *green*, *blue* and *alpha* components
     fn to_rgba(self) -> [Self::Chan; 4] {
-        /*let y = self.y();
-        let cb = self.cb();
-        let cr = self.cr();
+        let y = self.y().into();
+        let cb = self.cb().into();
+        let cr = self.cr().into();
 
         let r = y + (cr - 0.5) * 1.402;
         let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
         let b = y + (cb - 0.5) * 1.772;
-        [r, g, b, self.alpha()]*/
-        todo!()
+        [r.into(), g.into(), b.into(), self.alpha()]
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
     fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        // Convert RGBA to YCbCr
-        // FIXME
-        /*let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
+        let red = rgba[0].into();
+        let green = rgba[1].into();
+        let blue = rgba[2].into();
         let alpha = rgba[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
         let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
         let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
 
-        YCbCr::new(y, cb, cr, alpha)*/
-        todo!()
+        YCbCr::new(y, cb, cr, alpha)
     }
 }
 
@@ -199,45 +192,6 @@ where
     }
 }
 
-// FIXME
-/*impl<C, A, G> Mul<Self> for YCbCr<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    G: gamma::Mode,
-{
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let red = self.red() * rhs.red();
-        let green = self.green() * rhs.green();
-        let blue = self.blue() * rhs.blue();
-        let components = [red, green, blue];
-        let alpha = self.alpha * rhs.alpha;
-        YCbCr {
-            components,
-            alpha,
-            mode: PhantomData,
-            gamma: PhantomData,
-        }
-    }
-}*/
-
-// FIXME
-/*impl<C, A, G> Mul<Self> for YCbCr<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let this: YCbCr<C, A, Straight, G> = self.into();
-        let other: YCbCr<C, A, Straight, G> = rhs.into();
-
-        (this * other).into()
-    }
-}*/
-
 /// [YCbCr](struct.YCbCr.html) 8-bit [opaque](alpha/struct.Opaque.html) (no alpha)
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
 pub type YCbCr8 = YCbCr<Ch8, Opaque<Ch8>, Straight, Linear>;
@@ -250,26 +204,26 @@ pub type YCbCr32 = YCbCr<Ch32, Opaque<Ch32>, Straight, Linear>;
 
 /// [YCbCr](struct.YCbCr.html) 8-bit [straight](alpha/struct.Straight.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha8 = YCbCr<Ch8, Translucent<Ch8>, Straight, Linear>;
+pub type YCbCra8 = YCbCr<Ch8, Translucent<Ch8>, Straight, Linear>;
 /// [YCbCr](struct.YCbCr.html) 16-bit [straight](alpha/struct.Straight.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha16 = YCbCr<Ch16, Translucent<Ch16>, Straight, Linear>;
+pub type YCbCra16 = YCbCr<Ch16, Translucent<Ch16>, Straight, Linear>;
 /// [YCbCr](struct.YCbCr.html) 32-bit [straight](alpha/struct.Straight.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha32 = YCbCr<Ch32, Translucent<Ch32>, Straight, Linear>;
+pub type YCbCra32 = YCbCr<Ch32, Translucent<Ch32>, Straight, Linear>;
 
 /// [YCbCr](struct.YCbCr.html) 8-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha8p = YCbCr<Ch8, Translucent<Ch8>, Premultiplied, Linear>;
+pub type YCbCra8p = YCbCr<Ch8, Translucent<Ch8>, Premultiplied, Linear>;
 /// [YCbCr](struct.YCbCr.html) 16-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha16p = YCbCr<Ch16, Translucent<Ch16>, Premultiplied, Linear>;
+pub type YCbCra16p = YCbCr<Ch16, Translucent<Ch16>, Premultiplied, Linear>;
 /// [YCbCr](struct.YCbCr.html) 32-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type YCbCrAlpha32p = YCbCr<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
+pub type YCbCra32p = YCbCr<Ch32, Translucent<Ch32>, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {
@@ -280,8 +234,8 @@ mod test {
         assert_eq!(std::mem::size_of::<YCbCr8>(), 3);
         assert_eq!(std::mem::size_of::<YCbCr16>(), 6);
         assert_eq!(std::mem::size_of::<YCbCr32>(), 12);
-        assert_eq!(std::mem::size_of::<YCbCrAlpha8>(), 4);
-        assert_eq!(std::mem::size_of::<YCbCrAlpha16>(), 8);
-        assert_eq!(std::mem::size_of::<YCbCrAlpha32>(), 16);
+        assert_eq!(std::mem::size_of::<YCbCra8>(), 4);
+        assert_eq!(std::mem::size_of::<YCbCra16>(), 8);
+        assert_eq!(std::mem::size_of::<YCbCra32>(), 16);
     }
 }
