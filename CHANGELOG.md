@@ -2,7 +2,7 @@
 
 ### Added
 * ColorModel trait
-* Hsv and Hsl color models
+* Hsv, Hsl and Hwb color models
 
 ### Changed
 * Use Any/TypeId instead of GammaModeID

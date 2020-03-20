@@ -28,40 +28,47 @@
 
 pub mod alpha;
 mod channel;
-mod pixel;
 pub mod gamma;
 mod gray;
+mod hsl;
+mod hsv;
+mod hue;
+mod hwb;
 mod mask;
 mod model;
 mod palette;
+mod pixel;
 mod private;
 mod raster;
 mod rgb;
-mod hsx;
 mod ycc;
 
 pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
-pub use crate::pixel::Pixel;
 pub use crate::gray::{
     Gray, Gray16, Gray32, Gray8, Graya16, Graya16p, Graya32, Graya32p, Graya8,
-    Graya8p,
-    SGray16, SGray32, SGray8, SGraya16, SGraya16p, SGraya32, SGraya32p, SGraya8,
-    SGraya8p,
+    Graya8p, SGray16, SGray32, SGray8, SGraya16, SGraya16p, SGraya32,
+    SGraya32p, SGraya8, SGraya8p,
+};
+pub use crate::hsl::{
+    Hsl, Hsl16, Hsl32, Hsl8, Hsla16, Hsla16p, Hsla32, Hsla32p, Hsla8, Hsla8p,
+};
+pub use crate::hsv::{
+    Hsv, Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
+};
+pub use crate::hwb::{
+    Hwb, Hwb16, Hwb32, Hwb8, Hwba16, Hwba16p, Hwba32, Hwba32p, Hwba8, Hwba8p,
 };
 pub use crate::mask::{Mask, Mask16, Mask32, Mask8};
 pub use crate::model::ColorModel;
 pub use crate::palette::Palette;
+pub use crate::pixel::Pixel;
 pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
 pub use crate::rgb::{
     Rgb, Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
     SRgba8p,
 };
-pub use crate::hsx::{
-    Hsl, Hsl16, Hsl32, Hsl8, Hsla16, Hsla16p, Hsla32, Hsla32p, Hsla8, Hsla8p,
-    Hsv, Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
-};
 pub use crate::ycc::{
-    YCbCr, YCbCr16, YCbCr32, YCbCr8, YCbCrAlpha16, YCbCrAlpha16p, YCbCrAlpha32,
-    YCbCrAlpha32p, YCbCrAlpha8, YCbCrAlpha8p,
+    YCbCr, YCbCr16, YCbCr32, YCbCr8, YCbCra16, YCbCra16p, YCbCra32, YCbCra32p,
+    YCbCra8, YCbCra8p,
 };

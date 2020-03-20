@@ -8,7 +8,8 @@ use crate::Channel;
 
 /// Model for pixel colors.
 ///
-/// Existing color models are [Rgb], [Gray], [Hsv], [Hsl] and [Mask].
+/// Existing color models are [Rgb], [Gray], [Hsv], [Hsl], [Hwb], [YCbCr] and
+/// [Mask].
 ///
 /// It is possible to convert from a color model to any other, using [to_rgba]
 /// and [with_rgba].  For usage of this, see the `Pixel` [convert] method.
@@ -19,12 +20,13 @@ use crate::Channel;
 /// [gray]: struct.Gray.html
 /// [hsl]: struct.Hsl.html
 /// [hsv]: struct.Hsv.html
+/// [hwb]: struct.Hwb.html
 /// [mask]: struct.Mask.html
 /// [rgb]: struct.Rgb.html
 /// [to_rgba]: trait.ColorModel.html#method.to_rgba
 /// [with_rgba]: trait.ColorModel.html#method.with_rgba
+/// [ycbcr]: struct.YCbCr.html
 pub trait ColorModel: Sealed {
-
     /// Component `Channel` type
     type Chan: Channel;
 
