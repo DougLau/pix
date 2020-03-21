@@ -85,19 +85,20 @@ where
         Opaque::default()
     }
 }
+
 impl<C: Channel> From<Opaque<C>> for Ch8 {
     fn from(_value: Opaque<C>) -> Self {
-        Ch8::MAX
+        Self::MAX
     }
 }
 impl<C: Channel> From<Opaque<C>> for Ch16 {
     fn from(_value: Opaque<C>) -> Self {
-        Ch16::MAX
+        Self::MAX
     }
 }
 impl<C: Channel> From<Opaque<C>> for Ch32 {
     fn from(_value: Opaque<C>) -> Self {
-        Ch32::MAX
+        Self::MAX
     }
 }
 
