@@ -4,7 +4,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 use crate::alpha::{
-    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
 use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
@@ -145,58 +145,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(*self)
-    }
-}
-
-impl<C, M, G> From<Hsv<C, Translucent<C>, M, G>> for Hsv<C, Opaque<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Hsv<C, Translucent<C>, M, G>) -> Self {
-        Hsv::new(c.hue(), c.saturation(), c.value(), ())
-    }
-}
-
-impl<C, M, G> From<Hsv<C, Opaque<C>, M, G>> for Hsv<C, Translucent<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Hsv<C, Opaque<C>, M, G>) -> Self {
-        Hsv::new(c.hue(), c.saturation(), c.value(), ())
-    }
-}
-
-impl<C, A, G> From<Hsv<C, A, Straight, G>> for Hsv<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Hsv<C, A, Straight, G>) -> Self {
-        let hue = c.hue();
-        let alpha = c.alpha();
-        let saturation = Premultiplied::encode(c.saturation(), alpha);
-        let value = Premultiplied::encode(c.value(), alpha);
-        Hsv::new(hue, saturation, value, alpha)
-    }
-}
-
-impl<C, A, G> From<Hsv<C, A, Premultiplied, G>> for Hsv<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Hsv<C, A, Premultiplied, G>) -> Self {
-        let hue = c.hue();
-        let alpha = c.alpha();
-        let saturation = Premultiplied::decode(c.saturation(), alpha);
-        let value = Premultiplied::decode(c.value(), alpha);
-        Hsv::new(hue, saturation, value, alpha)
     }
 }
 

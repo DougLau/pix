@@ -3,9 +3,9 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{AChannel, Premultiplied, Straight, Translucent};
-use crate::gamma::{self, Linear};
-use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Gray, Pixel, Rgb};
+use crate::alpha::{AChannel, Straight, Translucent};
+use crate::gamma::Linear;
+use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::ops::Mul;
 
 /// `Mask` [color model] (*alpha* only).
@@ -86,66 +86,6 @@ impl From<f32> for Mask32 {
     /// Get a `Mask` from an `f32`
     fn from(c: f32) -> Self {
         Mask::new(c)
-    }
-}
-
-impl<C, A, G> From<Mask<C>> for Rgb<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    /// Get an `Rgb` from a `Mask`
-    fn from(c: Mask<C>) -> Self {
-        let red = C::MAX;
-        let green = C::MAX;
-        let blue = C::MAX;
-        let alpha = c.alpha();
-        Rgb::new(red, green, blue, alpha)
-    }
-}
-
-impl<C, A, G> From<Mask<C>> for Rgb<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    /// Get an `Rgb` from a `Mask`
-    fn from(c: Mask<C>) -> Self {
-        let red = c.alpha();
-        let green = c.alpha();
-        let blue = c.alpha();
-        let alpha = c.alpha();
-        Rgb::new(red, green, blue, alpha)
-    }
-}
-
-impl<C, A, G> From<Mask<C>> for Gray<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    /// Get a `Gray` from a `Mask`
-    fn from(c: Mask<C>) -> Self {
-        let value = C::MAX;
-        let alpha = c.alpha();
-        Gray::new(value, alpha)
-    }
-}
-
-impl<C, A, G> From<Mask<C>> for Gray<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    /// Get a `Gray` from a `Mask`
-    fn from(c: Mask<C>) -> Self {
-        let value = c.alpha();
-        let alpha = c.alpha();
-        Gray::new(value, alpha)
     }
 }
 

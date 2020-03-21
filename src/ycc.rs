@@ -4,7 +4,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 use crate::alpha::{
-    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
@@ -139,56 +139,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(*self)
-    }
-}
-
-impl<C, M, G> From<YCbCr<C, Translucent<C>, M, G>> for YCbCr<C, Opaque<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: YCbCr<C, Translucent<C>, M, G>) -> Self {
-        YCbCr::new(c.y(), c.cb(), c.cr(), ())
-    }
-}
-
-impl<C, M, G> From<YCbCr<C, Opaque<C>, M, G>> for YCbCr<C, Translucent<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: YCbCr<C, Opaque<C>, M, G>) -> Self {
-        YCbCr::new(c.y(), c.cb(), c.cr(), ())
-    }
-}
-
-impl<C, A, G> From<YCbCr<C, A, Straight, G>> for YCbCr<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: YCbCr<C, A, Straight, G>) -> Self {
-        let y = Premultiplied::encode(c.y(), c.alpha());
-        let cb = c.cb();
-        let cr = c.cr();
-        YCbCr::new(y, cb, cr, c.alpha())
-    }
-}
-
-impl<C, A, G> From<YCbCr<C, A, Premultiplied, G>> for YCbCr<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: YCbCr<C, A, Premultiplied, G>) -> Self {
-        let y = Premultiplied::decode(c.y(), c.alpha());
-        let cb = c.cb();
-        let cr = c.cr();
-        YCbCr::new(y, cb, cr, c.alpha())
     }
 }
 

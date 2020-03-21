@@ -3,7 +3,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 use crate::alpha::{
-    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
 use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
@@ -159,58 +159,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(*self)
-    }
-}
-
-impl<C, M, G> From<Hwb<C, Translucent<C>, M, G>> for Hwb<C, Opaque<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Hwb<C, Translucent<C>, M, G>) -> Self {
-        Hwb::new(c.hue(), c.whiteness(), c.blackness(), ())
-    }
-}
-
-impl<C, M, G> From<Hwb<C, Opaque<C>, M, G>> for Hwb<C, Translucent<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Hwb<C, Opaque<C>, M, G>) -> Self {
-        Hwb::new(c.hue(), c.whiteness(), c.blackness(), ())
-    }
-}
-
-impl<C, A, G> From<Hwb<C, A, Straight, G>> for Hwb<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Hwb<C, A, Straight, G>) -> Self {
-        let hue = c.hue();
-        let alpha = c.alpha();
-        let whiteness = Premultiplied::encode(c.whiteness(), alpha);
-        let blackness = Premultiplied::encode(c.blackness(), alpha);
-        Hwb::new(hue, whiteness, blackness, alpha)
-    }
-}
-
-impl<C, A, G> From<Hwb<C, A, Premultiplied, G>> for Hwb<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Hwb<C, A, Premultiplied, G>) -> Self {
-        let hue = c.hue();
-        let alpha = c.alpha();
-        let whiteness = Premultiplied::decode(c.whiteness(), alpha);
-        let blackness = Premultiplied::decode(c.blackness(), alpha);
-        Hwb::new(hue, whiteness, blackness, alpha)
     }
 }
 

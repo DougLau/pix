@@ -4,12 +4,11 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{
-    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
-use std::ops::Mul;
 
 /// `RGB` additive [color model].
 ///
@@ -173,57 +172,6 @@ where
     }
 }
 
-impl<C, M, G> From<Rgb<C, Translucent<C>, M, G>> for Rgb<C, Opaque<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Rgb<C, Translucent<C>, M, G>) -> Self {
-        Rgb::new(c.red(), c.green(), c.blue(), ())
-    }
-}
-
-impl<C, M, G> From<Rgb<C, Opaque<C>, M, G>> for Rgb<C, Translucent<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Rgb<C, Opaque<C>, M, G>) -> Self {
-        Rgb::new(c.red(), c.green(), c.blue(), ())
-    }
-}
-
-impl<C, A, G> From<Rgb<C, A, Straight, G>> for Rgb<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Rgb<C, A, Straight, G>) -> Self {
-        let red = Premultiplied::encode(c.red(), c.alpha());
-        let green = Premultiplied::encode(c.green(), c.alpha());
-        let blue = Premultiplied::encode(c.blue(), c.alpha());
-        Rgb::new(red, green, blue, c.alpha())
-    }
-}
-
-impl<C, A, G> From<Rgb<C, A, Premultiplied, G>> for Rgb<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Rgb<C, A, Premultiplied, G>) -> Self {
-        let alpha = c.alpha();
-        let red = Premultiplied::decode(c.red(), alpha);
-        let green = Premultiplied::decode(c.green(), alpha);
-        let blue = Premultiplied::decode(c.blue(), alpha);
-        Rgb::new(red, green, blue, alpha)
-    }
-}
-
 impl<C, A, M, G> From<i32> for Rgb<C, A, M, G>
 where
     C: Channel + From<Ch8>,
@@ -260,43 +208,6 @@ where
         let alpha: u8 = Ch8::from(c.alpha()).into();
         let alpha = i32::from(alpha) << 24;
         red | green | blue | alpha
-    }
-}
-
-impl<C, A, G> Mul<Self> for Rgb<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    G: gamma::Mode,
-{
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let red = self.red() * rhs.red();
-        let green = self.green() * rhs.green();
-        let blue = self.blue() * rhs.blue();
-        let components = [red, green, blue];
-        let alpha = self.alpha * rhs.alpha;
-        Rgb {
-            components,
-            alpha,
-            mode: PhantomData,
-            gamma: PhantomData,
-        }
-    }
-}
-
-impl<C, A, G> Mul<Self> for Rgb<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let this: Rgb<C, A, Straight, G> = self.into();
-        let other: Rgb<C, A, Straight, G> = rhs.into();
-
-        (this * other).into()
     }
 }
 
@@ -381,24 +292,5 @@ mod test {
         assert_eq!(std::mem::size_of::<SRgba8>(), 4);
         assert_eq!(std::mem::size_of::<SRgba16>(), 8);
         assert_eq!(std::mem::size_of::<SRgba32>(), 16);
-    }
-
-    #[test]
-    fn check_mul() {
-        let a = SRgba8::new(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::new(0x00, 0x00, 0x00, 0x00);
-        assert_eq!(a * b, b);
-
-        let a = SRgba8::new(0xFF, 0xFF, 0xFF, 0xFF);
-        let b = SRgba8::new(0x80, 0x80, 0x80, 0x80);
-        assert_eq!(a * b, b);
-
-        let a = SRgba8::new(0xFF, 0xF0, 0x00, 0x70);
-        let b = SRgba8::new(0x80, 0x00, 0x60, 0xFF);
-        assert_eq!(a * b, SRgba8::new(0x80, 0x00, 0x00, 0x70));
-
-        let a = SRgba8::new(0xFF, 0x00, 0x80, 0xFF);
-        let b = SRgba8::new(0xFF, 0xFF, 0xFF, 0x10);
-        assert_eq!(a * b, SRgba8::new(0xFF, 0x00, 0x80, 0x10));
     }
 }

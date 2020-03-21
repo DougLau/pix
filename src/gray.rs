@@ -4,12 +4,11 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{
-    self, AChannel, Mode as _, Opaque, Premultiplied, Straight, Translucent,
+    self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear, Srgb};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::marker::PhantomData;
-use std::ops::Mul;
 
 /// `Gray` [color model], with optional [alpha channel].
 ///
@@ -143,52 +142,6 @@ where
     }
 }
 
-impl<C, M, G> From<Gray<C, Translucent<C>, M, G>> for Gray<C, Opaque<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Gray<C, Translucent<C>, M, G>) -> Self {
-        Gray::new(c.value(), ())
-    }
-}
-
-impl<C, M, G> From<Gray<C, Opaque<C>, M, G>> for Gray<C, Translucent<C>, M, G>
-where
-    C: Channel,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    fn from(c: Gray<C, Opaque<C>, M, G>) -> Self {
-        Gray::new(c.value(), ())
-    }
-}
-
-impl<C, A, G> From<Gray<C, A, Straight, G>> for Gray<C, A, Premultiplied, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Gray<C, A, Straight, G>) -> Self {
-        let value = Premultiplied::encode(c.value(), c.alpha());
-        Gray::new(value, c.alpha())
-    }
-}
-
-impl<C, A, G> From<Gray<C, A, Premultiplied, G>> for Gray<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    G: gamma::Mode,
-{
-    fn from(c: Gray<C, A, Premultiplied, G>) -> Self {
-        let value = Premultiplied::decode(c.value(), c.alpha());
-        Gray::new(value, c.alpha())
-    }
-}
-
 impl<C, A, M, G> From<u8> for Gray<C, A, M, G>
 where
     C: Channel + From<Ch8>,
@@ -199,20 +152,6 @@ where
     /// Convert from a `u8` value.
     fn from(c: u8) -> Self {
         Gray::new(Ch8::new(c), ())
-    }
-}
-
-impl<C, A, G> Mul<Self> for Gray<C, A, Straight, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    G: gamma::Mode,
-{
-    type Output = Self;
-    fn mul(mut self, rhs: Self) -> Self::Output {
-        self.components[0] = self.value() * rhs.value();
-        self.alpha = self.alpha * rhs.alpha;
-        self
     }
 }
 
