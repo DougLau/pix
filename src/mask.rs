@@ -26,29 +26,35 @@ impl<C: Channel> Mask<C> {
         let alpha = Translucent::new(C::from(alpha));
         Mask { alpha }
     }
+
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
+        [C::MAX, C::MAX, C::MAX, self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba(rgba: [C; 4]) -> Self {
+        Mask::new(rgba[3])
+    }
 }
 
 impl<C: Channel> ColorModel for Mask<C> {
     type Chan = C;
-
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &[]
-    }
 
     /// Get the *alpha* component
     fn alpha(self) -> Self::Chan {
         self.alpha.value()
     }
 
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        [C::MAX, C::MAX, C::MAX, self.alpha()]
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        (self.into_rgba(), 3)
     }
 
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        Mask::new(rgba[3])
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        debug_assert_eq!(alpha, 3);
+        Self::from_rgba(chan)
     }
 }
 

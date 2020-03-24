@@ -8,6 +8,7 @@ use crate::alpha::{
 use crate::gamma::{self, Linear};
 use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
+use std::any::TypeId;
 use std::marker::PhantomData;
 
 /// `HWB` [color model].
@@ -27,7 +28,8 @@ where
     G: gamma::Mode,
 {
     hue: C,
-    components: [C; 2],
+    whiteness: C,
+    blackness: C,
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -36,7 +38,7 @@ where
 impl<C, A, M, G> Hwb<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -56,28 +58,32 @@ where
         let hue = C::from(hue);
         let whiteness = C::from(whiteness);
         let blackness = C::from(blackness);
-        let components = [whiteness, blackness];
         let alpha = A::from(alpha);
         Hwb {
             hue,
-            components,
+            whiteness,
+            blackness,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
         }
     }
+
     /// Get the *hue* component.
     pub fn hue(self) -> C {
         self.hue
     }
+
     /// Get the *whiteness* component.
     pub fn whiteness(self) -> C {
-        self.components[0]
+        self.whiteness
     }
+
     /// Get the *blackness* component.
     pub fn blackness(self) -> C {
-        self.components[1]
+        self.blackness
     }
+
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
     fn whiteness_blackness(self) -> (C, C) {
         let whiteness = self.whiteness();
@@ -90,29 +96,9 @@ where
             (whiteness, blackness)
         }
     }
-}
 
-impl<C, A, M, G> ColorModel for Hwb<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C> + From<C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Chan = C;
-
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
-    }
-
-    /// Get the *alpha* component
-    fn alpha(self) -> Self::Chan {
-        self.alpha.value()
-    }
-
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
         let (whiteness, blackness) = self.whiteness_blackness();
         let v = C::MAX - blackness;
         let chroma = v - whiteness;
@@ -124,7 +110,7 @@ where
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
+    fn from_rgba(rgba: [C; 4]) -> Self {
         let red = rgba[0];
         let green = rgba[1];
         let blue = rgba[2];
@@ -134,6 +120,50 @@ where
         let whiteness = (C::MAX - sat_v) * val;
         let blackness = C::MAX - val;
         Hwb::new(hue, whiteness, blackness, alpha)
+    }
+}
+
+impl<C, A, M, G> ColorModel for Hwb<C, A, M, G>
+where
+    C: Channel,
+    A: AChannel<Chan = C> + From<C>,
+    M: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+
+    /// Get the *alpha* component
+    fn alpha(self) -> Self::Chan {
+        self.alpha.value()
+    }
+
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            ([
+                self.whiteness(),
+                self.blackness(),
+                self.alpha(),
+                self.hue(),
+            ], 2)
+        } else {
+            (self.into_rgba(), 3)
+        }
+    }
+
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            debug_assert_eq!(alpha, 2);
+            let whiteness = chan[0];
+            let blackness = chan[1];
+            let alpha = chan[2];
+            let hue = chan[3];
+            Hwb::new(hue, whiteness, blackness, alpha)
+        } else {
+            debug_assert_eq!(alpha, 3);
+            Self::from_rgba(chan)
+        }
     }
 }
 

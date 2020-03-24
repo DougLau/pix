@@ -9,6 +9,7 @@ use crate::alpha::{
 use crate::gamma::{self, Linear};
 use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
+use std::any::TypeId;
 use std::marker::PhantomData;
 
 /// `HSV` hexcone [color model], also known as `HSB`.
@@ -28,7 +29,8 @@ where
     G: gamma::Mode,
 {
     hue: C,
-    components: [C; 2],
+    saturation: C,
+    value: C,
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -37,7 +39,7 @@ where
 impl<C, A, M, G> Hsv<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -57,27 +59,52 @@ where
         let hue = C::from(hue);
         let saturation = C::from(saturation);
         let value = C::from(value);
-        let components = [saturation, value];
         let alpha = A::from(alpha);
         Hsv {
             hue,
-            components,
+            saturation,
+            value,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
         }
     }
+
     /// Get the *hue* component.
     pub fn hue(self) -> C {
         self.hue
     }
+
     /// Get the *saturation* component.
     pub fn saturation(self) -> C {
-        self.components[0]
+        self.saturation
     }
+
     /// Get the *value* component.
     pub fn value(self) -> C {
-        self.components[1]
+        self.value
+    }
+
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
+        let v = self.value();
+        let chroma = v * self.saturation();
+        let hp = self.hue().into() * 6.0; // 0.0..=6.0
+        let hc = Hexcone::from_hue_prime(hp);
+        let (red, green, blue) = hc.rgb(chroma);
+        let m = v - chroma;
+        [red + m, green + m, blue + m, self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba(rgba: [C; 4]) -> Self {
+        let red = rgba[0];
+        let green = rgba[1];
+        let blue = rgba[2];
+        let alpha = rgba[3];
+        let (hue, chroma, val) = rgb_to_hue_chroma_value(red, green, blue);
+        let sat_v = if val > C::MIN { chroma / val } else { C::MIN };
+        Hsv::new(hue, sat_v, val, alpha)
     }
 }
 
@@ -90,36 +117,38 @@ where
 {
     type Chan = C;
 
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
-    }
-
     /// Get the *alpha* component
     fn alpha(self) -> Self::Chan {
         self.alpha.value()
     }
 
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        let v = self.value();
-        let chroma = v * self.saturation();
-        let hp = self.hue().into() * 6.0; // 0.0..=6.0
-        let hc = Hexcone::from_hue_prime(hp);
-        let (red, green, blue) = hc.rgb(chroma);
-        let m = v - chroma;
-        [red + m, green + m, blue + m, self.alpha()]
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            ([
+                self.saturation(),
+                self.value(),
+                self.alpha(),
+                self.hue(),
+            ], 2)
+        } else {
+            (self.into_rgba(), 3)
+        }
     }
 
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
-        let alpha = rgba[3];
-        let (hue, chroma, val) = rgb_to_hue_chroma_value(red, green, blue);
-        let sat_v = if val > C::MIN { chroma / val } else { C::MIN };
-        Hsv::new(hue, sat_v, val, alpha)
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            debug_assert_eq!(alpha, 2);
+            let sat_l = chan[0];
+            let value = chan[1];
+            let alpha = chan[2];
+            let hue = chan[3];
+            Hsv::new(hue, sat_l, value, alpha)
+        } else {
+            debug_assert_eq!(alpha, 3);
+            Self::from_rgba(chan)
+        }
     }
 }
 

@@ -6,7 +6,7 @@
 use crate::alpha::{self, Mode as _};
 use crate::gamma::{self, Mode as _};
 use crate::ColorModel;
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 
 /// Pixel format determines [color model], bit depth, [alpha mode] and
 /// [gamma mode].
@@ -83,7 +83,7 @@ use std::any::{Any, TypeId};
 ///   [Mask32](type.Mask32.html)
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait Pixel: Any + Clone + Copy + Default + PartialEq + ColorModel {
+pub trait Pixel: Clone + Copy + Default + PartialEq + ColorModel {
     /// Alpha mode
     type Alpha: alpha::Mode;
 
@@ -98,36 +98,36 @@ pub trait Pixel: Any + Clone + Copy + Default + PartialEq + ColorModel {
         D: Pixel,
         D::Chan: From<Self::Chan>,
     {
-        let rgba = self.to_rgba();
+        let (chan, alpha) = self.into_channels::<D>();
         // Convert to destination bit depth
-        let mut rgba = [
-            D::Chan::from(rgba[0]),
-            D::Chan::from(rgba[1]),
-            D::Chan::from(rgba[2]),
-            D::Chan::from(rgba[3]),
+        let mut chan = [
+            D::Chan::from(chan[0]),
+            D::Chan::from(chan[1]),
+            D::Chan::from(chan[2]),
+            D::Chan::from(chan[3]),
         ];
         if TypeId::of::<Self::Alpha>() != TypeId::of::<D::Alpha>()
             || TypeId::of::<Self::Gamma>() != TypeId::of::<D::Gamma>()
         {
-            let (mut components, alpha) = rgba.split_at_mut(3);
-            convert_alpha_gamma::<Self, D>(&mut components, alpha[0]);
+            let (mut channels, alpha) = chan.split_at_mut(alpha);
+            convert_alpha_gamma::<Self, D>(&mut channels, alpha[0]);
         }
-        D::with_rgba(rgba)
+        D::from_channels::<Self>(chan, alpha)
     }
 }
 
 /// Convert alpha/gamma between two pixel formats
-fn convert_alpha_gamma<S, D>(components: &mut [D::Chan], alpha: D::Chan)
+fn convert_alpha_gamma<S, D>(channels: &mut [D::Chan], alpha: D::Chan)
 where
     S: Pixel,
     D: Pixel,
 {
     // Convert to linear gamma
-    components
+    channels
         .iter_mut()
         .for_each(|c| *c = S::Gamma::to_linear(*c));
     if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
-        for c in components.iter_mut() {
+        for c in channels.iter_mut() {
             // Decode source alpha
             *c = S::Alpha::decode(*c, alpha);
             // Encode destination alpha
@@ -135,7 +135,7 @@ where
         }
     }
     // Convert to destination gamma
-    components
+    channels
         .iter_mut()
         .for_each(|c| *c = D::Gamma::from_linear(*c));
 }

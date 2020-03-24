@@ -25,7 +25,9 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    components: [C; 3],
+    red: C,
+    green: C,
+    blue: C,
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -34,7 +36,7 @@ where
 impl<C, A, M, G> Rgb<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -54,26 +56,44 @@ where
         let red = C::from(red);
         let green = C::from(green);
         let blue = C::from(blue);
-        let components = [red, green, blue];
         let alpha = A::from(alpha);
         Rgb {
-            components,
+            red,
+            green,
+            blue,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
         }
     }
+
     /// Get the *red* component.
     pub fn red(self) -> C {
-        self.components[0]
+        self.red
     }
+
     /// Get the *green* component.
     pub fn green(self) -> C {
-        self.components[1]
+        self.green
     }
+
     /// Get the *blue* component.
     pub fn blue(self) -> C {
-        self.components[2]
+        self.blue
+    }
+
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
+        [self.red(), self.green(), self.blue(), self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba(rgba: [C; 4]) -> Self {
+        let red = rgba[0];
+        let green = rgba[1];
+        let blue = rgba[2];
+        let alpha = rgba[3];
+        Rgb::new(red, green, blue, alpha)
     }
 
     /// Get channel-wise difference
@@ -122,28 +142,20 @@ where
 {
     type Chan = C;
 
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
-    }
-
     /// Get the *alpha* component
     fn alpha(self) -> Self::Chan {
         self.alpha.value()
     }
 
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        [self.red(), self.green(), self.blue(), self.alpha()]
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        (self.into_rgba(), 3)
     }
 
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
-        let alpha = rgba[3];
-        Rgb::new(red, green, blue, alpha)
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        debug_assert_eq!(alpha, 3);
+        Self::from_rgba(chan)
     }
 }
 
@@ -175,7 +187,7 @@ where
 impl<C, A, M, G> From<i32> for Rgb<C, A, M, G>
 where
     C: Channel + From<Ch8>,
-    A: AChannel<Chan = C> + From<Translucent<Ch8>>,
+    A: AChannel<Chan = C> + From<C> + From<Translucent<Ch8>>,
     M: alpha::Mode,
     G: gamma::Mode,
 {

@@ -8,6 +8,7 @@ use crate::alpha::{
 };
 use crate::gamma::{self, Linear, Srgb};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
+use std::any::TypeId;
 use std::marker::PhantomData;
 
 /// `Gray` [color model], with optional [alpha channel].
@@ -29,7 +30,7 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    components: [C; 1],
+    value: C,
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -38,7 +39,7 @@ where
 impl<C, A, M, G> Gray<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -55,24 +56,47 @@ where
         C: From<H>,
         A: From<B>,
     {
-        let components = [C::from(value)];
+        let value = C::from(value);
         let alpha = A::from(alpha);
         let mode = PhantomData;
         let gamma = PhantomData;
         Gray {
-            components,
+            value,
             alpha,
             mode,
             gamma,
         }
     }
+
     /// Get the *luma* / *relative luminance* component.
     pub fn value(self) -> C {
-        self.components[0]
+        self.value
     }
+
     /// Get the *alpha* value.
     pub fn alpha(self) -> C {
         self.alpha.value()
+    }
+
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
+        let value = self.value();
+        [value, value, value, self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba(rgba: [C; 4]) -> Self {
+        /* const RED_COEF: f32 = 0.2126;
+        const GREEN_COEF: f32 = 0.7152;
+        const BLUE_COEF: f32 = 0.0722;
+
+        let red = rgba[0] * RED_COEF.into();
+        let green = rgba[1] * GREEN_COEF.into();
+        let blue = rgba[2] * BLUE_COEF.into();
+        let value = red + green + blue; */
+        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
+        let alpha = rgba[3];
+        Gray::new(value, alpha)
     }
 }
 
@@ -85,35 +109,31 @@ where
 {
     type Chan = C;
 
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
-    }
-
     /// Get the *alpha* component.
-    fn alpha(self) -> Self::Chan {
+    fn alpha(self) -> C {
         self.alpha.value()
     }
 
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        let value = self.value();
-        [value, value, value, self.alpha()]
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            ([self.value, self.alpha(), C::MIN, C::MIN], 1)
+        } else {
+            (self.into_rgba(), 3)
+        }
     }
 
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        /* const RED_COEF: f32 = 0.2126;
-        const GREEN_COEF: f32 = 0.7152;
-        const BLUE_COEF: f32 = 0.0722;
-
-        let red = rgba[0] * RED_COEF.into();
-        let green = rgba[1] * GREEN_COEF.into();
-        let blue = rgba[2] * BLUE_COEF.into();
-        let value = red + green + blue;*/
-        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
-        let alpha = rgba[3];
-        Gray::new(value, alpha)
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            debug_assert_eq!(alpha, 1);
+            let value = chan[0];
+            let alpha = chan[1];
+            Gray::new(value, alpha)
+        } else {
+            debug_assert_eq!(alpha, 3);
+            Self::from_rgba(chan)
+        }
     }
 }
 
@@ -145,7 +165,7 @@ where
 impl<C, A, M, G> From<u8> for Gray<C, A, M, G>
 where
     C: Channel + From<Ch8>,
-    A: AChannel<Chan = C> + From<()>,
+    A: AChannel<Chan = C> + From<()> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {

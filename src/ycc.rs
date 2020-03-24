@@ -8,6 +8,7 @@ use crate::alpha::{
 };
 use crate::gamma::{self, Linear};
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
+use std::any::TypeId;
 use std::marker::PhantomData;
 
 /// `YCbCr` [color model] used in JPEG format.
@@ -26,7 +27,9 @@ where
     M: alpha::Mode,
     G: gamma::Mode,
 {
-    components: [C; 3],
+    y: C,
+    cb: C,
+    cr: C,
     alpha: A,
     mode: PhantomData<M>,
     gamma: PhantomData<G>,
@@ -35,7 +38,7 @@ where
 impl<C, A, M, G> YCbCr<C, A, M, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
+    A: AChannel<Chan = C> + From<C>,
     M: alpha::Mode,
     G: gamma::Mode,
 {
@@ -48,26 +51,56 @@ where
         let y = C::from(y);
         let cb = C::from(cb);
         let cr = C::from(cr);
-        let components = [y, cb, cr];
         let alpha = A::from(alpha);
         YCbCr {
-            components,
+            y,
+            cb,
+            cr,
             alpha,
             mode: PhantomData,
             gamma: PhantomData,
         }
     }
+
     /// Get the *y* component.
     pub fn y(self) -> C {
-        self.components[0]
+        self.y
     }
+
     /// Get the *Cb* component.
     pub fn cb(self) -> C {
-        self.components[1]
+        self.cb
     }
+
     /// Get the *Cr* component.
     pub fn cr(self) -> C {
-        self.components[2]
+        self.cr
+    }
+
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba(self) -> [C; 4] {
+        let y = self.y().into();
+        let cb = self.cb().into();
+        let cr = self.cr().into();
+
+        let r = y + (cr - 0.5) * 1.402;
+        let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
+        let b = y + (cb - 0.5) * 1.772;
+        [r.into(), g.into(), b.into(), self.alpha()]
+    }
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba(rgba: [C; 4]) -> Self {
+        let red = rgba[0].into();
+        let green = rgba[1].into();
+        let blue = rgba[2].into();
+        let alpha = rgba[3];
+
+        let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
+        let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
+        let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
+
+        YCbCr::new(y, cb, cr, alpha)
     }
 }
 
@@ -80,40 +113,38 @@ where
 {
     type Chan = C;
 
-    /// Get all components affected by alpha/gamma
-    fn components(&self) -> &[Self::Chan] {
-        &self.components
-    }
-
     /// Get the *alpha* component
     fn alpha(self) -> Self::Chan {
         self.alpha.value()
     }
 
-    /// Convert to *red*, *green*, *blue* and *alpha* components
-    fn to_rgba(self) -> [Self::Chan; 4] {
-        let y = self.y().into();
-        let cb = self.cb().into();
-        let cr = self.cr().into();
-
-        let r = y + (cr - 0.5) * 1.402;
-        let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
-        let b = y + (cb - 0.5) * 1.772;
-        [r.into(), g.into(), b.into(), self.alpha()]
+    /// Convert into channels shared by types
+    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            ([
+                self.y(),
+                self.cb(),
+                self.cr(),
+                self.alpha(),
+            ], 3)
+        } else {
+            (self.into_rgba(), 3)
+        }
     }
 
-    /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn with_rgba(rgba: [Self::Chan; 4]) -> Self {
-        let red = rgba[0].into();
-        let green = rgba[1].into();
-        let blue = rgba[2].into();
-        let alpha = rgba[3];
-
-        let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
-        let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
-        let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
-
-        YCbCr::new(y, cb, cr, alpha)
+    /// Convert from channels shared by types
+    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+        if TypeId::of::<Self>() == TypeId::of::<R>() {
+            debug_assert_eq!(alpha, 3);
+            let y = chan[0];
+            let cb = chan[1];
+            let cr = chan[2];
+            let alpha = chan[3];
+            YCbCr::new(y, cb, cr, alpha)
+        } else {
+            debug_assert_eq!(alpha, 3);
+            Self::from_rgba(chan)
+        }
     }
 }
 
