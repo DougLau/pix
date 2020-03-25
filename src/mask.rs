@@ -5,6 +5,7 @@
 //
 use crate::alpha::{AChannel, Straight, Translucent};
 use crate::gamma::Linear;
+use crate::model::Channels;
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::ops::Mul;
 
@@ -47,14 +48,14 @@ impl<C: Channel> ColorModel for Mask<C> {
     }
 
     /// Convert into channels shared by types
-    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
-        (self.into_rgba(), 3)
+    fn into_channels<R: ColorModel>(self) -> Channels<C> {
+        Channels::new(self.into_rgba(), 3)
     }
 
     /// Convert from channels shared by types
-    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
-        debug_assert_eq!(alpha, 3);
-        Self::from_rgba(chan)
+    fn from_channels<R: ColorModel>(channels: Channels<C>) -> Self {
+        debug_assert_eq!(channels.alpha(), 3);
+        Self::from_rgba(channels.into_array())
     }
 }
 

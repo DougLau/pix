@@ -7,6 +7,7 @@ use crate::alpha::{
 };
 use crate::gamma::{self, Linear};
 use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
+use crate::model::Channels;
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::any::TypeId;
 use std::marker::PhantomData;
@@ -138,31 +139,32 @@ where
     }
 
     /// Convert into channels shared by types
-    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+    fn into_channels<R: ColorModel>(self) -> Channels<C> {
         if TypeId::of::<Self>() == TypeId::of::<R>() {
-            ([
+            Channels::new([
                 self.whiteness(),
                 self.blackness(),
                 self.alpha(),
                 self.hue(),
             ], 2)
         } else {
-            (self.into_rgba(), 3)
+            Channels::new(self.into_rgba(), 3)
         }
     }
 
     /// Convert from channels shared by types
-    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+    fn from_channels<R: ColorModel>(channels: Channels<C>) -> Self {
         if TypeId::of::<Self>() == TypeId::of::<R>() {
-            debug_assert_eq!(alpha, 2);
-            let whiteness = chan[0];
-            let blackness = chan[1];
-            let alpha = chan[2];
-            let hue = chan[3];
+            debug_assert_eq!(channels.alpha(), 2);
+            let ch = channels.into_array();
+            let whiteness = ch[0];
+            let blackness = ch[1];
+            let alpha = ch[2];
+            let hue = ch[3];
             Hwb::new(hue, whiteness, blackness, alpha)
         } else {
-            debug_assert_eq!(alpha, 3);
-            Self::from_rgba(chan)
+            debug_assert_eq!(channels.alpha(), 3);
+            Self::from_rgba(channels.into_array())
         }
     }
 }

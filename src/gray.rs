@@ -7,6 +7,7 @@ use crate::alpha::{
     self, AChannel, Opaque, Premultiplied, Straight, Translucent,
 };
 use crate::gamma::{self, Linear, Srgb};
+use crate::model::Channels;
 use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
 use std::any::TypeId;
 use std::marker::PhantomData;
@@ -114,24 +115,25 @@ where
     }
 
     /// Convert into channels shared by types
-    fn into_channels<R: ColorModel>(self) -> ([C; 4], usize) {
+    fn into_channels<R: ColorModel>(self) -> Channels<C> {
         if TypeId::of::<Self>() == TypeId::of::<R>() {
-            ([self.value, self.alpha(), C::MIN, C::MIN], 1)
+            Channels::new([self.value, self.alpha(), C::MIN, C::MIN], 1)
         } else {
-            (self.into_rgba(), 3)
+            Channels::new(self.into_rgba(), 3)
         }
     }
 
     /// Convert from channels shared by types
-    fn from_channels<R: ColorModel>(chan: [C; 4], alpha: usize) -> Self {
+    fn from_channels<R: ColorModel>(channels: Channels<C>) -> Self {
         if TypeId::of::<Self>() == TypeId::of::<R>() {
-            debug_assert_eq!(alpha, 1);
-            let value = chan[0];
-            let alpha = chan[1];
+            debug_assert_eq!(channels.alpha(), 1);
+            let ch = channels.into_array();
+            let value = ch[0];
+            let alpha = ch[1];
             Gray::new(value, alpha)
         } else {
-            debug_assert_eq!(alpha, 3);
-            Self::from_rgba(chan)
+            debug_assert_eq!(channels.alpha(), 3);
+            Self::from_rgba(channels.into_array())
         }
     }
 }
