@@ -21,7 +21,7 @@ use std::any::TypeId;
 /// ### Type Alias Naming Scheme
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
-/// * _Color model_: [Rgb] / [Gray] / [Hsv] / [Hsl] / [Mask].
+/// * _Color model_: [Rgb] / [Gray] / [Hsv] / [Hsl] / [Hwb] / [YCbCr] / [Mask].
 /// * _Alpha_: `a` to include alpha channel enabling [translucent] pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
@@ -31,6 +31,7 @@ use std::any::TypeId;
 /// [gray]: struct.Gray.html
 /// [hsl]: struct.Hsl.html
 /// [hsv]: struct.Hsv.html
+/// [hwb]: struct.Hwb.html
 /// [linear]: gamma/struct.Linear.html
 /// [Mask]: struct.Mask.html
 /// [premultiplied]: alpha/struct.Premultiplied.html
@@ -38,6 +39,7 @@ use std::any::TypeId;
 /// [sRGB]: gamma/struct.Srgb.html
 /// [straight]: alpha/struct.Straight.html
 /// [translucent]: alpha/struct.Translucent.html
+/// [YCbCr]: struct.YCbCr.html
 ///
 /// ### Type Aliases
 ///
