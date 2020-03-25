@@ -639,54 +639,6 @@ mod test {
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
-    fn gray_to_rgb() {
-        let mut r = RasterBuilder::<SGray8>::new().with_clear(3, 3);
-        r.set_region((2, 0, 4, 2), SGray8::new(0x45, ()));
-        r.set_region((0, 2, 2, 10), SGray8::new(0xDA, ()));
-        let r = RasterBuilder::<SRgb8>::new().with_raster(&r);
-        let v = vec![
-            0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
-            0x00,0x00,0x00, 0x00,0x00,0x00, 0x45,0x45,0x45,
-            0xDA,0xDA,0xDA, 0xDA,0xDA,0xDA, 0x00,0x00,0x00,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn rgb_to_gray() {
-        let mut r = RasterBuilder::<SRgb16>::new().with_clear(3, 3);
-        r.set_region((1, 0, 4, 2), SRgb16::new(0x4321, 0x9085, 0x5543, ()));
-        r.set_region((0, 1, 1, 10), SRgb16::new(0x5768, 0x4091, 0x5000, ()));
-        let r = RasterBuilder::<SGray8>::new().with_raster(&r);
-        let v = vec![0x00,0x90,0x90, 0x57,0x90,0x90, 0x57,0x00,0x00];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn gray_to_mask() {
-        let mut r = RasterBuilder::<SGraya8>::new().with_clear(3, 3);
-        r.set_region((0, 1, 2, 8), SGraya8::new(0x67, 0x94));
-        r.set_region((2, 0, 1, 10), SGraya8::new(0xBA, 0xA2));
-        let r = RasterBuilder::<Mask16>::new().with_raster(&r);
-        let v = vec![
-            0x00,0x00, 0x00,0x00, 0xA2,0xA2,
-            0x94,0x94, 0x94,0x94, 0xA2,0xA2,
-            0x94,0x94, 0x94,0x94, 0xA2,0xA2,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
-    fn mask_to_gray() {
-        let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
-        r.set_region((0, 1, 3, 8), Mask16::new(0xABCD));
-        r.set_region((2, 0, 1, 3), Mask16::new(0x9876));
-        let r = RasterBuilder::<SGraya8>::new().with_raster(&r);
-        let v = vec![
-            0xFF,0x00, 0xFF,0x00, 0xFF,0x98,
-            0xFF,0xAB, 0xFF,0xAB, 0xFF,0x98,
-            0xFF,0xAB, 0xFF,0xAB, 0xFF,0x98,
-        ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
-    }
-    #[test]
     fn copy_region_gray() {
         let mut g0 = RasterBuilder::<SGray16>::new().with_clear(3, 3);
         let mut g1 = RasterBuilder::<Gray16>::new().with_clear(3, 3);

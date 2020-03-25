@@ -18,6 +18,7 @@
 * Renamed Format trait to Pixel
 * Renamed all GrayAlpha types to Graya
 * Gray/Rgb `new` now takes alpha parameter
+* Gray conversion now uses perceptual luminance
 
 ### Removed
 * Gray/Rgb with_alpha constructors (use `new` instead)

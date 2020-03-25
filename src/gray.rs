@@ -86,15 +86,14 @@ where
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
     fn from_rgba(rgba: [C; 4]) -> Self {
-        /* const RED_COEF: f32 = 0.2126;
+        const RED_COEF: f32 = 0.2126;
         const GREEN_COEF: f32 = 0.7152;
         const BLUE_COEF: f32 = 0.0722;
 
-        let red = rgba[0] * RED_COEF.into();
-        let green = rgba[1] * GREEN_COEF.into();
-        let blue = rgba[2] * BLUE_COEF.into();
-        let value = red + green + blue; */
-        let value = rgba[0].max(rgba[1]).max(rgba[2]); // FIXME
+        let red = rgba[0].into() * RED_COEF;
+        let green = rgba[1].into() * GREEN_COEF;
+        let blue = rgba[2].into() * BLUE_COEF;
+        let value = C::from(red + green + blue);
         let alpha = rgba[3];
         Gray::new(value, alpha)
     }
@@ -263,5 +262,46 @@ mod test {
         assert_eq!(std::mem::size_of::<SGraya8>(), 2);
         assert_eq!(std::mem::size_of::<SGraya16>(), 4);
         assert_eq!(std::mem::size_of::<SGraya32>(), 8);
+    }
+
+    #[test]
+    fn rgb_to_gray() {
+        assert_eq!(
+            SGray8::new(0x7B, ()),
+            SRgb16::new(0x4321, 0x9085, 0x5543, ()).convert(),
+        );
+        assert_eq!(
+            SGray8::new(0x46, ()),
+            SRgb16::new(0x5768, 0x4091, 0x5000, ()).convert(),
+        );
+    }
+
+    #[test]
+    fn gray_to_rgb() {
+        assert_eq!(
+            SRgb8::new(0x45, 0x45, 0x45, ()),
+            SGray8::new(0x45, ()).convert(),
+        );
+        assert_eq!(
+            SRgb8::new(0xDA, 0xDA, 0xDA, ()),
+            SGraya8::new(0xDA, 0x33).convert(),
+        );
+        assert_eq!(
+            SRgb8::new(0xBA, 0xBA, 0xBA, ()),
+            Gray8::new(0x7D, ()).convert(),
+        );
+    }
+
+    #[test]
+    fn mask_to_gray() {
+        assert_eq!(SGraya8::new(0xFF, 0xAB), Mask16::new(0xABCD).convert());
+        assert_eq!(SGraya8::new(0xFF, 0x98), Mask16::new(0x9876).convert());
+    }
+
+    #[test]
+    fn gray_to_mask() {
+        assert_eq!(Mask16::new(0x9494), SGraya8::new(0x67, 0x94).convert());
+        assert_eq!(Mask16::new(0xA2A2), SGraya8::new(0xBA, 0xA2).convert());
+        assert_eq!(Mask8::new(0x80), SGraya32::new(0.75, 0.5).convert());
     }
 }
