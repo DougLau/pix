@@ -97,11 +97,11 @@ impl ColorModel for HwbModel {
     /// Convert from channels shared by pixel types
     fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
         if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            debug_assert_eq!(channels.alpha(), 2);
+            debug_assert_eq!(channels.alpha_idx(), 2);
             let ch = channels.into_array();
             D::from_channels::<D::Chan>([ch[3], ch[0], ch[1], ch[2]])
         } else {
-            debug_assert_eq!(channels.alpha(), 3);
+            debug_assert_eq!(channels.alpha_idx(), 3);
             Self::from_rgba::<D>(channels.into_array())
         }
     }

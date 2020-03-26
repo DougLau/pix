@@ -7,17 +7,17 @@ use crate::alpha::Mode as _;
 use crate::gamma::Mode as _;
 use crate::private::Sealed;
 use crate::{Channel, Pixel};
-use std::any::{Any, TypeId};
+use std::any::TypeId;
 use std::fmt::Debug;
 
 /// Channels making up a color.
 ///
-/// All channels before *alpha* will be adjusted by *alpha*/*gamma* during
+/// All channels before *alpha_idx* will be adjusted by *alpha*/*gamma* during
 /// conversion; *alpha* and later channels will not.
 #[derive(Debug)]
 pub struct Channels<C: Channel> {
     channels: [C; 4],
-    alpha: usize,
+    alpha_idx: usize,
 }
 
 /// Model for pixel colors.
@@ -67,12 +67,12 @@ pub trait ColorModel:
 
 impl<C: Channel> Channels<C> {
     /// Create new channels
-    pub fn new(channels: [C; 4], alpha: usize) -> Self {
-        Channels { channels, alpha }
+    pub fn new(channels: [C; 4], alpha_idx: usize) -> Self {
+        Channels { channels, alpha_idx }
     }
     /// Get alpha index
-    pub fn alpha(&self) -> usize {
-        self.alpha
+    pub fn alpha_idx(&self) -> usize {
+        self.alpha_idx
     }
     /// Convert channels into an array
     pub fn into_array(self) -> [C; 4] {
@@ -89,7 +89,7 @@ impl<C: Channel> Channels<C> {
             D::from(self.channels[2]),
             D::from(self.channels[3]),
         ];
-        Channels::<D>::new(chan, self.alpha)
+        Channels::<D>::new(chan, self.alpha_idx)
     }
     /// Convert channels from source to destination pixel format
     pub fn convert<S, D>(self) -> Channels<D::Chan>
@@ -106,13 +106,13 @@ impl<C: Channel> Channels<C> {
         }
         dst
     }
-    /// Convert alpha/gamma between two pixel formats
+    /// Convert *alpha*/*gamma* between two pixel formats
     fn convert_alpha_gamma<S, D>(&mut self)
     where
         S: Pixel,
         D: Pixel,
     {
-        let (channels, later) = self.channels.split_at_mut(self.alpha);
+        let (channels, later) = self.channels.split_at_mut(self.alpha_idx);
         let alpha = later[0];
         // Convert to linear gamma
         channels

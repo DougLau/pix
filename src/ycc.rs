@@ -76,10 +76,10 @@ impl ColorModel for YCbCrModel {
     /// Convert from channels shared by pixel types
     fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
         if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            debug_assert_eq!(channels.alpha(), 3);
+            debug_assert_eq!(channels.alpha_idx(), 3);
             D::from_channels::<D::Chan>(channels.into_array())
         } else {
-            debug_assert_eq!(channels.alpha(), 3);
+            debug_assert_eq!(channels.alpha_idx(), 3);
             Self::from_rgba(channels.into_array())
         }
     }

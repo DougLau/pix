@@ -97,7 +97,7 @@ impl ColorModel for RgbModel {
 
     /// Convert from channels shared by pixel types
     fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        debug_assert_eq!(channels.alpha(), 3);
+        debug_assert_eq!(channels.alpha_idx(), 3);
         Self::from_rgba::<D>(channels.into_array())
     }
 
