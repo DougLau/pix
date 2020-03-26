@@ -4,9 +4,10 @@
 //
 //! Module for color model items
 use crate::alpha::Mode as _;
+use crate::channel::Channel;
 use crate::gamma::Mode as _;
+use crate::pixel::Pixel;
 use crate::private::Sealed;
-use crate::{Channel, Pixel};
 use std::any::TypeId;
 use std::fmt::Debug;
 

@@ -64,7 +64,6 @@ pub use crate::hwb::{
 pub use crate::mask::{Mask16, Mask32, Mask8, MaskModel};
 pub use crate::model::ColorModel;
 pub use crate::palette::Palette;
-#[doc(inline)]
 pub use crate::pixel::Pixel;
 pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
 pub use crate::rgb::{
