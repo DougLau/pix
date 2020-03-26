@@ -19,7 +19,10 @@ pub struct MaskModel {}
 
 impl ColorModel for MaskModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.one()
     }
 

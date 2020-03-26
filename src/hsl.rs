@@ -22,24 +22,36 @@ pub struct HslModel {}
 
 impl HslModel {
     /// Get the *hue* component.
-    pub fn hue<P: Pixel>(p: P) -> P::Chan {
+    pub fn hue<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.one()
     }
 
     /// Get the *saturation* component.
-    pub fn saturation<P: Pixel>(p: P) -> P::Chan {
+    pub fn saturation<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.two()
     }
 
     /// Get the *lightness* component.
-    pub fn lightness<P: Pixel>(p: P) -> P::Chan {
+    pub fn lightness<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.three()
     }
 }
 
 impl ColorModel for HslModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.four()
     }
 

@@ -24,14 +24,20 @@ pub struct GrayModel {}
 
 impl GrayModel {
     /// Get the *luma* / *relative luminance* component.
-    pub fn value<P: Pixel>(p: P) -> P::Chan {
+    pub fn value<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.one()
     }
 }
 
 impl ColorModel for GrayModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.two()
     }
 

@@ -21,24 +21,36 @@ pub struct YCbCrModel {}
 
 impl YCbCrModel {
     /// Get the *y* component.
-    pub fn y<P: Pixel>(p: P) -> P::Chan {
+    pub fn y<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.one()
     }
 
     /// Get the *Cb* component.
-    pub fn cb<P: Pixel>(p: P) -> P::Chan {
+    pub fn cb<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.two()
     }
 
     /// Get the *Cr* component.
-    pub fn cr<P: Pixel>(p: P) -> P::Chan {
+    pub fn cr<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.three()
     }
 }
 
 impl ColorModel for YCbCrModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.four()
     }
 

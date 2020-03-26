@@ -19,22 +19,34 @@ pub struct RgbModel {}
 
 impl RgbModel {
     /// Get the *red* component.
-    pub fn red<P: Pixel>(p: P) -> P::Chan {
+    pub fn red<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.one()
     }
 
     /// Get the *green* component.
-    pub fn green<P: Pixel>(p: P) -> P::Chan {
+    pub fn green<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.two()
     }
 
     /// Get the *blue* component.
-    pub fn blue<P: Pixel>(p: P) -> P::Chan {
+    pub fn blue<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.three()
     }
 
     /// Get channel-wise difference
-    pub fn difference<P: Pixel>(p: P, rhs: P) -> P {
+    pub fn difference<P: Pixel>(p: P, rhs: P) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         let r = if Self::red(p) > Self::red(rhs) {
             Self::red(p) - Self::red(rhs)
         } else {
@@ -59,7 +71,10 @@ impl RgbModel {
     }
 
     /// Check if all `Channel`s are within threshold
-    pub fn within_threshold<P: Pixel>(p: P, rhs: P) -> bool {
+    pub fn within_threshold<P: Pixel>(p: P, rhs: P) -> bool
+    where
+        P: Pixel<Model = Self>,
+    {
         Self::red(p) <= Self::red(rhs)
             && Self::green(p) <= Self::green(rhs)
             && Self::blue(p) <= Self::blue(rhs)
@@ -69,7 +84,10 @@ impl RgbModel {
 
 impl ColorModel for RgbModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.four()
     }
 

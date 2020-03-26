@@ -29,17 +29,26 @@ impl HwbModel {
     }
 
     /// Get the *whiteness* component.
-    pub fn whiteness<P: Pixel>(p: P) -> P::Chan {
+    pub fn whiteness<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.two()
     }
 
     /// Get the *blackness* component.
-    pub fn blackness<P: Pixel>(p: P) -> P::Chan {
+    pub fn blackness<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.three()
     }
 
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
-    fn whiteness_blackness<P: Pixel>(p: P) -> (P::Chan, P::Chan) {
+    fn whiteness_blackness<P: Pixel>(p: P) -> (P::Chan, P::Chan)
+    where
+        P: Pixel<Model = Self>,
+    {
         let whiteness = HwbModel::whiteness(p);
         let blackness = HwbModel::blackness(p);
         if whiteness + blackness - blackness < whiteness {
@@ -54,7 +63,10 @@ impl HwbModel {
 
 impl ColorModel for HwbModel {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan {
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
         p.four()
     }
 
