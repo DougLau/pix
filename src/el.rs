@@ -16,11 +16,11 @@ use std::marker::PhantomData;
 ///
 /// A pixel can be converted to another format using the [convert] method.
 ///
-/// [alpha mode]: alpha/trait.Mode.html
-/// [channel]: trait.Channel.html
-/// [color model]: trait.ColorModel.html
+/// [alpha mode]: ../alpha/trait.Mode.html
+/// [channel]: ../channel/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
 /// [convert]: trait.Pixel.html#method.convert
-/// [gamma mode]: gamma/trait.Mode.html
+/// [gamma mode]: ../gamma/trait.Mode.html
 ///
 /// ### Type Alias Naming Scheme
 ///
@@ -31,61 +31,61 @@ use std::marker::PhantomData;
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
-/// [channels]: trait.Channel.html
-/// [gray]: struct.GrayModel.html
-/// [hsl]: struct.HslModel.html
-/// [hsv]: struct.HsvModel.html
-/// [hwb]: struct.HwbModel.html
-/// [linear]: gamma/struct.Linear.html
-/// [Mask]: struct.MaskModel.html
-/// [premultiplied]: alpha/struct.Premultiplied.html
-/// [Rgb]: struct.RgbModel.html
-/// [sRGB]: gamma/struct.Srgb.html
-/// [straight]: alpha/struct.Straight.html
-/// [YCbCr]: struct.YCbCrModel.html
+/// [channels]: ../channel/trait.Channel.html
+/// [gray]: ../struct.GrayModel.html
+/// [hsl]: ../struct.HslModel.html
+/// [hsv]: ../struct.HsvModel.html
+/// [hwb]: ../struct.HwbModel.html
+/// [linear]: ../gamma/struct.Linear.html
+/// [Mask]: ../struct.MaskModel.html
+/// [premultiplied]: ../alpha/struct.Premultiplied.html
+/// [Rgb]: ../struct.RgbModel.html
+/// [sRGB]: ../gamma/struct.Srgb.html
+/// [straight]: ../alpha/struct.Straight.html
+/// [YCbCr]: ../struct.YCbCrModel.html
 ///
 /// ### Type Aliases
 ///
 /// * Opaque, linear gamma:
-///   [Rgb8](type.Rgb8.html),
-///   [Gray8](type.Gray8.html),
-///   [Hsv8](type.Hsv8.html),
-///   [Hsl8](type.Hsl8.html),
-///   [Rgb16](type.Rgb16.html),
+///   [Rgb8](../type.Rgb8.html),
+///   [Gray8](../type.Gray8.html),
+///   [Hsv8](../type.Hsv8.html),
+///   [Hsl8](../type.Hsl8.html),
+///   [Rgb16](../type.Rgb16.html),
 ///   *etc.*
 /// * Opaque, sRGB gamma:
-///   [SRgb8](type.SRgb8.html),
-///   [SGray8](type.SGray8.html),
-///   [SRgb16](type.SRgb16.html),
+///   [SRgb8](../type.SRgb8.html),
+///   [SGray8](../type.SGray8.html),
+///   [SRgb16](../type.SRgb16.html),
 ///   *etc.*
 /// * Translucent (straight alpha), linear gamma:
-///   [Rgba8](type.Rgba8.html),
-///   [Graya8](type.Graya8.html),
-///   [Hsva8](type.Hsva8.html),
-///   [Hsla8](type.Hsla8.html),
-///   [Rgba16](type.Rgba16.html),
+///   [Rgba8](../type.Rgba8.html),
+///   [Graya8](../type.Graya8.html),
+///   [Hsva8](../type.Hsva8.html),
+///   [Hsla8](../type.Hsla8.html),
+///   [Rgba16](../type.Rgba16.html),
 ///   *etc.*
 /// * Translucent (premultiplied alpha), linear gamma:
-///   [Rgba8p](type.Rgba8p.html),
-///   [Graya8p](type.Graya8p.html),
-///   [Hsva8p](type.Hsva8p.html),
-///   [Hsla8p](type.Hsla8p.html),
-///   [Rgba16p](type.Rgba16p.html),
+///   [Rgba8p](../type.Rgba8p.html),
+///   [Graya8p](../type.Graya8p.html),
+///   [Hsva8p](../type.Hsva8p.html),
+///   [Hsla8p](../type.Hsla8p.html),
+///   [Rgba16p](../type.Rgba16p.html),
 ///   *etc.*
 /// * Translucent (straight alpha), sRGB gamma:
-///   [SRgba8](type.SRgba8.html),
-///   [SGraya8](type.SGraya8.html),
-///   [SRgba16](type.SRgba16.html),
+///   [SRgba8](../type.SRgba8.html),
+///   [SGraya8](../type.SGraya8.html),
+///   [SRgba16](../type.SRgba16.html),
 ///   *etc.*
 /// * Translucent (premultiplied alpha), sRGB gamma:
-///   [SRgba8p](type.SRgba8p.html),
-///   [SGraya8p](type.SGraya8p.html),
-///   [SRgba16p](type.SRgba16p.html),
+///   [SRgba8p](../type.SRgba8p.html),
+///   [SGraya8p](../type.SGraya8p.html),
+///   [SRgba16p](../type.SRgba16p.html),
 ///   *etc.*
 /// * Alpha mask:
-///   [Mask8](type.Mask8.html),
-///   [Mask16](type.Mask16.html),
-///   [Mask32](type.Mask32.html)
+///   [Mask8](../type.Mask8.html),
+///   [Mask16](../type.Mask16.html),
+///   [Mask32](../type.Mask32.html)
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
@@ -143,8 +143,8 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
 
 /// [Pixel] with one [channel] in its [color model].
 ///
-/// [channel]: trait.Channel.html
-/// [color model]: trait.ColorModel.html
+/// [channel]: ../channel/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -257,8 +257,8 @@ where
 
 /// [Pixel] with two [channel]s in its [color model].
 ///
-/// [channel]: trait.Channel.html
-/// [color model]: trait.ColorModel.html
+/// [channel]: ../channel/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -353,8 +353,8 @@ where
 
 /// [Pixel] with three [channel]s in its [color model].
 ///
-/// [channel]: trait.Channel.html
-/// [color model]: trait.ColorModel.html
+/// [channel]: ../channel/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -457,8 +457,8 @@ where
 
 /// [Pixel] with four [channel]s in its [color model].
 ///
-/// [channel]: trait.Channel.html
-/// [color model]: trait.ColorModel.html
+/// [channel]: ../channel/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]

@@ -9,7 +9,7 @@
 //! by [color model], [channel], [alpha mode] and [gamma mode].
 //!
 //! [alpha mode]: alpha/trait.Mode.html
-//! [channel]: trait.Channel.html
+//! [channel]: channel/trait.Channel.html
 //! [color model]: trait.ColorModel.html
 //! [gamma mode]: gamma/trait.Mode.html
 //! [pixel]: el/trait.Pixel.html
