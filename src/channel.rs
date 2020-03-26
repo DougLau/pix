@@ -4,12 +4,11 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::gamma::SrgbValue;
-use std::any::Any;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Sub};
 
-/// A [color model] *component* which determines *bit depth*.
+/// *Component* of a [color model] which determines *bit depth*.
 ///
 /// Existing `Channel`s are [Ch8], [Ch16] and [Ch32].
 ///
@@ -20,8 +19,7 @@ use std::ops::{Add, Div, Mul, Sub};
 /// [Ch32]: struct.Ch32.html
 /// [color model]: trait.ColorModel.html
 pub trait Channel:
-    Any
-    + Copy
+    Copy
     + Debug
     + Default
     + From<f32>

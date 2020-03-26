@@ -6,15 +6,12 @@
 //! Module for alpha channel items
 use crate::channel::Channel;
 use crate::private::Sealed;
-use std::any::Any;
 use std::fmt::Debug;
 
-/// Trait for handling straight versus premultiplied alpha.
+/// *Alpha* encoding mode.
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait Mode:
-    Any + Copy + Clone + Debug + Default + PartialEq + Sealed
-{
+pub trait Mode: Copy + Clone + Debug + Default + PartialEq + Sealed {
     /// Encode one `Channel` using the alpha mode.
     fn encode<C: Channel>(c: C, a: C) -> C;
     /// Decode one `Channel` using the alpha mode.

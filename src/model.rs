@@ -41,11 +41,11 @@ pub struct Channels<C: Channel> {
 /// [mask]: struct.MaskModel.html
 /// [rgb]: struct.RgbModel.html
 /// [ycbcr]: struct.YCbCrModel.html
-pub trait ColorModel:
-    Any + Clone + Copy + Debug + Default + PartialEq + Sealed
-{
+pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan;
+    fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>;
 
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>

@@ -17,9 +17,10 @@ use crate::channel::{Ch16, Ch32, Ch8, Channel};
 use crate::gamma;
 use crate::model::ColorModel;
 use crate::pixel::{Pix1, Pix2, Pix3, Pix4};
+use std::any::Any;
 
 /// Sealed trait to prevent outside crates from implementing traits
-pub trait Sealed {}
+pub trait Sealed: Any {}
 
 impl Sealed for alpha::Straight {}
 

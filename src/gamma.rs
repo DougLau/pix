@@ -6,7 +6,6 @@
 //! Module for gamma encoding items
 use crate::private::Sealed;
 use crate::{Ch16, Ch32, Ch8, Channel};
-use std::any::Any;
 use std::fmt::Debug;
 
 // Include functions to convert gamma between linear and sRGB
@@ -15,12 +14,10 @@ include!("srgb_gamma.rs");
 // Include build-time sRGB gamma look-up tables
 include!(concat!(env!("OUT_DIR"), "/gamma_lut.rs"));
 
-/// Trait for handling gamma mode conversions.
+/// *Gamma* conversion mode.
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait Mode:
-    Any + Copy + Clone + Debug + Default + PartialEq + Sealed
-{
+pub trait Mode: Copy + Clone + Debug + Default + PartialEq + Sealed {
     /// Convert a `Channel` value to linear.
     fn to_linear<C: Channel>(c: C) -> C;
     /// Convert a `Channel` value from linear.
