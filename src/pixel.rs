@@ -3,9 +3,14 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! Module for pixel items
 use crate::alpha;
+use crate::channel::{Ch16, Ch8, Channel};
 use crate::gamma;
-use crate::ColorModel;
+use crate::model::ColorModel;
+use crate::private::Sealed;
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
 /// Pixel format determines [color model], bit depth, [alpha mode] and
 /// [gamma mode].
@@ -21,24 +26,23 @@ use crate::ColorModel;
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
 /// * _Color model_: [Rgb] / [Gray] / [Hsv] / [Hsl] / [Hwb] / [YCbCr] / [Mask].
-/// * _Alpha_: `a` to include alpha channel enabling [translucent] pixels.
+/// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
 /// [channels]: trait.Channel.html
-/// [gray]: struct.Gray.html
-/// [hsl]: struct.Hsl.html
-/// [hsv]: struct.Hsv.html
-/// [hwb]: struct.Hwb.html
+/// [gray]: struct.GrayModel.html
+/// [hsl]: struct.HslModel.html
+/// [hsv]: struct.HsvModel.html
+/// [hwb]: struct.HwbModel.html
 /// [linear]: gamma/struct.Linear.html
-/// [Mask]: struct.Mask.html
+/// [Mask]: struct.MaskModel.html
 /// [premultiplied]: alpha/struct.Premultiplied.html
-/// [Rgb]: struct.Rgb.html
+/// [Rgb]: struct.RgbModel.html
 /// [sRGB]: gamma/struct.Srgb.html
 /// [straight]: alpha/struct.Straight.html
-/// [translucent]: alpha/struct.Translucent.html
-/// [YCbCr]: struct.YCbCr.html
+/// [YCbCr]: struct.YCbCrModel.html
 ///
 /// ### Type Aliases
 ///
@@ -84,12 +88,44 @@ use crate::ColorModel;
 ///   [Mask32](type.Mask32.html)
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait Pixel: Clone + Copy + Default + PartialEq + ColorModel {
+pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
+    /// Channel type
+    type Chan: Channel;
+
+    /// Color model
+    type Model: ColorModel;
+
     /// Alpha mode
     type Alpha: alpha::Mode;
 
     /// Gamma mode
     type Gamma: gamma::Mode;
+
+    /// Make a pixel from an array of channels.
+    fn from_channels<H>(ch: [H; 4]) -> Self
+    where
+        H: Copy,
+        Self::Chan: From<H>;
+
+    /// Get the first channel.
+    fn one(self) -> Self::Chan {
+        Self::Chan::MAX
+    }
+
+    /// Get the second channel.
+    fn two(self) -> Self::Chan {
+        Self::Chan::MAX
+    }
+
+    /// Get the third channel.
+    fn three(self) -> Self::Chan {
+        Self::Chan::MAX
+    }
+
+    /// Get the fourth channel.
+    fn four(self) -> Self::Chan {
+        Self::Chan::MAX
+    }
 
     /// Convert a pixel to another format
     ///
@@ -99,9 +135,435 @@ pub trait Pixel: Clone + Copy + Default + PartialEq + ColorModel {
         D: Pixel,
         D::Chan: From<Self::Chan>,
     {
-        let channels = self.into_channels::<D>();
+        let channels = Self::Model::into_channels::<Self, D>(self);
         let channels = channels.convert::<Self, D>();
-        D::from_channels::<Self>(channels)
+        D::Model::from_channels::<Self, D>(channels)
+    }
+}
+
+/// [Pixel] with one [channel] in its [color model].
+///
+/// [channel]: trait.Channel.html
+/// [color model]: trait.ColorModel.html
+/// [pixel]: trait.Pixel.html
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
+pub struct Pix1<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    one: C,
+    _model: PhantomData<M>,
+    _alpha: PhantomData<A>,
+    _gamma: PhantomData<G>,
+}
+
+impl<C, M, A, G> Pix1<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create a one-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let opaque_gray = Gray8::new(128);
+    /// ```
+    pub fn new<H>(one: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        Pix1 {
+            one,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pixel for Pix1<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+    type Model = M;
+    type Alpha = A;
+    type Gamma = G;
+
+    fn from_channels<H>(ch: [H; 4]) -> Self
+    where
+        H: Copy,
+        Self::Chan: From<H>,
+    {
+        let one = Self::Chan::from(ch[0]);
+        Self::new(one)
+    }
+
+    fn one(self) -> C {
+        self.one
+    }
+}
+
+impl<C, M, A, G> Iterator for Pix1<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
+impl<C, M, A, G> From<u8> for Pix1<C, M, A, G>
+where
+    C: Channel + From<Ch8>,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Convert from a `u8` value.
+    fn from(c: u8) -> Self {
+        Pix1::new(Ch8::new(c))
+    }
+}
+
+impl<C, M, A, G> From<i32> for Pix1<C, M, A, G>
+where
+    C: Channel + From<Ch16>,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Convert from a `u16` value.
+    fn from(c: i32) -> Self {
+        Pix1::new(Ch16::new(c as u16))
+    }
+}
+
+/// [Pixel] with two [channel]s in its [color model].
+///
+/// [channel]: trait.Channel.html
+/// [color model]: trait.ColorModel.html
+/// [pixel]: trait.Pixel.html
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
+pub struct Pix2<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    one: C,
+    two: C,
+    _model: PhantomData<M>,
+    _alpha: PhantomData<A>,
+    _gamma: PhantomData<G>,
+}
+
+impl<C, M, A, G> Pix2<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create a two-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let translucent_gray = Graya8::new(128, 200);
+    /// ```
+    pub fn new<H>(one: H, two: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        Pix2 {
+            one,
+            two,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pixel for Pix2<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+    type Model = M;
+    type Alpha = A;
+    type Gamma = G;
+
+    fn from_channels<H>(ch: [H; 4]) -> Self
+    where
+        H: Copy,
+        Self::Chan: From<H>,
+    {
+        let one = ch[0];
+        let two = ch[1];
+        Self::new(one, two)
+    }
+
+    fn one(self) -> C {
+        self.one
+    }
+
+    fn two(self) -> C {
+        self.two
+    }
+}
+
+impl<C, M, A, G> Iterator for Pix2<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
+/// [Pixel] with three [channel]s in its [color model].
+///
+/// [channel]: trait.Channel.html
+/// [color model]: trait.ColorModel.html
+/// [pixel]: trait.Pixel.html
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
+pub struct Pix3<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    one: C,
+    two: C,
+    three: C,
+    _model: PhantomData<M>,
+    _alpha: PhantomData<A>,
+    _gamma: PhantomData<G>,
+}
+
+impl<C, M, A, G> Pix3<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create a three-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let rgb = Rgb8::new(128, 200, 255);
+    /// ```
+    pub fn new<H>(one: H, two: H, three: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        let three = C::from(three);
+        Pix3 {
+            one,
+            two,
+            three,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pixel for Pix3<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+    type Model = M;
+    type Alpha = A;
+    type Gamma = G;
+
+    fn from_channels<H>(ch: [H; 4]) -> Self
+    where
+        H: Copy,
+        Self::Chan: From<H>,
+    {
+        let one = ch[0];
+        let two = ch[1];
+        let three = ch[2];
+        Self::new(one, two, three)
+    }
+
+    fn one(self) -> C {
+        self.one
+    }
+
+    fn two(self) -> C {
+        self.two
+    }
+
+    fn three(self) -> C {
+        self.three
+    }
+}
+
+impl<C, M, A, G> Iterator for Pix3<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
+    }
+}
+
+/// [Pixel] with four [channel]s in its [color model].
+///
+/// [channel]: trait.Channel.html
+/// [color model]: trait.ColorModel.html
+/// [pixel]: trait.Pixel.html
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[repr(C)]
+pub struct Pix4<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    one: C,
+    two: C,
+    three: C,
+    four: C,
+    _model: PhantomData<M>,
+    _alpha: PhantomData<A>,
+    _gamma: PhantomData<G>,
+}
+
+impl<C, M, A, G> Pix4<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Create a four-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// # use pix::*;
+    /// let rgba = Rgba8::new(128, 200, 255, 128);
+    /// ```
+    pub fn new<H>(one: H, two: H, three: H, four: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        let three = C::from(three);
+        let four = C::from(four);
+        Pix4 {
+            one,
+            two,
+            three,
+            four,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pixel for Pix4<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Chan = C;
+    type Model = M;
+    type Alpha = A;
+    type Gamma = G;
+
+    fn from_channels<H>(ch: [H; 4]) -> Self
+    where
+        H: Copy,
+        Self::Chan: From<H>,
+    {
+        let one = ch[0];
+        let two = ch[1];
+        let three = ch[2];
+        let four = ch[3];
+        Self::new(one, two, three, four)
+    }
+
+    fn one(self) -> C {
+        self.one
+    }
+
+    fn two(self) -> C {
+        self.two
+    }
+
+    fn three(self) -> C {
+        self.three
+    }
+
+    fn four(self) -> C {
+        self.four
+    }
+}
+
+impl<C, M, A, G> Iterator for Pix4<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    type Item = Self;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self)
     }
 }
 
@@ -111,71 +573,62 @@ mod test {
     use super::*;
     #[test]
     fn gray_to_rgb() {
+        assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert(),);
         assert_eq!(
-            SRgb8::new(0xD9, 0xD9, 0xD9, ()),
-            SGray8::new(0xD9, ()).convert(),
+            SRgb8::new(0x33, 0x33, 0x33),
+            SGray16::new(0x337F).convert(),
+        );
+        assert_eq!(SRgb8::new(0x40, 0x40, 0x40), SGray32::new(0.25).convert(),);
+        assert_eq!(
+            SRgb16::new(0x2929, 0x2929, 0x2929),
+            SGray8::new(0x29).convert(),
         );
         assert_eq!(
-            SRgb8::new(0x33, 0x33, 0x33, ()),
-            SGray16::new(0x337F, ()).convert(),
+            SRgb16::new(0x5593, 0x5593, 0x5593),
+            SGray16::new(0x5593).convert(),
         );
         assert_eq!(
-            SRgb8::new(0x40, 0x40, 0x40, ()),
-            SGray32::new(0.25, ()).convert(),
+            SRgb16::new(0xFFFF, 0xFFFF, 0xFFFF),
+            SGray32::new(1.0).convert(),
         );
         assert_eq!(
-            SRgb16::new(0x2929, 0x2929, 0x2929, ()),
-            SGray8::new(0x29, ()).convert(),
+            SRgb32::new(0.5019608, 0.5019608, 0.5019608),
+            SGray8::new(0x80).convert(),
         );
         assert_eq!(
-            SRgb16::new(0x5593, 0x5593, 0x5593, ()),
-            SGray16::new(0x5593, ()).convert(),
+            SRgb32::new(0.75001144, 0.75001144, 0.75001144),
+            SGray16::new(0xC000).convert(),
         );
-        assert_eq!(
-            SRgb16::new(0xFFFF, 0xFFFF, 0xFFFF, ()),
-            SGray32::new(1.0, ()).convert(),
-        );
-        assert_eq!(
-            SRgb32::new(0.5019608, 0.5019608, 0.5019608, ()),
-            SGray8::new(0x80, ()).convert(),
-        );
-        assert_eq!(
-            SRgb32::new(0.75001144, 0.75001144, 0.75001144, ()),
-            SGray16::new(0xC000, ()).convert(),
-        );
-        assert_eq!(
-            SRgb32::new(0.33, 0.33, 0.33, ()),
-            SGray32::new(0.33, ()).convert(),
-        );
+        assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert(),);
     }
     #[test]
     fn linear_to_srgb() {
         assert_eq!(
-            SRgb8::new(0xEF, 0x8C, 0xC7, ()),
-            Rgb8::new(0xDC, 0x43, 0x91, ()).convert()
+            SRgb8::new(0xEF, 0x8C, 0xC7),
+            Rgb8::new(0xDC, 0x43, 0x91).convert()
         );
         assert_eq!(
-            SRgb8::new(0x66, 0xF4, 0xB5, ()),
-            Rgb16::new(0x2205, 0xE699, 0x7654, ()).convert()
+            SRgb8::new(0x66, 0xF4, 0xB5),
+            Rgb16::new(0x2205, 0xE699, 0x7654).convert()
         );
         assert_eq!(
-            SRgb8::new(0xBC, 0x89, 0xE0, ()),
-            Rgb32::new(0.5, 0.25, 0.75, ()).convert()
+            SRgb8::new(0xBC, 0x89, 0xE0),
+            Rgb32::new(0.5, 0.25, 0.75).convert()
         );
     }
     #[test]
     fn srgb_to_linear() {
         assert_eq!(
-            Rgb8::new(0xDC, 0x43, 0x92, ()),
-            SRgb8::new(0xEF, 0x8C, 0xC7, ()).convert(),
+            Rgb8::new(0xDC, 0x43, 0x92),
+            SRgb8::new(0xEF, 0x8C, 0xC7).convert(),
         );
         assert_eq!(
-            Rgb8::new(0x22, 0xE7, 0x76, ()),
-            SRgb16::new(0x6673, 0xF453, 0xB593, ()).convert(),
+            Rgb8::new(0x22, 0xE7, 0x76),
+            SRgb16::new(0x6673, 0xF453, 0xB593).convert(),
         );
         assert_eq!(
-            Rgb8::new(0x37, 0x0D, 0x85, ()),
-            SRgb32::new(0.5, 0.25, 0.75, ()).convert(),
+            Rgb8::new(0x37, 0x0D, 0x85),
+            SRgb32::new(0.5, 0.25, 0.75).convert(),
         );
     }
     #[test]

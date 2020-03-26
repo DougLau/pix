@@ -2,16 +2,24 @@
 //
 // Copyright (c) 2020  Douglas P Lau
 //
-use crate::alpha::{self, AChannel, Opaque, Translucent};
+//! Doc-tests that should fail...
+//!
+//! ```compile_fail
+//! use pix::*;
+//! GrayModel::hue(Hsv8::new(0, 128, 255));
+//! ```
+//! ```compile_fail
+//! use pix::*;
+//! HwbModel::hue(Rgb8::new(255, 255, 255));
+//! ```
+use crate::alpha;
+use crate::channel::{Ch16, Ch32, Ch8, Channel};
 use crate::gamma;
-use crate::{Ch16, Ch32, Ch8, Channel, Gray, Hsl, Hsv, Hwb, Mask, Rgb, YCbCr};
+use crate::model::ColorModel;
+use crate::pixel::{Pix1, Pix2, Pix3, Pix4};
 
 /// Sealed trait to prevent outside crates from implementing traits
 pub trait Sealed {}
-
-impl<C: Channel> Sealed for Opaque<C> {}
-
-impl<C: Channel> Sealed for Translucent<C> {}
 
 impl Sealed for alpha::Straight {}
 
@@ -35,58 +43,52 @@ impl Sealed for f32 {}
 
 impl Sealed for f64 {}
 
-impl<C: Channel> Sealed for Mask<C> {}
+impl Sealed for crate::gray::GrayModel {}
 
-impl<C, A, M, G> Sealed for Gray<C, A, M, G>
+impl Sealed for crate::hsl::HslModel {}
+
+impl Sealed for crate::hsv::HsvModel {}
+
+impl Sealed for crate::hwb::HwbModel {}
+
+impl Sealed for crate::mask::MaskModel {}
+
+impl Sealed for crate::rgb::RgbModel {}
+
+impl Sealed for crate::ycc::YCbCrModel {}
+
+impl<C, M, A, G> Sealed for Pix1<C, M, A, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
+    M: ColorModel,
+    A: alpha::Mode,
     G: gamma::Mode,
 {
 }
 
-impl<C, A, M, G> Sealed for Rgb<C, A, M, G>
+impl<C, M, A, G> Sealed for Pix2<C, M, A, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
+    M: ColorModel,
+    A: alpha::Mode,
     G: gamma::Mode,
 {
 }
 
-impl<C, A, M, G> Sealed for Hsl<C, A, M, G>
+impl<C, M, A, G> Sealed for Pix3<C, M, A, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
+    M: ColorModel,
+    A: alpha::Mode,
     G: gamma::Mode,
 {
 }
 
-impl<C, A, M, G> Sealed for Hsv<C, A, M, G>
+impl<C, M, A, G> Sealed for Pix4<C, M, A, G>
 where
     C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-}
-
-impl<C, A, M, G> Sealed for Hwb<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
-    G: gamma::Mode,
-{
-}
-
-impl<C, A, M, G> Sealed for YCbCr<C, A, M, G>
-where
-    C: Channel,
-    A: AChannel<Chan = C>,
-    M: alpha::Mode,
+    M: ColorModel,
+    A: alpha::Mode,
     G: gamma::Mode,
 {
 }

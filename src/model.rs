@@ -8,11 +8,13 @@ use crate::gamma::Mode as _;
 use crate::private::Sealed;
 use crate::{Channel, Pixel};
 use std::any::{Any, TypeId};
+use std::fmt::Debug;
 
 /// Channels making up a color.
 ///
 /// All channels before *alpha* will be adjusted by *alpha*/*gamma* during
 /// conversion; *alpha* and later channels will not.
+#[derive(Debug)]
 pub struct Channels<C: Channel> {
     channels: [C; 4],
     alpha: usize,
@@ -31,26 +33,36 @@ pub struct Channels<C: Channel> {
 ///
 /// [convert]: trait.Pixel.html#method.convert
 /// [from_channels]: trait.ColorModel.html#method.from_channels
-/// [gray]: struct.Gray.html
-/// [hsl]: struct.Hsl.html
-/// [hsv]: struct.Hsv.html
-/// [hwb]: struct.Hwb.html
+/// [gray]: struct.GrayModel.html
+/// [hsl]: struct.HslModel.html
+/// [hsv]: struct.HsvModel.html
+/// [hwb]: struct.HwbModel.html
 /// [into_channels]: trait.ColorModel.html#method.into_channels
-/// [mask]: struct.Mask.html
-/// [rgb]: struct.Rgb.html
-/// [ycbcr]: struct.YCbCr.html
-pub trait ColorModel: Any + Sealed {
-    /// Component `Channel` type
-    type Chan: Channel;
+/// [mask]: struct.MaskModel.html
+/// [rgb]: struct.RgbModel.html
+/// [ycbcr]: struct.YCbCrModel.html
+pub trait ColorModel:
+    Any + Clone + Copy + Debug + Default + PartialEq + Sealed
+{
+    /// Get the *alpha* component.
+    fn alpha<P: Pixel>(p: P) -> P::Chan;
 
-    /// Get the *alpha* component
-    fn alpha(self) -> Self::Chan;
+    /// Convert into channels shared by pixel types
+    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
+    where
+        S: Pixel<Model = Self>,
+        D: Pixel;
 
-    /// Convert into channels shared by types
-    fn into_channels<R: ColorModel>(self) -> Channels<Self::Chan>;
+    /// Convert into *red*, *green*, *blue* and *alpha* components
+    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    where
+        P: Pixel<Model = Self>;
 
-    /// Convert from channels shared by types
-    fn from_channels<R: ColorModel>(channels: Channels<Self::Chan>) -> Self;
+    /// Convert from channels shared by pixel types
+    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D;
+
+    /// Convert from *red*, *green*, *blue* and *alpha* components
+    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P;
 }
 
 impl<C: Channel> Channels<C> {

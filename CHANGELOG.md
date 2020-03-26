@@ -2,7 +2,8 @@
 
 ### Added
 * ColorModel trait
-* Hsv, Hsl, Hwb and YCbCr color models
+* HsvModel, HslModel, HwbModel and YCbCrModel
+* Pix1, Pix2, Pix3, Pix4 structs
 
 ### Changed
 * Use Any/TypeId instead of GammaModeID
@@ -13,14 +14,13 @@
 * Renamed AlphaMode to alpha::Mode + sealed trait
 * Renamed StraightAlpha to alpha::Straight
 * Renamed PremultipliedAlpha to alpha::Premultiplied
-* Mask can only have Translucent alpha (not Opaque)
-* Renamed alpha::Alpha to alpha::AChannel
 * Renamed Format trait to Pixel
 * Renamed all GrayAlpha types to Graya
 * Gray/Rgb `new` now takes alpha parameter
 * Gray conversion now uses perceptual luminance
 
 ### Removed
+* alpha::Alpha and Translucent/Opaque
 * Gray/Rgb with_alpha constructors (use `new` instead)
 
 ## [0.9.0] - 2020-03-08

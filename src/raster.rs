@@ -33,7 +33,7 @@ pub struct RasterBuilder<P: Pixel> {
 /// ```
 /// # use pix::*;
 /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(10, 10);
-/// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00, ()));
+/// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<P: Pixel> {
     width: u32,
@@ -139,7 +139,7 @@ impl<P: Pixel> RasterBuilder<P> {
     /// ## Example
     /// ```
     /// # use pix::*;
-    /// let clr = SRgb8::new(0x40, 0xAA, 0xBB, ());
+    /// let clr = SRgb8::new(0x40, 0xAA, 0xBB);
     /// let r = RasterBuilder::<SRgb8>::new().with_color(15, 15, clr);
     /// ```
     pub fn with_color(self, width: u32, height: u32, clr: P) -> Raster<P> {
@@ -188,12 +188,12 @@ impl<P: Pixel> RasterBuilder<P> {
     /// ## Example
     /// ```
     /// # use pix::*;
-    /// let p = vec![SRgb8::new(255, 0, 255, ()); 16]; // vec of magenta pix
-    /// let mut r = RasterBuilder::new()               // convert to raster
+    /// let p = vec![SRgb8::new(255, 0, 255); 16]; // vec of magenta pix
+    /// let mut r = RasterBuilder::new()           // convert to raster
     ///     .with_pixels(4, 4, p);
-    /// let clr = SRgb8::new(0x00, 0xFF, 0x00, ());    // green
-    /// r.set_region((2, 0, 1, 3), clr);               // make stripe
-    /// let p2 = Into::<Vec<SRgb8>>::into(r);          // convert back to vec
+    /// let clr = SRgb8::new(0x00, 0xFF, 0x00);    // green
+    /// r.set_region((2, 0, 1, 3), clr);           // make stripe
+    /// let p2 = Into::<Vec<SRgb8>>::into(r);      // convert back to vec
     /// ```
     pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<P>
     where
@@ -337,13 +337,13 @@ impl<P: Pixel> Raster<P> {
     /// ```
     /// # use pix::*;
     /// let mut r = RasterBuilder::<SRgb32>::new().with_clear(360, 240);
-    /// r.set_region(r.region(), SRgb32::new(0.5, 0.2, 0.8, ()));
+    /// r.set_region(r.region(), SRgb32::new(0.5, 0.2, 0.8));
     /// ```
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
     /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
-    /// raster.set_region((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70, ()));
+    /// raster.set_region((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
     /// ```
     /// ### Copy part of one `Raster` to another, converting pixel format
     /// ```
@@ -522,17 +522,17 @@ impl Region {
 }
 
 #[cfg(test)]
+#[rustfmt::skip]
 mod test {
     use super::super::*;
-    use super::*;
     #[test]
     fn mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
-        r.set_pixel(0, 0, 0xFF);
-        r.set_pixel(2, 0, 0x12);
-        r.set_pixel(1, 1, 0x34);
-        r.set_pixel(0, 2, 0x56);
-        r.set_pixel(2, 2, 0x78);
+        r.set_pixel(0, 0, 0xFFu8);
+        r.set_pixel(2, 0, 0x12u8);
+        r.set_pixel(1, 1, 0x34u8);
+        r.set_pixel(0, 2, 0x56u8);
+        r.set_pixel(2, 2, 0x78u8);
         let v = vec![0xFF,0x00,0x12, 0x00,0x34,0x00, 0x56,0x00,0x78];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
@@ -560,9 +560,9 @@ mod test {
             1.0, 0.75, 0.5, 0.25,
         ]
         .iter()
-        .map(|p| Mask::new(*p))
+        .map(|p| Mask32::new(*p))
         .collect();
-        let mut r = RasterBuilder::<Mask32>::new().with_pixels(4, 4, p);
+        let mut r = RasterBuilder::new().with_pixels(4, 4, p);
         let clr = Mask32::new(0.05);
         r.set_region((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
@@ -572,15 +572,15 @@ mod test {
             1.0, 0.75, 0.5, 0.25,
         ]
         .iter()
-        .map(|p| Mask::new(*p))
+        .map(|p| Mask32::new(*p))
         .collect();
-        let r2 = RasterBuilder::<Mask32>::new().with_pixels(4, 4, v);
+        let r2 = RasterBuilder::new().with_pixels(4, 4, v);
         assert_eq!(r.as_slice(), r2.as_slice());
     }
     #[test]
     fn rgb8() {
         let mut r = RasterBuilder::<SRgb8>::new().with_clear(4, 4);
-        let rgb = SRgb8::new(0xCC, 0xAA, 0xBB, ());
+        let rgb = SRgb8::new(0xCC, 0xAA, 0xBB);
         r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
             0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
@@ -593,9 +593,9 @@ mod test {
     #[test]
     fn gray8() {
         let mut r = RasterBuilder::<SGray8>::new().with_clear(4, 4);
-        r.set_region((0, 0, 1, 1), SGray8::from(0x23));
-        r.set_region((10, 10, 1, 1), SGray8::from(0x45));
-        r.set_region((2, 2, 10, 10), SGray8::from(0xBB));
+        r.set_region((0, 0, 1, 1), SGray8::new(0x23));
+        r.set_region((10, 10, 1, 1), SGray8::new(0x45));
+        r.set_region((2, 2, 10, 10), SGray8::new(0xBB));
         let v = vec![
             0x23, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00,
@@ -612,7 +612,7 @@ mod test {
             0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
         ];
         let mut r = RasterBuilder::<SRgb8>::new().with_u8_buffer(3, 3, b);
-        let rgb = SRgb8::new(0x12, 0x34, 0x56, ());
+        let rgb = SRgb8::new(0x12, 0x34, 0x56);
         r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
             0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
@@ -629,7 +629,7 @@ mod test {
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
         let mut r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
-        r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, ()));
+        r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, 0xFFFF));
         let v = vec![
             0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
             0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
@@ -642,8 +642,8 @@ mod test {
     fn copy_region_gray() {
         let mut g0 = RasterBuilder::<SGray16>::new().with_clear(3, 3);
         let mut g1 = RasterBuilder::<Gray16>::new().with_clear(3, 3);
-        g0.set_region((0, 2, 2, 5), SGray16::new(0x4455, ()));
-        g0.set_region((2, 0, 3, 2), SGray8::new(0x33, ()));
+        g0.set_region((0, 2, 2, 5), SGray16::new(0x4455));
+        g0.set_region((2, 0, 3, 2), SGray8::new(0x33));
         g1.set_region(g1.region(), g0.region_iter(g0.region()));
         let v = vec![
             0x00,0x00, 0x00,0x00, 0x7A,0x08,

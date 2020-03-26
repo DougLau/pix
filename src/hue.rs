@@ -67,9 +67,11 @@ impl Hexcone {
 }
 
 /// Convert *red*, *green* and *blue* to *hue*, *chroma* and *value*
-pub fn rgb_to_hue_chroma_value<C: Channel>(red: C, green: C, blue: C)
-    -> (C, C, C)
-{
+pub fn rgb_to_hue_chroma_value<C: Channel>(
+    red: C,
+    green: C,
+    blue: C,
+) -> (C, C, C) {
     let val = red.max(green).max(blue);
     let chroma = val - red.min(green).min(blue);
 

@@ -3,118 +3,70 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::alpha::{AChannel, Straight, Translucent};
+use crate::alpha::Straight;
+use crate::channel::{Ch16, Ch32, Ch8, Channel};
 use crate::gamma::Linear;
-use crate::model::Channels;
-use crate::{Ch16, Ch32, Ch8, Channel, ColorModel, Pixel};
-use std::ops::Mul;
+use crate::model::{Channels, ColorModel};
+use crate::pixel::{Pix1, Pixel};
 
 /// `Mask` [color model] (*alpha* only).
 ///
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-#[repr(C)]
-pub struct Mask<C: Channel> {
-    alpha: Translucent<C>,
-}
+pub struct MaskModel {}
 
-impl<C: Channel> Mask<C> {
-    /// Create a new `Mask` value.
-    pub fn new<A>(alpha: A) -> Self
+impl ColorModel for MaskModel {
+    /// Get the *alpha* component.
+    fn alpha<P: Pixel>(p: P) -> P::Chan {
+        p.one()
+    }
+
+    /// Convert into channels shared by pixel types
+    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where
-        C: From<A>,
+        S: Pixel<Model = Self>,
+        D: Pixel,
     {
-        let alpha = Translucent::new(C::from(alpha));
-        Mask { alpha }
+        Channels::new(Self::into_rgba(src), 3)
     }
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba(self) -> [C; 4] {
-        [C::MAX, C::MAX, C::MAX, self.alpha()]
+    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    where
+        P: Pixel<Model = Self>,
+    {
+        let max = P::Chan::MAX;
+        [max, max, max, Self::alpha(p)]
+    }
+
+    /// Convert from channels shared by pixel types
+    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
+        debug_assert_eq!(channels.alpha(), 3);
+        Self::from_rgba::<D>(channels.into_array())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba(rgba: [C; 4]) -> Self {
-        Mask::new(rgba[3])
+    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+        let min = P::Chan::MIN;
+        let chan = [rgba[3], min, min, min];
+        P::from_channels::<P::Chan>(chan)
     }
 }
 
-impl<C: Channel> ColorModel for Mask<C> {
-    type Chan = C;
+/// [Mask](struct.MaskModel.html) 8-bit [straight](alpha/struct.Straight.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// format.
+pub type Mask8 = Pix1<Ch8, MaskModel, Straight, Linear>;
 
-    /// Get the *alpha* component
-    fn alpha(self) -> Self::Chan {
-        self.alpha.value()
-    }
+/// [Mask](struct.MaskModel.html) 16-bit [straight](alpha/struct.Straight.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// format.
+pub type Mask16 = Pix1<Ch16, MaskModel, Straight, Linear>;
 
-    /// Convert into channels shared by types
-    fn into_channels<R: ColorModel>(self) -> Channels<C> {
-        Channels::new(self.into_rgba(), 3)
-    }
-
-    /// Convert from channels shared by types
-    fn from_channels<R: ColorModel>(channels: Channels<C>) -> Self {
-        debug_assert_eq!(channels.alpha(), 3);
-        Self::from_rgba(channels.into_array())
-    }
-}
-
-impl<C> Pixel for Mask<C>
-where
-    C: Channel,
-{
-    type Alpha = Straight;
-    type Gamma = Linear;
-}
-
-impl<C: Channel> Iterator for Mask<C> {
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(*self)
-    }
-}
-
-impl From<u8> for Mask8 {
-    /// Get a `Mask` from a `u8`
-    fn from(c: u8) -> Self {
-        Mask::new(c)
-    }
-}
-
-impl From<u16> for Mask16 {
-    /// Get a `Mask` from a `u16`
-    fn from(c: u16) -> Self {
-        Mask::new(c)
-    }
-}
-
-impl From<f32> for Mask32 {
-    /// Get a `Mask` from an `f32`
-    fn from(c: f32) -> Self {
-        Mask::new(c)
-    }
-}
-
-impl<C: Channel> Mul<Self> for Mask<C> {
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self::Output {
-        let alpha = self.alpha * rhs.alpha;
-        Mask { alpha }
-    }
-}
-
-/// [Mask](struct.Mask.html) 8-bit [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type Mask8 = Mask<Ch8>;
-
-/// [Mask](struct.Mask.html) 16-bit [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type Mask16 = Mask<Ch16>;
-
-/// [Mask](struct.Mask.html) 32-bit [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html) format.
-pub type Mask32 = Mask<Ch32>;
+/// [Mask](struct.MaskModel.html) 32-bit [straight](alpha/struct.Straight.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// format.
+pub type Mask32 = Pix1<Ch32, MaskModel, Straight, Linear>;
 
 #[cfg(test)]
 mod test {
