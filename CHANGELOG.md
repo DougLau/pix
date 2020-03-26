@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.10.0] - 2020-03-26
 ### Added
 * ColorModel trait
 * HsvModel, HslModel, HwbModel and YCbCrModel
