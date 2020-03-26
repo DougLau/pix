@@ -4,7 +4,7 @@ use std::io;
 use std::io::Write;
 
 fn main() -> Result<(), io::Error> {
-    let v = SGray8::from(255);
+    let v = SGray8::new(255);
     let mut r = RasterBuilder::<SGray8>::new().with_clear(16, 16);
     for y in 0..16 {
         for x in 0..16 {
