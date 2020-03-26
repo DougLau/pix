@@ -9,7 +9,9 @@ use crate::gamma::Linear;
 use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix1, Pixel};
 
-/// `Mask` [color model] (*alpha* only).
+/// Mask [color model].
+///
+/// The component is *alpha* only.
 ///
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

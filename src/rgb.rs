@@ -9,7 +9,7 @@ use crate::gamma::{Linear, Srgb};
 use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix3, Pix4, Pixel};
 
-/// `RGB` additive [color model].
+/// RGB additive [color model].
 ///
 /// The components are *red*, *green* and *blue*, with optional *alpha*.
 ///

@@ -12,12 +12,12 @@ use crate::private::Sealed;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-/// Pixel format determines [color model], bit depth, [alpha mode] and
-/// [gamma mode].
+/// Pixel [channel], [color model], [alpha mode] and [gamma mode].
 ///
 /// A pixel can be converted to another format using the [convert] method.
 ///
 /// [alpha mode]: alpha/trait.Mode.html
+/// [channel]: trait.Channel.html
 /// [color model]: trait.ColorModel.html
 /// [convert]: trait.Pixel.html#method.convert
 /// [gamma mode]: gamma/trait.Mode.html

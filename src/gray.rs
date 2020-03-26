@@ -10,11 +10,11 @@ use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix1, Pix2, Pixel};
 use std::any::TypeId;
 
-/// `Gray` [color model], with optional *alpha*.
+/// Gray [color model].
 ///
-/// The `Channel` ranges from *black* to *white*.
-/// With [sRGB] gamma it is *luma*, but with [linear] gamma it is *relative
-/// luminance*.
+/// The component is *gray*, with optional *alpha*.  It ranges from *black* to
+/// *white*.  With [sRGB] gamma it is *luma*, but with [linear] gamma it is
+/// *relative luminance*.
 ///
 /// [color model]: trait.ColorModel.html
 /// [linear]: gamma/struct.Linear.html

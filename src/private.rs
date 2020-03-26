@@ -6,7 +6,7 @@
 //!
 //! ```compile_fail
 //! use pix::*;
-//! GrayModel::hue(Hsv8::new(0, 128, 255));
+//! GrayModel::value(Hsv8::new(0, 128, 255));
 //! ```
 //! ```compile_fail
 //! use pix::*;

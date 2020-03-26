@@ -16,7 +16,7 @@
 * Renamed PremultipliedAlpha to alpha::Premultiplied
 * Renamed Format trait to Pixel
 * Renamed all GrayAlpha types to Graya
-* Gray/Rgb `new` now takes alpha parameter
+* Types with alpha can just use `new` to construct
 * Gray conversion now uses perceptual luminance
 
 ### Removed

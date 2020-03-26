@@ -11,7 +11,7 @@ use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix3, Pix4, Pixel};
 use std::any::TypeId;
 
-/// `HSL` bi-hexcone [color model].
+/// HSL bi-hexcone [color model].
 ///
 /// The components are *hue*, *saturation* and *lightness*, with optional
 /// *alpha*.

@@ -11,7 +11,7 @@ use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix3, Pix4, Pixel};
 use std::any::TypeId;
 
-/// `HSV` hexcone [color model], also known as `HSB`.
+/// HSV hexcone [color model], also known as HSB.
 ///
 /// The components are *hue*, *saturation* and *value* (or *brightness*), with
 /// optional *alpha*.

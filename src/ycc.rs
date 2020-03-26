@@ -10,7 +10,7 @@ use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix3, Pix4, Pixel};
 use std::any::TypeId;
 
-/// `YCbCr` [color model] used in JPEG format.
+/// YCbCr [color model] used in JPEG format.
 ///
 /// The components are *y*, *cb* and *cr*, with optional *alpha*.
 ///

@@ -10,7 +10,7 @@ use crate::model::{Channels, ColorModel};
 use crate::pixel::{Pix3, Pix4, Pixel};
 use std::any::TypeId;
 
-/// `HWB` [color model].
+/// HWB [color model].
 ///
 /// The components are *hue*, *whiteness* and *blackness*, with optional
 /// *alpha*.
