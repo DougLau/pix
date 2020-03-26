@@ -27,7 +27,7 @@
 #![warn(missing_doc_code_examples)]
 
 pub mod alpha;
-mod channel;
+pub mod channel;
 pub mod gamma;
 mod gray;
 mod hsl;
@@ -43,7 +43,6 @@ mod raster;
 mod rgb;
 mod ycc;
 
-pub use crate::channel::{Ch16, Ch32, Ch8, Channel};
 pub use crate::gray::{
     Gray16, Gray32, Gray8, GrayModel, Graya16, Graya16p, Graya32, Graya32p,
     Graya8, Graya8p, SGray16, SGray32, SGray8, SGraya16, SGraya16p, SGraya32,

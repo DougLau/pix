@@ -4,8 +4,8 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for gamma encoding items
+use crate::channel::{Ch16, Ch32, Ch8, Channel};
 use crate::private::Sealed;
-use crate::{Ch16, Ch32, Ch8, Channel};
 use std::fmt::Debug;
 
 // Include functions to convert gamma between linear and sRGB

@@ -3,6 +3,7 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! Module for channel items
 use crate::gamma::SrgbValue;
 use std::cmp::Ordering;
 use std::fmt::Debug;
@@ -53,7 +54,7 @@ pub trait Channel:
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::*;
+/// # use pix::channel::*;
 /// let c: Ch8 = std::u8::MIN.into();
 /// assert_eq!(c, Ch8::MIN);
 /// let c: Ch16 = c.into();
@@ -72,7 +73,7 @@ pub struct Ch8(u8);
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::*;
+/// # use pix::channel::*;
 /// let c: Ch16 = std::u16::MIN.into();
 /// assert_eq!(c, Ch16::MIN);
 /// let c: Ch8 = c.into();
@@ -91,7 +92,7 @@ pub struct Ch16(u16);
 /// between 0 and 1, inclusive.
 ///
 /// ```
-/// # use pix::*;
+/// # use pix::channel::*;
 /// let c: Ch32 = 0.0.into();
 /// assert_eq!(c, Ch32::MIN);
 /// let c: Ch8 = c.into();
