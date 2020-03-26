@@ -25,24 +25,25 @@ use std::marker::PhantomData;
 /// ### Type Alias Naming Scheme
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
-/// * _Color model_: [Rgb] / [Gray] / [Hsv] / [Hsl] / [Hwb] / [YCbCr] / [Mask].
+/// * _Color model_: [`Rgb`] / [`Gray`] / [`Hsv`] / [`Hsl`] / [`Hwb`] /
+///                  [`YCbCr`] / [`Mask`].
 /// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
 /// [channels]: ../channel/trait.Channel.html
-/// [gray]: ../struct.GrayModel.html
-/// [hsl]: ../struct.HslModel.html
-/// [hsv]: ../struct.HsvModel.html
-/// [hwb]: ../struct.HwbModel.html
+/// [`gray`]: ../struct.GrayModel.html
+/// [`hsl`]: ../struct.HslModel.html
+/// [`hsv`]: ../struct.HsvModel.html
+/// [`hwb`]: ../struct.HwbModel.html
 /// [linear]: ../gamma/struct.Linear.html
-/// [Mask]: ../struct.MaskModel.html
+/// [`mask`]: ../struct.MaskModel.html
 /// [premultiplied]: ../alpha/struct.Premultiplied.html
-/// [Rgb]: ../struct.RgbModel.html
+/// [`Rgb`]: ../struct.RgbModel.html
 /// [sRGB]: ../gamma/struct.Srgb.html
 /// [straight]: ../alpha/struct.Straight.html
-/// [YCbCr]: ../struct.YCbCrModel.html
+/// [`YCbCr`]: ../struct.YCbCrModel.html
 ///
 /// ### Type Aliases
 ///
