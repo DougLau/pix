@@ -12,7 +12,7 @@
 //! [channel]: trait.Channel.html
 //! [color model]: trait.ColorModel.html
 //! [gamma mode]: gamma/trait.Mode.html
-//! [pixel]: trait.Pixel.html
+//! [pixel]: el/trait.Pixel.html
 //! [raster]: struct.Raster.html
 //!
 //! ### Example: Convert Raster Format
@@ -37,7 +37,7 @@ mod hwb;
 mod mask;
 mod model;
 mod palette;
-pub mod pixel;
+pub mod el;
 mod private;
 mod raster;
 mod rgb;
@@ -63,7 +63,7 @@ pub use crate::hwb::{
 pub use crate::mask::{Mask16, Mask32, Mask8, MaskModel};
 pub use crate::model::ColorModel;
 pub use crate::palette::Palette;
-pub use crate::pixel::Pixel;
+pub use crate::el::Pixel;
 pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
 pub use crate::rgb::{
     Rgb16, Rgb32, Rgb8, RgbModel, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8,

@@ -1,9 +1,9 @@
-// pixel.rs     Pixel format.
+// el.rs        Pixel format.
 //
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! Module for pixel items
+//! Module for `pix::el` items
 use crate::alpha;
 use crate::channel::{Ch16, Ch8, Channel};
 use crate::gamma;

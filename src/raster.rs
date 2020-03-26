@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::channel::{Ch16, Ch8};
-use crate::pixel::Pixel;
+use crate::el::Pixel;
 use std::convert::TryFrom;
 use std::marker::PhantomData;
 
@@ -117,7 +117,7 @@ impl<P: Pixel> Default for RasterBuilder<P> {
 impl<P: Pixel> RasterBuilder<P> {
     /// Create a new raster builder.
     ///
-    /// * `P` [Pixel](trait.Pixel.html) format.
+    /// * `P` [Pixel](el/trait.Pixel.html) format.
     pub fn new() -> Self {
         let _pixel = PhantomData;
         RasterBuilder { _pixel }

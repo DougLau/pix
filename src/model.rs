@@ -6,7 +6,7 @@
 use crate::alpha::Mode as _;
 use crate::channel::Channel;
 use crate::gamma::Mode as _;
-use crate::pixel::Pixel;
+use crate::el::Pixel;
 use crate::private::Sealed;
 use std::any::TypeId;
 use std::fmt::Debug;
@@ -32,7 +32,7 @@ pub struct Channels<C: Channel> {
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 ///
-/// [convert]: trait.Pixel.html#method.convert
+/// [convert]: el/trait.Pixel.html#method.convert
 /// [from_channels]: trait.ColorModel.html#method.from_channels
 /// [gray]: struct.GrayModel.html
 /// [hsl]: struct.HslModel.html

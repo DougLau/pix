@@ -7,7 +7,7 @@ use crate::alpha::Straight;
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
 use crate::gamma::Linear;
 use crate::model::{Channels, ColorModel};
-use crate::pixel::{Pix1, Pixel};
+use crate::el::{Pix1, Pixel};
 
 /// Mask [color model].
 ///
@@ -59,17 +59,17 @@ impl ColorModel for MaskModel {
 }
 
 /// [Mask](struct.MaskModel.html) 8-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Mask8 = Pix1<Ch8, MaskModel, Straight, Linear>;
 
 /// [Mask](struct.MaskModel.html) 16-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Mask16 = Pix1<Ch16, MaskModel, Straight, Linear>;
 
 /// [Mask](struct.MaskModel.html) 32-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](trait.Pixel.html)
+/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Mask32 = Pix1<Ch32, MaskModel, Straight, Linear>;
 
