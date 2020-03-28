@@ -256,6 +256,19 @@ where
     }
 }
 
+impl<C, M, A, G> From<f32> for Pix1<C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: alpha::Mode,
+    G: gamma::Mode,
+{
+    /// Convert from an `f32` value.
+    fn from(c: f32) -> Self {
+        Pix1::new(C::from(c))
+    }
+}
+
 /// [Pixel] with two [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html

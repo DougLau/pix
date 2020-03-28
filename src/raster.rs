@@ -543,7 +543,7 @@ mod test {
         r.set_pixel(2, 0, 0x9ABC_u16);
         r.set_pixel(1, 1, 0x5678_u16);
         r.set_pixel(0, 2, 0x1234_u16);
-        r.set_pixel(0, 0, 0xFFFF_u16);
+        r.set_pixel(0, 0, 1.0);
         r.set_pixel(2, 2, 0x8080_u16);
         let v = vec![
             0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,

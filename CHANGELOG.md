@@ -1,5 +1,11 @@
 ## [Unreleased]
 
+### Added
+* `Pix1::From<f32>`
+
+### Changed
+* `Pix1::From<i32>` to `From<u16>`
+
 ## [0.10.0] - 2020-03-26
 ### Added
 * ColorModel trait
