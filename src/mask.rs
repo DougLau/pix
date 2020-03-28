@@ -5,9 +5,9 @@
 //
 use crate::alpha::Straight;
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
+use crate::el::{Pix1, Pixel};
 use crate::gamma::Linear;
 use crate::model::{Channels, ColorModel};
-use crate::el::{Pix1, Pixel};
 
 /// Mask [color model].
 ///

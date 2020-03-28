@@ -5,9 +5,9 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8};
+use crate::el::{Pix3, Pix4, Pixel};
 use crate::gamma::Linear;
 use crate::model::{Channels, ColorModel};
-use crate::el::{Pix3, Pix4, Pixel};
 use std::any::TypeId;
 
 /// YCbCr [color model] used in JPEG format.

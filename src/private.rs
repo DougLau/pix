@@ -14,9 +14,9 @@
 //! ```
 use crate::alpha;
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
+use crate::el::{Pix1, Pix2, Pix3, Pix4};
 use crate::gamma;
 use crate::model::ColorModel;
-use crate::el::{Pix1, Pix2, Pix3, Pix4};
 use std::any::Any;
 
 /// Sealed trait to prevent outside crates from implementing traits

@@ -5,8 +5,8 @@
 //! Module for color model items
 use crate::alpha::Mode as _;
 use crate::channel::Channel;
-use crate::gamma::Mode as _;
 use crate::el::Pixel;
+use crate::gamma::Mode as _;
 use crate::private::Sealed;
 use std::any::TypeId;
 use std::fmt::Debug;
@@ -42,7 +42,9 @@ pub struct Channels<C: Channel> {
 /// [mask]: struct.Mask.html
 /// [rgb]: struct.Rgb.html
 /// [ycbcr]: struct.YCbCr.html
-pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Sealed {
+pub trait ColorModel:
+    Clone + Copy + Debug + Default + PartialEq + Sealed
+{
     /// Get the *alpha* component.
     fn alpha<P: Pixel>(p: P) -> P::Chan
     where
@@ -69,7 +71,10 @@ pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Sealed {
 impl<C: Channel> Channels<C> {
     /// Create new channels
     pub fn new(channels: [C; 4], alpha_idx: usize) -> Self {
-        Channels { channels, alpha_idx }
+        Channels {
+            channels,
+            alpha_idx,
+        }
     }
     /// Get alpha index
     pub fn alpha_idx(&self) -> usize {

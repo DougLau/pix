@@ -5,9 +5,9 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
+use crate::el::{Pix1, Pix2, Pixel};
 use crate::gamma::{Linear, Srgb};
 use crate::model::{Channels, ColorModel};
-use crate::el::{Pix1, Pix2, Pixel};
 use std::any::TypeId;
 
 /// Gray [color model].

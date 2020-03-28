@@ -71,10 +71,8 @@ impl Palette {
     /// no matches are found and the table is full, `None` is returned.
     pub fn set_entry(&mut self, clr: SRgb8) -> Option<usize> {
         if let Some((i, dif)) = self.best_match(clr) {
-            if Rgb::within_threshold(
-                dif,
-                (self.threshold_fn)(self.table.len()),
-            ) {
+            if Rgb::within_threshold(dif, (self.threshold_fn)(self.table.len()))
+            {
                 return Some(i);
             }
         }

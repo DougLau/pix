@@ -5,9 +5,9 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8};
+use crate::el::{Pix3, Pix4, Pixel};
 use crate::gamma::{Linear, Srgb};
 use crate::model::{Channels, ColorModel};
-use crate::el::{Pix3, Pix4, Pixel};
 
 /// RGB additive [color model].
 ///
@@ -105,12 +105,7 @@ impl ColorModel for Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        [
-            Rgb::red(p),
-            Rgb::green(p),
-            Rgb::blue(p),
-            Rgb::alpha(p),
-        ]
+        [Rgb::red(p), Rgb::green(p), Rgb::blue(p), Rgb::alpha(p)]
     }
 
     /// Convert from channels shared by pixel types
