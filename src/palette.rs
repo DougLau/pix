@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 //
-use crate::rgb::RgbModel;
+use crate::rgb::Rgb;
 use crate::SRgb8;
 
 /// Color table for use with indexed `Raster`s.
@@ -71,7 +71,7 @@ impl Palette {
     /// no matches are found and the table is full, `None` is returned.
     pub fn set_entry(&mut self, clr: SRgb8) -> Option<usize> {
         if let Some((i, dif)) = self.best_match(clr) {
-            if RgbModel::within_threshold(
+            if Rgb::within_threshold(
                 dif,
                 (self.threshold_fn)(self.table.len()),
             ) {
@@ -92,9 +92,9 @@ impl Palette {
     fn best_match(&self, clr: SRgb8) -> Option<(usize, SRgb8)> {
         let mut best = None;
         for (i, c) in self.table.iter().enumerate() {
-            let dif = RgbModel::difference(clr, *c);
+            let dif = Rgb::difference(clr, *c);
             if match best {
-                Some((_, d)) => RgbModel::within_threshold(dif, d) && dif != d,
+                Some((_, d)) => Rgb::within_threshold(dif, d) && dif != d,
                 _ => true,
             } {
                 best = Some((i, dif));

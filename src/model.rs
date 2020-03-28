@@ -34,14 +34,14 @@ pub struct Channels<C: Channel> {
 ///
 /// [convert]: el/trait.Pixel.html#method.convert
 /// [from_channels]: trait.ColorModel.html#method.from_channels
-/// [gray]: struct.GrayModel.html
-/// [hsl]: struct.HslModel.html
-/// [hsv]: struct.HsvModel.html
-/// [hwb]: struct.HwbModel.html
+/// [gray]: struct.Gray.html
+/// [hsl]: struct.Hsl.html
+/// [hsv]: struct.Hsv.html
+/// [hwb]: struct.Hwb.html
 /// [into_channels]: trait.ColorModel.html#method.into_channels
-/// [mask]: struct.MaskModel.html
-/// [rgb]: struct.RgbModel.html
-/// [ycbcr]: struct.YCbCrModel.html
+/// [mask]: struct.Mask.html
+/// [rgb]: struct.Rgb.html
+/// [ycbcr]: struct.YCbCr.html
 pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Get the *alpha* component.
     fn alpha<P: Pixel>(p: P) -> P::Chan

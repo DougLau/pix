@@ -17,9 +17,9 @@ use std::any::TypeId;
 ///
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct HwbModel {}
+pub struct Hwb {}
 
-impl HwbModel {
+impl Hwb {
     /// Get the *hue* component.
     pub fn hue<P>(p: P) -> P::Chan
     where
@@ -49,8 +49,8 @@ impl HwbModel {
     where
         P: Pixel<Model = Self>,
     {
-        let whiteness = HwbModel::whiteness(p);
-        let blackness = HwbModel::blackness(p);
+        let whiteness = Hwb::whiteness(p);
+        let blackness = Hwb::blackness(p);
         if whiteness + blackness - blackness < whiteness {
             let (w, b) = (whiteness.into(), blackness.into());
             let ratio = 1.0 / (w + b);
@@ -61,7 +61,7 @@ impl HwbModel {
     }
 }
 
-impl ColorModel for HwbModel {
+impl ColorModel for Hwb {
     /// Get the *alpha* component.
     fn alpha<P: Pixel>(p: P) -> P::Chan
     where
@@ -132,47 +132,47 @@ impl ColorModel for HwbModel {
     }
 }
 
-/// [Hwb](struct.HwbModel.html) 8-bit opaque (no *alpha* channel)
+/// [Hwb](struct.Hwb.html) 8-bit opaque (no *alpha* channel)
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwb8 = Pix3<Ch8, HwbModel, Straight, Linear>;
-/// [Hwb](struct.HwbModel.html) 16-bit opaque (no *alpha* channel)
+pub type Hwb8 = Pix3<Ch8, Hwb, Straight, Linear>;
+/// [Hwb](struct.Hwb.html) 16-bit opaque (no *alpha* channel)
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwb16 = Pix3<Ch16, HwbModel, Straight, Linear>;
-/// [Hwb](struct.HwbModel.html) 32-bit opaque (no *alpha* channel)
+pub type Hwb16 = Pix3<Ch16, Hwb, Straight, Linear>;
+/// [Hwb](struct.Hwb.html) 32-bit opaque (no *alpha* channel)
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwb32 = Pix3<Ch32, HwbModel, Straight, Linear>;
+pub type Hwb32 = Pix3<Ch32, Hwb, Straight, Linear>;
 
-/// [Hwb](struct.HwbModel.html) 8-bit [straight](alpha/struct.Straight.html)
+/// [Hwb](struct.Hwb.html) 8-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba8 = Pix4<Ch8, HwbModel, Straight, Linear>;
-/// [Hwb](struct.HwbModel.html) 16-bit [straight](alpha/struct.Straight.html)
+pub type Hwba8 = Pix4<Ch8, Hwb, Straight, Linear>;
+/// [Hwb](struct.Hwb.html) 16-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba16 = Pix4<Ch16, HwbModel, Straight, Linear>;
-/// [Hwb](struct.HwbModel.html) 32-bit [straight](alpha/struct.Straight.html)
+pub type Hwba16 = Pix4<Ch16, Hwb, Straight, Linear>;
+/// [Hwb](struct.Hwb.html) 32-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba32 = Pix4<Ch32, HwbModel, Straight, Linear>;
+pub type Hwba32 = Pix4<Ch32, Hwb, Straight, Linear>;
 
-/// [Hwb](struct.HwbModel.html) 8-bit
+/// [Hwb](struct.Hwb.html) 8-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba8p = Pix4<Ch8, HwbModel, Premultiplied, Linear>;
-/// [Hwb](struct.HwbModel.html) 16-bit
+pub type Hwba8p = Pix4<Ch8, Hwb, Premultiplied, Linear>;
+/// [Hwb](struct.Hwb.html) 16-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba16p = Pix4<Ch16, HwbModel, Premultiplied, Linear>;
-/// [Hwb](struct.HwbModel.html) 32-bit
+pub type Hwba16p = Pix4<Ch16, Hwb, Premultiplied, Linear>;
+/// [Hwb](struct.Hwb.html) 32-bit
 /// [premultiplied](alpha/struct.Premultiplied.html) alpha
 /// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Hwba32p = Pix4<Ch32, HwbModel, Premultiplied, Linear>;
+pub type Hwba32p = Pix4<Ch32, Hwb, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {

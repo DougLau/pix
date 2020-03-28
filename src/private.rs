@@ -6,11 +6,11 @@
 //!
 //! ```compile_fail
 //! use pix::*;
-//! GrayModel::value(Hsv8::new(0, 128, 255));
+//! Gray::value(Hsv8::new(0, 128, 255));
 //! ```
 //! ```compile_fail
 //! use pix::*;
-//! HwbModel::hue(Rgb8::new(255, 255, 255));
+//! Hwb::hue(Rgb8::new(255, 255, 255));
 //! ```
 use crate::alpha;
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
@@ -44,19 +44,19 @@ impl Sealed for f32 {}
 
 impl Sealed for f64 {}
 
-impl Sealed for crate::gray::GrayModel {}
+impl Sealed for crate::gray::Gray {}
 
-impl Sealed for crate::hsl::HslModel {}
+impl Sealed for crate::hsl::Hsl {}
 
-impl Sealed for crate::hsv::HsvModel {}
+impl Sealed for crate::hsv::Hsv {}
 
-impl Sealed for crate::hwb::HwbModel {}
+impl Sealed for crate::hwb::Hwb {}
 
-impl Sealed for crate::mask::MaskModel {}
+impl Sealed for crate::mask::Mask {}
 
-impl Sealed for crate::rgb::RgbModel {}
+impl Sealed for crate::rgb::Rgb {}
 
-impl Sealed for crate::ycc::YCbCrModel {}
+impl Sealed for crate::ycc::YCbCr {}
 
 impl<C, M, A, G> Sealed for Pix1<C, M, A, G>
 where

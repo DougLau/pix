@@ -15,9 +15,9 @@ use crate::el::{Pix1, Pixel};
 ///
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct MaskModel {}
+pub struct Mask {}
 
-impl ColorModel for MaskModel {
+impl ColorModel for Mask {
     /// Get the *alpha* component.
     fn alpha<P: Pixel>(p: P) -> P::Chan
     where
@@ -58,20 +58,20 @@ impl ColorModel for MaskModel {
     }
 }
 
-/// [Mask](struct.MaskModel.html) 8-bit [straight](alpha/struct.Straight.html)
+/// [Mask](struct.Mask.html) 8-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask8 = Pix1<Ch8, MaskModel, Straight, Linear>;
+pub type Mask8 = Pix1<Ch8, Mask, Straight, Linear>;
 
-/// [Mask](struct.MaskModel.html) 16-bit [straight](alpha/struct.Straight.html)
+/// [Mask](struct.Mask.html) 16-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask16 = Pix1<Ch16, MaskModel, Straight, Linear>;
+pub type Mask16 = Pix1<Ch16, Mask, Straight, Linear>;
 
-/// [Mask](struct.MaskModel.html) 32-bit [straight](alpha/struct.Straight.html)
+/// [Mask](struct.Mask.html) 32-bit [straight](alpha/struct.Straight.html)
 /// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask32 = Pix1<Ch32, MaskModel, Straight, Linear>;
+pub type Mask32 = Pix1<Ch32, Mask, Straight, Linear>;
 
 #[cfg(test)]
 mod test {

@@ -5,6 +5,13 @@
 
 ### Changed
 * `Pix1::From<i32>` to `From<u16>`
+* GrayModel to Gray
+* HslModel to Hsl
+* HsvModel to Hsv
+* HwbModel to Hwb
+* MaskModel to Mask
+* RgbModel to Rgb
+* YCbCrModel to YCbCr
 
 ## [0.10.0] - 2020-03-26
 ### Added
