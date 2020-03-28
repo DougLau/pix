@@ -243,7 +243,7 @@ where
     }
 }
 
-impl<C, M, A, G> From<i32> for Pix1<C, M, A, G>
+impl<C, M, A, G> From<u16> for Pix1<C, M, A, G>
 where
     C: Channel + From<Ch16>,
     M: ColorModel,
@@ -251,8 +251,8 @@ where
     G: gamma::Mode,
 {
     /// Convert from a `u16` value.
-    fn from(c: i32) -> Self {
-        Pix1::new(Ch16::new(c as u16))
+    fn from(c: u16) -> Self {
+        Pix1::new(Ch16::new(c))
     }
 }
 

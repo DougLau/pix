@@ -529,22 +529,22 @@ mod test {
     #[test]
     fn mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
-        r.set_pixel(0, 0, 0xFFu8);
-        r.set_pixel(2, 0, 0x12u8);
-        r.set_pixel(1, 1, 0x34u8);
-        r.set_pixel(0, 2, 0x56u8);
-        r.set_pixel(2, 2, 0x78u8);
+        r.set_pixel(0, 0, 0xFF_u8);
+        r.set_pixel(2, 0, 0x12_u8);
+        r.set_pixel(1, 1, 0x34_u8);
+        r.set_pixel(0, 2, 0x56_u8);
+        r.set_pixel(2, 2, 0x78_u8);
         let v = vec![0xFF,0x00,0x12, 0x00,0x34,0x00, 0x56,0x00,0x78];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
     fn mask16() {
         let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
-        r.set_pixel(2, 0, 0x9ABC);
-        r.set_pixel(1, 1, 0x5678);
-        r.set_pixel(0, 2, 0x1234);
-        r.set_pixel(0, 0, 0xFFFF);
-        r.set_pixel(2, 2, 0x8080);
+        r.set_pixel(2, 0, 0x9ABC_u16);
+        r.set_pixel(1, 1, 0x5678_u16);
+        r.set_pixel(0, 2, 0x1234_u16);
+        r.set_pixel(0, 0, 0xFFFF_u16);
+        r.set_pixel(2, 2, 0x8080_u16);
         let v = vec![
             0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,
             0x00,0x00, 0x78,0x56, 0x00,0x00,
