@@ -12,13 +12,3 @@ Rust crate for pixel and raster images.
 * `HWB` (*hue*, *whiteness*, *blackness*)
 * `YCbCr` (JPEG)
 * `Mask` (*alpha* only)
-
-## Future Plans
-* Gradient (linear, radial, etc) and GradientIter
-
-### More color models
-* `HSI` (*hue*, *saturation*, *intensity*)
-* `CMYK` (printing color separation)
-* `RGBW` (LED strip color separation)
-* `LAB`, `LCH`
-* `XYZ`: tristimulus
