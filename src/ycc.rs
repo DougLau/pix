@@ -10,17 +10,31 @@ use crate::gamma::Linear;
 use crate::model::{Channels, ColorModel};
 use std::any::TypeId;
 
-/// YCbCr [color model] used in JPEG format.
+/// [YCbCr] [color model] used in JPEG format.
 ///
-/// The components are *y*, *cb* and *cr*, with optional *alpha*.
+/// The components are *[y]*, *[cb]*, *[cr]* and optional *alpha*.
 ///
+/// [cb]: struct.YCbCr.html#method.cb
+/// [cr]: struct.YCbCr.html#method.cr
 /// [channel]: trait.Channel.html
 /// [color model]: trait.ColorModel.html
+/// [y]: struct.YCbCr.html#method.y
+/// [ycbcr]: https://en.wikipedia.org/wiki/YCbCr
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct YCbCr {}
 
 impl YCbCr {
     /// Get the *y* component.
+    ///
+    /// This is *luma* when gamma-encoded, or *luminance* with linear gamma.
+    ///
+    /// # Example: YCbCr Y
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch32;
+    /// let p = YCbCr32::new(0.25, 0.5, 1.0);
+    /// assert_eq!(YCbCr::y(p), Ch32::new(0.25));
+    /// ```
     pub fn y<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -29,6 +43,16 @@ impl YCbCr {
     }
 
     /// Get the *Cb* component.
+    ///
+    /// This the blue-difference chroma.
+    ///
+    /// # Example: YCbCr Cb
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = YCbCr16::new(0x2000, 0x1234, 0x8000);
+    /// assert_eq!(YCbCr::cb(p), Ch16::new(0x1234));
+    /// ```
     pub fn cb<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -37,6 +61,16 @@ impl YCbCr {
     }
 
     /// Get the *Cr* component.
+    ///
+    /// This the red-difference chroma.
+    ///
+    /// # Example: YCbCr Cr
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = YCbCr8::new(0x93, 0x80, 0xA0);
+    /// assert_eq!(YCbCr::cr(p), Ch8::new(0xA0));
+    /// ```
     pub fn cr<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,

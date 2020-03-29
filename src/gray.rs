@@ -24,6 +24,14 @@ pub struct Gray {}
 
 impl Gray {
     /// Get the *luma* / *relative luminance* component.
+    ///
+    /// # Example: Gray Value
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = Gray16::new(0x4000);
+    /// assert_eq!(Gray::value(p), Ch16::new(0x4000));
+    /// ```
     pub fn value<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,

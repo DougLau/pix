@@ -10,17 +10,43 @@ use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::model::{Channels, ColorModel};
 use std::any::TypeId;
 
-/// HWB [color model].
+/// [HWB] [color model].
 ///
-/// The components are *hue*, *whiteness* and *blackness*, with optional
+/// The components are *[hue]*, *[whiteness]*, *[blackness]* and optional
 /// *alpha*.
 ///
+/// [blackness]: struct.Hwb.html#method.blackness
 /// [color model]: trait.ColorModel.html
+/// [hue]: struct.Hwb.html#method.hue
+/// [hwb]: https://en.wikipedia.org/wiki/HWB_color_model
+/// [whiteness]: struct.Hwb.html#method.whiteness
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Hwb {}
 
 impl Hwb {
     /// Get the *hue* component.
+    ///
+    /// *Hue* is divided into 6 equal intervals arranged into a circle of
+    /// degrees:
+    ///
+    /// * 0: Red
+    /// * 60: Yellow
+    /// * 120: Green
+    /// * 180: Cyan
+    /// * 240: Blue
+    /// * 300: Magenta
+    ///
+    /// The degrees are mapped from [Channel::MIN] (0) to [Channel::MAX] (360)
+    ///
+    /// # Example: HWB Hue
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch32;
+    /// let p = Hwb32::new(0.25, 0.5, 1.0);
+    /// assert_eq!(Hwb::hue(p), Ch32::new(0.25));
+    /// ```
+    /// [Channel::MIN]: channel/trait.Channel.html#associatedconstant.MIN
+    /// [Channel::MAX]: channel/trait.Channel.html#associatedconstant.MAX
     pub fn hue<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -29,6 +55,16 @@ impl Hwb {
     }
 
     /// Get the *whiteness* component.
+    ///
+    /// This is the amount of *whiteness* mixed in with a "pure" hue.
+    ///
+    /// # Example: HWB Whiteness
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = Hwb16::new(0x2000, 0x2345, 0x5432);
+    /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x2345));
+    /// ```
     pub fn whiteness<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -37,6 +73,16 @@ impl Hwb {
     }
 
     /// Get the *blackness* component.
+    ///
+    /// This is the amount of *blackness* mixed in with a "pure" hue.
+    ///
+    /// # Example: HWB Blackness
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hwb8::new(0x43, 0x22, 0x19);
+    /// assert_eq!(Hwb::blackness(p), Ch8::new(0x19));
+    /// ```
     pub fn blackness<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,

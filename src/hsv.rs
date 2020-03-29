@@ -11,17 +11,43 @@ use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::model::{Channels, ColorModel};
 use std::any::TypeId;
 
-/// HSV hexcone [color model], also known as HSB.
+/// [HSV] hexcone [color model], also known as HSB.
 ///
-/// The components are *hue*, *saturation* and *value* (or *brightness*), with
+/// The components are *[hue]*, *[saturation]*, *[value]* (or *brightness*) and
 /// optional *alpha*.
 ///
 /// [color model]: trait.ColorModel.html
+/// [hue]: struct.Hsv.html#method.hue
+/// [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
+/// [saturation]: struct.Hsv.html#method.saturation
+/// [value]: struct.Hsv.html#method.value
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Hsv {}
 
 impl Hsv {
     /// Get the *hue* component.
+    ///
+    /// *Hue* is divided into 6 equal intervals arranged into a circle of
+    /// degrees:
+    ///
+    /// * 0: Red
+    /// * 60: Yellow
+    /// * 120: Green
+    /// * 180: Cyan
+    /// * 240: Blue
+    /// * 300: Magenta
+    ///
+    /// The degrees are mapped from [Channel::MIN] (0) to [Channel::MAX] (360)
+    ///
+    /// # Example: HSV Hue
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch32;
+    /// let p = Hsv32::new(0.25, 0.5, 1.0);
+    /// assert_eq!(Hsv::hue(p), Ch32::new(0.25));
+    /// ```
+    /// [Channel::MIN]: channel/trait.Channel.html#associatedconstant.MIN
+    /// [Channel::MAX]: channel/trait.Channel.html#associatedconstant.MAX
     pub fn hue<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -30,6 +56,19 @@ impl Hsv {
     }
 
     /// Get the *saturation* component.
+    ///
+    /// Lower values are more gray (desaturated), while higher values are more
+    /// colorful.  NOTE: HSV saturation is slightly different from [HSL]
+    /// saturation.
+    ///
+    /// # Example: HSV Saturation
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = Hsv16::new(0x2000, 0x1234, 0x8000);
+    /// assert_eq!(Hsv::saturation(p), Ch16::new(0x1234));
+    /// ```
+    /// [hsl]: struct.Hsl.html
     pub fn saturation<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -37,7 +76,18 @@ impl Hsv {
         p.two()
     }
 
-    /// Get the *value* component.
+    /// Get the *value* (or *brightness*) component.
+    ///
+    /// Lower values are closer to *black*, while higher values are closer to
+    /// fully bright colors.
+    ///
+    /// # Example: HSV Lightness
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hsv8::new(0x93, 0x80, 0xA0);
+    /// assert_eq!(Hsv::value(p), Ch8::new(0xA0));
+    /// ```
     pub fn value<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,

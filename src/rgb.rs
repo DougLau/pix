@@ -9,16 +9,28 @@ use crate::el::{Pix3, Pix4, Pixel};
 use crate::gamma::{Linear, Srgb};
 use crate::model::{Channels, ColorModel};
 
-/// RGB additive [color model].
+/// [RGB] additive [color model].
 ///
-/// The components are *red*, *green* and *blue*, with optional *alpha*.
+/// The components are *[red]*, *[green]*, *[blue]* and optional *alpha*.
 ///
+/// [blue]: struct.Rgb.html#method.blue
 /// [color model]: trait.ColorModel.html
+/// [green]: struct.Rgb.html#method.green
+/// [red]: struct.Rgb.html#method.red
+/// [rgb]: https://en.wikipedia.org/wiki/RGB_color_model
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Rgb {}
 
 impl Rgb {
     /// Get the *red* component.
+    ///
+    /// # Example: RGB Red
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch32;
+    /// let p = Rgb32::new(0.25, 0.5, 1.0);
+    /// assert_eq!(Rgb::red(p), Ch32::new(0.25));
+    /// ```
     pub fn red<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -27,6 +39,14 @@ impl Rgb {
     }
 
     /// Get the *green* component.
+    ///
+    /// # Example: RGB Green
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = Rgb16::new(0x2000, 0x1234, 0x8000);
+    /// assert_eq!(Rgb::green(p), Ch16::new(0x1234));
+    /// ```
     pub fn green<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -35,6 +55,14 @@ impl Rgb {
     }
 
     /// Get the *blue* component.
+    ///
+    /// # Example: RGB Blue
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Rgb8::new(0x93, 0x80, 0xA0);
+    /// assert_eq!(Rgb::blue(p), Ch8::new(0xA0));
+    /// ```
     pub fn blue<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,

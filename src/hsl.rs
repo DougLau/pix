@@ -11,17 +11,43 @@ use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::model::{Channels, ColorModel};
 use std::any::TypeId;
 
-/// HSL bi-hexcone [color model].
+/// [HSL] bi-hexcone [color model].
 ///
-/// The components are *hue*, *saturation* and *lightness*, with optional
+/// The components are *[hue]*, *[saturation]*, *[lightness]* and optional
 /// *alpha*.
 ///
 /// [color model]: trait.ColorModel.html
+/// [hue]: struct.Hsl.html#method.hue
+/// [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
+/// [lightness]: struct.Hsl.html#method.lightness
+/// [saturation]: struct.Hsl.html#method.saturation
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Hsl {}
 
 impl Hsl {
     /// Get the *hue* component.
+    ///
+    /// *Hue* is divided into 6 equal intervals arranged into a circle of
+    /// degrees:
+    ///
+    /// * 0: Red
+    /// * 60: Yellow
+    /// * 120: Green
+    /// * 180: Cyan
+    /// * 240: Blue
+    /// * 300: Magenta
+    ///
+    /// The degrees are mapped from [Channel::MIN] (0) to [Channel::MAX] (360)
+    ///
+    /// # Example: HSL Hue
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch32;
+    /// let p = Hsl32::new(0.25, 0.5, 1.0);
+    /// assert_eq!(Hsl::hue(p), Ch32::new(0.25));
+    /// ```
+    /// [Channel::MIN]: channel/trait.Channel.html#associatedconstant.MIN
+    /// [Channel::MAX]: channel/trait.Channel.html#associatedconstant.MAX
     pub fn hue<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -30,6 +56,19 @@ impl Hsl {
     }
 
     /// Get the *saturation* component.
+    ///
+    /// Lower values are more gray (desaturated), while higher values are more
+    /// colorful.  NOTE: HSL saturation is slightly different from [HSV]
+    /// saturation.
+    ///
+    /// # Example: HSL Saturation
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch16;
+    /// let p = Hsl16::new(0x2000, 0x1234, 0x8000);
+    /// assert_eq!(Hsl::saturation(p), Ch16::new(0x1234));
+    /// ```
+    /// [hsv]: struct.Hsv.html
     pub fn saturation<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -38,6 +77,17 @@ impl Hsl {
     }
 
     /// Get the *lightness* component.
+    ///
+    /// Lower values are closer to *black*, while higher values are closer to
+    /// *white*.
+    ///
+    /// # Example: HSL Lightness
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hsl8::new(0x93, 0x80, 0xA0);
+    /// assert_eq!(Hsl::lightness(p), Ch8::new(0xA0));
+    /// ```
     pub fn lightness<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
