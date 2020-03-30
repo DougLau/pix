@@ -2,6 +2,7 @@
 
 ### Added
 * `Pix1::From<f32>`
+* Raster::pixel_mut(x, y); replaces set_pixel
 
 ### Changed
 * `Pix1::From<i32>` to `From<u16>`
@@ -12,6 +13,9 @@
 * MaskModel to Mask
 * RgbModel to Rgb
 * YCbCrModel to YCbCr
+
+### Removed
+* Raster::set_pixel(x, y, p)
 
 ## [0.10.0] - 2020-03-26
 ### Added

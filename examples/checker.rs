@@ -9,7 +9,7 @@ fn main() -> Result<(), io::Error> {
     for y in 0..16 {
         for x in 0..16 {
             if x + y & 1 != 0 {
-                r.set_pixel(x, y, v);
+                *r.pixel_mut(x, y) = v;
             }
         }
     }

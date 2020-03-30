@@ -302,13 +302,9 @@ impl<P: Pixel> Raster<P> {
         let row = &self.as_slice_row(y);
         row[x as usize]
     }
-    /// Set one pixel value.
-    pub fn set_pixel<S>(&mut self, x: u32, y: u32, p: S)
-    where
-        P: From<S>,
-    {
-        let row = &mut self.as_slice_row_mut(y);
-        row[x as usize] = p.into();
+    /// Get a mutable pixel.
+    pub fn pixel_mut(&mut self, x: u32, y: u32) -> &mut P {
+        &mut self.as_slice_row_mut(y)[x as usize]
     }
     /// Clear all pixels to format default.
     pub fn clear(&mut self) {
@@ -529,22 +525,22 @@ mod test {
     #[test]
     fn mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
-        r.set_pixel(0, 0, 0xFF_u8);
-        r.set_pixel(2, 0, 0x12_u8);
-        r.set_pixel(1, 1, 0x34_u8);
-        r.set_pixel(0, 2, 0x56_u8);
-        r.set_pixel(2, 2, 0x78_u8);
+        *r.pixel_mut(0, 0) = Mask8::new(0xFF);
+        *r.pixel_mut(2, 0) = Mask8::new(0x12);
+        *r.pixel_mut(1, 1) = Mask8::new(0x34);
+        *r.pixel_mut(0, 2) = Mask8::new(0x56);
+        *r.pixel_mut(2, 2) = Mask8::new(0x78);
         let v = vec![0xFF,0x00,0x12, 0x00,0x34,0x00, 0x56,0x00,0x78];
         assert_eq!(r.as_u8_slice(), &v[..]);
     }
     #[test]
     fn mask16() {
         let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
-        r.set_pixel(2, 0, 0x9ABC_u16);
-        r.set_pixel(1, 1, 0x5678_u16);
-        r.set_pixel(0, 2, 0x1234_u16);
-        r.set_pixel(0, 0, 1.0);
-        r.set_pixel(2, 2, 0x8080_u16);
+        *r.pixel_mut(2, 0) = Mask16::new(0x9ABC);
+        *r.pixel_mut(1, 1) = Mask16::new(0x5678);
+        *r.pixel_mut(0, 2) = Mask16::new(0x1234);
+        *r.pixel_mut(0, 0) = Mask16::new(1.0);
+        *r.pixel_mut(2, 2) = Mask16::new(0x8080);
         let v = vec![
             0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,
             0x00,0x00, 0x78,0x56, 0x00,0x00,
