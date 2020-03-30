@@ -5,7 +5,7 @@
 //
 //! Module for `pix::el` items
 use crate::alpha;
-use crate::channel::{Ch16, Ch8, Channel};
+use crate::channel::Channel;
 use crate::gamma;
 use crate::model::ColorModel;
 use crate::private::Sealed;
