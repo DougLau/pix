@@ -230,45 +230,6 @@ where
     }
 }
 
-impl<C, M, A, G> From<u8> for Pix1<C, M, A, G>
-where
-    C: Channel + From<Ch8>,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Convert from a `u8` value.
-    fn from(c: u8) -> Self {
-        Pix1::new(Ch8::new(c))
-    }
-}
-
-impl<C, M, A, G> From<u16> for Pix1<C, M, A, G>
-where
-    C: Channel + From<Ch16>,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Convert from a `u16` value.
-    fn from(c: u16) -> Self {
-        Pix1::new(Ch16::new(c))
-    }
-}
-
-impl<C, M, A, G> From<f32> for Pix1<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    /// Convert from an `f32` value.
-    fn from(c: f32) -> Self {
-        Pix1::new(C::from(c))
-    }
-}
-
 /// [Pixel] with two [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
