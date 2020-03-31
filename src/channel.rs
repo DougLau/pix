@@ -452,43 +452,43 @@ impl Ord for Ch32 {
 
 impl<R> Add<R> for Ch32
 where
-    f32: From<R>,
+    Self: From<R>,
 {
     type Output = Self;
     fn add(self, rhs: R) -> Self {
-        let value = self.0 + f32::from(rhs);
+        let value = self.0 + Self::from(rhs).0;
         Ch32(value.min(1.0))
     }
 }
 
 impl<R> Sub<R> for Ch32
 where
-    f32: From<R>,
+    Self: From<R>,
 {
     type Output = Self;
     fn sub(self, rhs: R) -> Self {
-        let value = self.0 - f32::from(rhs);
+        let value = self.0 - Self::from(rhs).0;
         Ch32(value.max(0.0))
     }
 }
 
 impl<R> Mul<R> for Ch32
 where
-    f32: From<R>,
+    Self: From<R>,
 {
     type Output = Self;
     fn mul(self, rhs: R) -> Self {
-        Ch32(self.0 * f32::from(rhs))
+        Ch32(self.0 * Self::from(rhs).0)
     }
 }
 
 impl<R> Div<R> for Ch32
 where
-    f32: From<R>,
+    Self: From<R>,
 {
     type Output = Self;
     fn div(self, rhs: R) -> Self {
-        let v = f32::from(rhs);
+        let v = Self::from(rhs).0;
         if v > 0.0 {
             Ch32((self.0 / v).min(1.0))
         } else {
