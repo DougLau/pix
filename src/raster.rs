@@ -234,7 +234,7 @@ impl<P: Pixel> RasterBuilder<P> {
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
         assert_eq!(len * std::mem::size_of::<P>(), capacity);
-        let slice = std::boxed::Box::<[u8]>::into_raw(buffer);
+        let slice = Box::<[u8]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
             let slice = std::slice::from_raw_parts_mut(ptr, len);
@@ -274,7 +274,7 @@ impl<P: Pixel> RasterBuilder<P> {
             len * std::mem::size_of::<P>(),
             capacity * std::mem::size_of::<u16>()
         );
-        let slice = std::boxed::Box::<[u16]>::into_raw(buffer);
+        let slice = Box::<[u16]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
             let slice = std::slice::from_raw_parts_mut(ptr, len);
