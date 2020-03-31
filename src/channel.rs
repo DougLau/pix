@@ -107,7 +107,7 @@ pub struct Ch32(f32);
 
 impl Ch8 {
     /// Create a new 8-bit `Channel` value.
-    pub fn new(value: u8) -> Self {
+    pub const fn new(value: u8) -> Self {
         Ch8(value)
     }
 }
@@ -221,7 +221,7 @@ where
 
 impl Ch16 {
     /// Create a new 16-bit `Channel` value.
-    pub fn new(value: u16) -> Self {
+    pub const fn new(value: u16) -> Self {
         Ch16(value)
     }
 }
