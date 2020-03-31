@@ -12,8 +12,8 @@ use std::any::TypeId;
 
 /// Gray [color model].
 ///
-/// The component is *gray*, with optional *alpha*.  It ranges from *black* to
-/// *white*.  With [sRGB] gamma it is *luma*, but with [linear] gamma it is
+/// The components are *gray* and optional *alpha*.  Gray ranges from *black*
+/// to *white*.  With [sRGB] gamma it is *luma*, but with [linear] gamma it is
 /// *relative luminance*.
 ///
 /// [color model]: trait.ColorModel.html

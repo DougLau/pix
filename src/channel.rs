@@ -9,7 +9,7 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Sub};
 
-/// *Component* of a [color model] which determines *bit depth*.
+/// *Component* of a [color model], such as *red*, *green*, *etc*.
 ///
 /// Existing `Channel`s are [Ch8], [Ch16] and [Ch32].
 ///
