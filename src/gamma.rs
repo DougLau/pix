@@ -44,71 +44,44 @@ pub trait SrgbValue: Sealed {
     fn decode_srgb(self) -> Self;
 }
 
-impl SrgbValue for u8 {
-    /// Encode an sRGB gamma value from linear intensity
-    fn encode_srgb(self) -> Self {
-        ENCODE_SRGB_U8[usize::from(self)]
-    }
-    /// Decode an sRGB gamma value into linear intensity
-    fn decode_srgb(self) -> Self {
-        DECODE_SRGB_U8[usize::from(self)]
-    }
-}
-
 impl SrgbValue for Ch8 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
-        Self::new(u8::from(self).encode_srgb())
+        let s = ENCODE_SRGB_U8[usize::from(u8::from(self))];
+        Self::new(s)
     }
     /// Decode an sRGB gamma value into linear intensity
     fn decode_srgb(self) -> Self {
-        Self::new(u8::from(self).decode_srgb())
-    }
-}
-
-impl SrgbValue for u16 {
-    /// Encode an sRGB gamma value from linear intensity
-    fn encode_srgb(self) -> Self {
-        let s = f32::from(self) / 65535.0;
-        (s.encode_srgb() * 65535.0).round() as u16
-    }
-    /// Decode an sRGB gamma value into linear intensity
-    fn decode_srgb(self) -> Self {
-        let s = f32::from(self) / 65535.0;
-        (s.decode_srgb() * 65535.0).round() as u16
+        let s = DECODE_SRGB_U8[usize::from(u8::from(self))];
+        Self::new(s)
     }
 }
 
 impl SrgbValue for Ch16 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
-        Self::new(u16::from(self).encode_srgb())
+        let s = f32::from(u16::from(self)) / 65535.0;
+        let s = (srgb_gamma_encode(s) * 65535.0).round() as u16;
+        Self::new(s)
     }
     /// Decode an sRGB gamma value into linear intensity
     fn decode_srgb(self) -> Self {
-        Self::new(u16::from(self).decode_srgb())
-    }
-}
-
-impl SrgbValue for f32 {
-    /// Encode an sRGB gamma value from linear intensity
-    fn encode_srgb(self) -> Self {
-        srgb_gamma_encode(self)
-    }
-    /// Decode an sRGB gamma value into linear intensity
-    fn decode_srgb(self) -> Self {
-        srgb_gamma_decode(self)
+        let s = f32::from(u16::from(self)) / 65535.0;
+        let s = (srgb_gamma_decode(s) * 65535.0).round() as u16;
+        Self::new(s)
     }
 }
 
 impl SrgbValue for Ch32 {
     /// Encode an sRGB gamma value from linear intensity
     fn encode_srgb(self) -> Self {
-        Self::new(f32::from(self).encode_srgb())
+        let s = srgb_gamma_encode(f32::from(self));
+        Self::new(s)
     }
     /// Decode an sRGB gamma value into linear intensity
     fn decode_srgb(self) -> Self {
-        Self::new(f32::from(self).decode_srgb())
+        let s = srgb_gamma_decode(f32::from(self));
+        Self::new(s)
     }
 }
 
@@ -141,7 +114,7 @@ mod test {
     fn lut_encode_u8() {
         for i in 0..=255 {
             let s = i as f32 / 255.0;
-            let v = (s.encode_srgb() * 255.0).round() as u8;
+            let v = (srgb_gamma_encode(s) * 255.0).round() as u8;
             assert_eq!(v, ENCODE_SRGB_U8[i]);
         }
     }
@@ -149,7 +122,7 @@ mod test {
     fn lut_decode_u8() {
         for i in 0..=255 {
             let s = i as f32 / 255.0;
-            let v = (s.decode_srgb() * 255.0).round() as u8;
+            let v = (srgb_gamma_decode(s) * 255.0).round() as u8;
             assert_eq!(v, DECODE_SRGB_U8[i]);
         }
     }
