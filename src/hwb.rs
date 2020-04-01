@@ -90,6 +90,22 @@ impl Hwb {
         p.three()
     }
 
+    /// Get the *alpha* component.
+    ///
+    /// # Example: HWB Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hwba8::new(0x50, 0xA0, 0x80, 0xB0);
+    /// assert_eq!(Hwb::alpha(p), Ch8::new(0xB0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.four()
+    }
+
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
     fn whiteness_blackness<P: Pixel>(p: P) -> (P::Chan, P::Chan)
     where
@@ -108,14 +124,6 @@ impl Hwb {
 }
 
 impl ColorModel for Hwb {
-    /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
-    where
-        P: Pixel<Model = Self>,
-    {
-        p.four()
-    }
-
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

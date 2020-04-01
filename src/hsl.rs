@@ -94,17 +94,25 @@ impl Hsl {
     {
         p.three()
     }
-}
 
-impl ColorModel for Hsl {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
+    ///
+    /// # Example: HSL Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hsla8::new(0x50, 0xA0, 0x80, 0xB0);
+    /// assert_eq!(Hsl::alpha(p), Ch8::new(0xB0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.four()
     }
+}
 
+impl ColorModel for Hsl {
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

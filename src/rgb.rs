@@ -70,6 +70,22 @@ impl Rgb {
         p.three()
     }
 
+    /// Get the *alpha* component.
+    ///
+    /// # Example: RGB Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Rgba8::new(0x50, 0xA0, 0x80, 0xB0);
+    /// assert_eq!(Rgb::alpha(p), Ch8::new(0xB0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.four()
+    }
+
     /// Get channel-wise difference
     pub fn difference<P: Pixel>(p: P, rhs: P) -> P
     where
@@ -111,14 +127,6 @@ impl Rgb {
 }
 
 impl ColorModel for Rgb {
-    /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
-    where
-        P: Pixel<Model = Self>,
-    {
-        p.four()
-    }
-
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

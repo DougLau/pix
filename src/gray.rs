@@ -38,17 +38,25 @@ impl Gray {
     {
         p.one()
     }
-}
 
-impl ColorModel for Gray {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
+    ///
+    /// # Example: Gray Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Graya8::new(0x58, 0xC0);
+    /// assert_eq!(Gray::alpha(p), Ch8::new(0xC0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.two()
     }
+}
 
+impl ColorModel for Gray {
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

@@ -77,17 +77,25 @@ impl YCbCr {
     {
         p.three()
     }
-}
 
-impl ColorModel for YCbCr {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
+    ///
+    /// # Example: YCbCr Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = YCbCra8::new(0x50, 0xA0, 0x80, 0xB0);
+    /// assert_eq!(YCbCr::alpha(p), Ch8::new(0xB0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.four()
     }
+}
 
+impl ColorModel for YCbCr {
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

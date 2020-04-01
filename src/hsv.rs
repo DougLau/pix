@@ -94,17 +94,25 @@ impl Hsv {
     {
         p.three()
     }
-}
 
-impl ColorModel for Hsv {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
+    ///
+    /// # Example: HSV Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Hsva8::new(0x50, 0xA0, 0x80, 0xB0);
+    /// assert_eq!(Hsv::alpha(p), Ch8::new(0xB0));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.four()
     }
+}
 
+impl ColorModel for Hsv {
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where

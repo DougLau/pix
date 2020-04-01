@@ -12,6 +12,7 @@
 * MaskModel to Mask
 * RgbModel to Rgb
 * YCbCrModel to YCbCr
+* Moved `alpha` associated functions out of ColorModel trait
 
 ### Removed
 * Raster::set_pixel(x, y, p)

@@ -17,15 +17,25 @@ use crate::model::{Channels, ColorModel};
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Mask {}
 
-impl ColorModel for Mask {
+impl Mask {
     /// Get the *alpha* component.
-    fn alpha<P: Pixel>(p: P) -> P::Chan
+    ///
+    /// # Example: Mask Alpha
+    /// ```
+    /// # use pix::*;
+    /// # use pix::channel::Ch8;
+    /// let p = Mask8::new(0x94);
+    /// assert_eq!(Mask::alpha(p), Ch8::new(0x94));
+    /// ```
+    pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.one()
     }
+}
 
+impl ColorModel for Mask {
     /// Convert into channels shared by pixel types
     fn into_channels<S, D>(src: S) -> Channels<S::Chan>
     where
