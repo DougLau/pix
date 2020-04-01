@@ -43,6 +43,7 @@ impl Hsv {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch32;
+    /// # use pix::model::Hsv;
     /// let p = Hsv32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hsv::hue(p), Ch32::new(0.25));
     /// ```
@@ -65,6 +66,7 @@ impl Hsv {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch16;
+    /// # use pix::model::Hsv;
     /// let p = Hsv16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Hsv::saturation(p), Ch16::new(0x1234));
     /// ```
@@ -85,6 +87,7 @@ impl Hsv {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hsv;
     /// let p = Hsv8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsv::value(p), Ch8::new(0xA0));
     /// ```
@@ -101,6 +104,7 @@ impl Hsv {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hsv;
     /// let p = Hsva8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hsv::alpha(p), Ch8::new(0xB0));
     /// ```

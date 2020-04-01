@@ -42,6 +42,7 @@ impl Hwb {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch32;
+    /// # use pix::model::Hwb;
     /// let p = Hwb32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hwb::hue(p), Ch32::new(0.25));
     /// ```
@@ -62,6 +63,7 @@ impl Hwb {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch16;
+    /// # use pix::model::Hwb;
     /// let p = Hwb16::new(0x2000, 0x2345, 0x5432);
     /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x2345));
     /// ```
@@ -80,6 +82,7 @@ impl Hwb {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hwb;
     /// let p = Hwb8::new(0x43, 0x22, 0x19);
     /// assert_eq!(Hwb::blackness(p), Ch8::new(0x19));
     /// ```
@@ -96,6 +99,7 @@ impl Hwb {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hwb;
     /// let p = Hwba8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hwb::alpha(p), Ch8::new(0xB0));
     /// ```

@@ -43,6 +43,7 @@ impl Hsl {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch32;
+    /// # use pix::model::Hsl;
     /// let p = Hsl32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hsl::hue(p), Ch32::new(0.25));
     /// ```
@@ -65,6 +66,7 @@ impl Hsl {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch16;
+    /// # use pix::model::Hsl;
     /// let p = Hsl16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Hsl::saturation(p), Ch16::new(0x1234));
     /// ```
@@ -85,6 +87,7 @@ impl Hsl {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hsl;
     /// let p = Hsl8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsl::lightness(p), Ch8::new(0xA0));
     /// ```
@@ -101,6 +104,7 @@ impl Hsl {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Hsl;
     /// let p = Hsla8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hsl::alpha(p), Ch8::new(0xB0));
     /// ```

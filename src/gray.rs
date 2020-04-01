@@ -29,6 +29,7 @@ impl Gray {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch16;
+    /// # use pix::model::Gray;
     /// let p = Gray16::new(0x4000);
     /// assert_eq!(Gray::value(p), Ch16::new(0x4000));
     /// ```
@@ -45,6 +46,7 @@ impl Gray {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Gray;
     /// let p = Graya8::new(0x58, 0xC0);
     /// assert_eq!(Gray::alpha(p), Ch8::new(0xC0));
     /// ```
@@ -188,6 +190,7 @@ pub type SGraya32p = Pix2<Ch32, Gray, Premultiplied, Srgb>;
 #[cfg(test)]
 mod test {
     use super::super::*;
+    use super::super::el::Pixel;
 
     #[test]
     fn check_sizes() {

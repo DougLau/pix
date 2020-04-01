@@ -24,6 +24,7 @@ impl Mask {
     /// ```
     /// # use pix::*;
     /// # use pix::channel::Ch8;
+    /// # use pix::model::Mask;
     /// let p = Mask8::new(0x94);
     /// assert_eq!(Mask::alpha(p), Ch8::new(0x94));
     /// ```
