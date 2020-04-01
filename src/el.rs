@@ -33,17 +33,17 @@ use std::marker::PhantomData;
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
 /// [channels]: ../channel/trait.Channel.html
-/// [`gray`]: ../struct.Gray.html
-/// [`hsl`]: ../struct.Hsl.html
-/// [`hsv`]: ../struct.Hsv.html
-/// [`hwb`]: ../struct.Hwb.html
+/// [`gray`]: ../model/struct.Gray.html
+/// [`hsl`]: ../model/struct.Hsl.html
+/// [`hsv`]: ../model/struct.Hsv.html
+/// [`hwb`]: ../model/struct.Hwb.html
 /// [linear]: ../gamma/struct.Linear.html
-/// [`mask`]: ../struct.Mask.html
+/// [`mask`]: ../model/struct.Mask.html
 /// [premultiplied]: ../alpha/struct.Premultiplied.html
-/// [`Rgb`]: ../struct.Rgb.html
+/// [`Rgb`]: ../model/struct.Rgb.html
 /// [sRGB]: ../gamma/struct.Srgb.html
 /// [straight]: ../alpha/struct.Straight.html
-/// [`YCbCr`]: ../struct.YCbCr.html
+/// [`YCbCr`]: ../model/struct.YCbCr.html
 ///
 /// ### Type Aliases
 ///

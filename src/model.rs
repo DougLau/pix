@@ -2,16 +2,23 @@
 //
 // Copyright (c) 2020  Douglas P Lau
 //
-//! Module for color model items
+//! Color models
 use crate::alpha::Mode as _;
 use crate::channel::Channel;
 use crate::el::Pixel;
 use crate::gamma::Mode as _;
+pub use crate::gray::Gray;
+pub use crate::hsl::Hsl;
+pub use crate::hsv::Hsv;
+pub use crate::hwb::Hwb;
+pub use crate::mask::Mask;
 use crate::private::Sealed;
+pub use crate::rgb::Rgb;
+pub use crate::ycc::YCbCr;
 use std::any::TypeId;
 use std::fmt::Debug;
 
-/// Channels making up a color.
+/// Channels in a color model.
 ///
 /// All channels before *alpha_idx* will be adjusted by *alpha*/*gamma* during
 /// conversion; *alpha* and later channels will not.
