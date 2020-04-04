@@ -189,8 +189,8 @@ pub type SGraya32p = Pix2<Ch32, Gray, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {
-    use super::super::*;
     use super::super::el::Pixel;
+    use super::super::*;
 
     #[test]
     fn check_sizes() {
