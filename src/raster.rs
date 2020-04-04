@@ -34,8 +34,8 @@ pub struct RasterBuilder<P: Pixel> {
 /// ### Create a `Raster` with a solid color rectangle
 /// ```
 /// # use pix::*;
-/// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(10, 10);
-/// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
+/// let mut r = RasterBuilder::<SRgb8>::new().with_clear(10, 10);
+/// r.compose_color((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<P: Pixel> {
     width: i32,
@@ -192,7 +192,7 @@ impl<P: Pixel> RasterBuilder<P> {
     /// let mut r = RasterBuilder::new()           // convert to raster
     ///     .with_pixels(4, 4, p);
     /// let clr = SRgb8::new(0x00, 0xFF, 0x00);    // green
-    /// r.set_region((2, 0, 1, 3), clr);           // make stripe
+    /// r.compose_color((2, 0, 1, 3), clr);        // make stripe
     /// let p2 = Into::<Vec<SRgb8>>::into(r);      // convert back to vec
     /// ```
     pub fn with_pixels<B>(self, width: u32, height: u32, pixels: B) -> Raster<P>
@@ -365,60 +365,46 @@ impl<P: Pixel> Raster<P> {
         let reg = reg.into();
         let x0 = reg.x.max(0);
         let x1 = reg.right().min(self.width);
-        debug_assert!(x1 >= x0);
-        let w = (x1 - x0) as u32;
+        let w = (x1 - x0).max(0) as u32;
         let y0 = reg.y.max(0);
         let y1 = reg.bottom().min(self.height);
-        debug_assert!(y1 >= y0);
-        let h = (y1 - y0) as u32;
+        let h = (y1 - y0).max(0) as u32;
         Region::new(x0, y0, w, h)
     }
 
-    /// Set a `Region` using a pixel `Iterator`.
+    /// Compose from a source `Pixel` color.
     ///
-    /// * `reg` Region within `Raster`.
-    /// * `it` `Iterator` of pixels in `Region`.
+    /// * `reg` Region within `self` (destination).
+    /// * `clr` Source `Pixel` color.
     ///
     /// ### Set entire raster to one color
     /// ```
     /// # use pix::*;
     /// let mut r = RasterBuilder::<SRgb32>::new().with_clear(360, 240);
-    /// r.set_region(r.region(), SRgb32::new(0.5, 0.2, 0.8));
+    /// r.compose_color((), SRgb32::new(0.5, 0.2, 0.8));
     /// ```
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
-    /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
-    /// raster.set_region((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
+    /// let mut r = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
+    /// r.compose_color((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
     /// ```
-    pub fn set_region<R, S, I>(&mut self, reg: R, mut it: I)
+    pub fn compose_color<R, S>(&mut self, reg: R, clr: S)
     where
         R: Into<Region>,
         S: Pixel,
         P::Chan: From<S::Chan>,
-        I: Iterator<Item = S>,
     {
-        let reg = reg.into();
-        let x0 = if reg.x >= 0 {
-            reg.x as u32
-        } else {
-            self.width()
-        };
-        let x1 = self.width().min(x0 + reg.width());
-        let (x0, x1) = (x0 as usize, x1 as usize);
-        let y0 = if reg.y >= 0 {
-            reg.y as u32
-        } else {
-            self.height()
-        };
-        let y1 = self.height().min(y0 + reg.height());
-        if y0 < y1 && x0 < x1 {
-            for yi in y0..y1 {
-                let row = self.as_slice_row_mut(yi);
-                for x in x0..x1 {
-                    if let Some(p) = it.next() {
-                        row[x] = p.convert();
-                    }
+        let reg = self.intersection(reg.into());
+        let width = reg.width();
+        let height = reg.height();
+        if width > 0 && height > 0 {
+            let s = clr.convert();
+            let drows = self.rows_mut().skip(reg.y as usize);
+            for drow in drows.take(height as usize) {
+                let drow = &mut drow[reg.x as usize..];
+                for d in drow.iter_mut().take(width as usize) {
+                    *d = s;
                 }
             }
         }
@@ -490,15 +476,6 @@ impl<P: Pixel> Raster<P> {
                 }
             }
         }
-    }
-
-    /// Get view of a row of pixels as a mutable slice.
-    fn as_slice_row_mut(&mut self, y: u32) -> &mut [P] {
-        debug_assert!(y < self.height());
-        let width = self.width();
-        let s = (y * width) as usize;
-        let t = s + width as usize;
-        &mut self.pixels[s..t]
     }
 
     /// Get view of pixels as a `u8` slice.
@@ -681,7 +658,7 @@ mod test {
         .collect();
         let mut r = RasterBuilder::new().with_pixels(4, 4, p);
         let clr = Mask32::new(0.05);
-        r.set_region((1, 1, 2, 2), clr);
+        r.compose_color((1, 1, 2, 2), clr);
         let v: Vec<_> = vec![
             0.25, 0.5, 0.75, 1.0,
             0.5, 0.05, 0.05, 0.8,
@@ -698,7 +675,7 @@ mod test {
     fn rgb8() {
         let mut r = RasterBuilder::<SRgb8>::new().with_clear(4, 4);
         let rgb = SRgb8::new(0xCC, 0xAA, 0xBB);
-        r.set_region((1, 1, 2, 2), rgb);
+        r.compose_color((1, 1, 2, 2), rgb);
         let v = vec![
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
@@ -713,9 +690,9 @@ mod test {
     #[test]
     fn gray8() {
         let mut r = RasterBuilder::<SGray8>::new().with_clear(4, 4);
-        r.set_region((0, 0, 1, 1), SGray8::new(0x23));
-        r.set_region((10, 10, 1, 1), SGray8::new(0x45));
-        r.set_region((2, 2, 10, 10), SGray8::new(0xBB));
+        r.compose_color((0, 0, 1, 1), SGray8::new(0x23));
+        r.compose_color((10, 10, 1, 1), SGray8::new(0x45));
+        r.compose_color((2, 2, 10, 10), SGray8::new(0xBB));
         let v = vec![
             SGray8::new(0x23), SGray8::new(0), SGray8::new(0), SGray8::new(0),
             SGray8::new(0), SGray8::new(0), SGray8::new(0), SGray8::new(0),
@@ -733,7 +710,7 @@ mod test {
         ];
         let mut r = RasterBuilder::<SRgb8>::new().with_u8_buffer(3, 3, b);
         let rgb = SRgb8::new(0x12, 0x34, 0x56);
-        r.set_region((0, 1, 2, 1), rgb);
+        r.compose_color((0, 1, 2, 1), rgb);
         let v = vec![
             SRgb8::new(0xAA, 0x00, 0x00), SRgb8::new(0x00, 0x11, 0x22),
             SRgb8::new(0x33, 0x44, 0x55),
@@ -752,7 +729,7 @@ mod test {
             0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
         ];
         let mut r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
-        r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, 0xFFFF));
+        r.compose_color((1, 0, 2, 2), SGraya16::new(0x4444, 0xFFFF));
         let v = vec![
             SGraya16::new(0x1001, 0x5005), SGraya16::new(0x4444, 0xFFFF),
             SGraya16::new(0x4444, 0xFFFF), SGraya16::new(0x2002, 0x6006),

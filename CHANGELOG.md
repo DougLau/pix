@@ -3,6 +3,9 @@
 ### Added
 * `Pix1::From<f32>`
 * Raster::pixel_mut(x, y); replaces set_pixel
+* Raster::compose_color
+* Raster::compose_raster
+* Raster::rows and ::rows_mut
 
 ### Changed
 * GrayModel to Gray
@@ -17,6 +20,7 @@
 ### Removed
 * Raster::set_pixel(x, y, p)
 * `Pix1::From<u8>` and `Pix1::From<i32>`
+* Raster::set_region
 
 ## [0.10.0] - 2020-03-26
 ### Added
