@@ -216,20 +216,6 @@ where
     }
 }
 
-impl<C, M, A, G> Iterator for Pix1<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(*self)
-    }
-}
-
 /// [Pixel] with two [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
@@ -309,20 +295,6 @@ where
 
     fn two(self) -> C {
         self.two
-    }
-}
-
-impl<C, M, A, G> Iterator for Pix2<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(*self)
     }
 }
 
@@ -413,20 +385,6 @@ where
 
     fn three(self) -> C {
         self.three
-    }
-}
-
-impl<C, M, A, G> Iterator for Pix3<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(*self)
     }
 }
 
@@ -525,20 +483,6 @@ where
 
     fn four(self) -> C {
         self.four
-    }
-}
-
-impl<C, M, A, G> Iterator for Pix4<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
-{
-    type Item = Self;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        Some(*self)
     }
 }
 
