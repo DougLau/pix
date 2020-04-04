@@ -652,6 +652,16 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
+    fn with_pixels_mask32() {
+        let p = vec![
+            Mask32::new(0.25), Mask32::new(0.5), Mask32::new(0.75),
+            Mask32::new(0.5), Mask32::new(0.6), Mask32::new(0.7),
+            Mask32::new(0.85), Mask32::new(0.65), Mask32::new(0.45),
+        ];
+        let r = RasterBuilder::new().with_pixels(3, 3, p.clone());
+        assert_eq!(r.pixels(), &p[..]);
+    }
+    #[test]
     fn pixel_mut_mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
         *r.pixel_mut(0, 0) = Mask8::new(0xFF);
@@ -682,6 +692,13 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
+    fn raster_with_color() {
+        let r = RasterBuilder::<Hwb8>::new().with_color(3, 3,
+            Hwb8::new(0x80, 0, 0));
+        let v = vec![Hwb8::new(0x80, 0, 0); 9];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+    #[test]
     fn compose_color_gray8() {
         let mut r = RasterBuilder::<SGray8>::new().with_clear(3, 3);
         r.compose_color((0, 0, 1, 1), SGray8::new(0x23));
@@ -693,30 +710,6 @@ mod test {
             SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
         ];
         assert_eq!(r.pixels(), &v[..]);
-    }
-    #[test]
-    fn compose_color_mask32() {
-        let p: Vec<_> = vec![
-            0.25, 0.5, 0.75,
-            0.5, 0.6, 0.7,
-            0.85, 0.65, 0.45,
-        ]
-        .iter()
-        .map(|p| Mask32::new(*p))
-        .collect();
-        let mut r = RasterBuilder::new().with_pixels(3, 3, p);
-        let clr = Mask32::new(0.1);
-        r.compose_color((-2, -1, 4, 3), clr);
-        let v: Vec<_> = vec![
-            0.1, 0.1, 0.75,
-            0.1, 0.1, 0.7,
-            0.85, 0.65, 0.45,
-        ]
-        .iter()
-        .map(|p| Mask32::new(*p))
-        .collect();
-        let r2 = RasterBuilder::new().with_pixels(3, 3, v);
-        assert_eq!(r.pixels(), r2.pixels());
     }
     #[test]
     fn compose_color_srgb8() {
