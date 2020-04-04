@@ -43,36 +43,6 @@ pub struct Raster<P: Pixel> {
     pixels: Box<[P]>,
 }
 
-/// `Iterator` for pixels within a [Raster](struct.Raster.html).
-///
-/// Use `Raster`::[region_iter](struct.Raster.html#method.region_iter) to
-/// create.
-///
-/// ### All pixels in a `Raster`
-/// ```
-/// # use pix::*;
-/// let mut mask = RasterBuilder::<Mask8>::new().with_clear(32, 32);
-/// // ... set mask data
-/// let it = mask.region_iter(mask.region());
-/// ```
-///
-/// ### `Iterator` of `Region` within a `Raster`
-/// ```
-/// # use pix::*;
-/// let mut gray = RasterBuilder::<SGraya16>::new().with_clear(40, 40);
-/// // ... load raster data
-/// let region = gray.intersection((20, 20, 10, 10));
-/// let it = gray.region_iter(region);
-/// ```
-pub struct RasterIter<'a, P: Pixel> {
-    raster: &'a Raster<P>,
-    left: u32,
-    right: u32,
-    bottom: u32,
-    x: u32,
-    y: u32,
-}
-
 /// `Iterator` of *rows* in a [raster], as slices of [pixel]s.
 ///
 /// This struct is created by the [rows] method of [Raster].
@@ -404,16 +374,6 @@ impl<P: Pixel> Raster<P> {
         Region::new(x0, y0, w, h)
     }
 
-    /// Get an `Iterator` of pixels within a `Region`.
-    ///
-    /// * `reg` Region within `Raster`.
-    pub fn region_iter<R>(&self, reg: R) -> RasterIter<P>
-    where
-        R: Into<Region>,
-    {
-        RasterIter::new(self, reg.into())
-    }
-
     /// Set a `Region` using a pixel `Iterator`.
     ///
     /// * `reg` Region within `Raster`.
@@ -430,17 +390,6 @@ impl<P: Pixel> Raster<P> {
     /// # use pix::*;
     /// let mut raster = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
     /// raster.set_region((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
-    /// ```
-    /// ### Copy part of one `Raster` to another, converting pixel format
-    /// ```
-    /// # use pix::*;
-    /// let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
-    /// let mut gray = RasterBuilder::<SGray16>::new().with_clear(50, 50);
-    /// // ... load image data
-    /// let src = gray.intersection((20, 10, 25, 25));
-    /// let dst = rgb.intersection((40, 40, 25, 25));
-    /// // Regions must have the same shape!
-    /// rgb.set_region(dst, gray.region_iter(src));
     /// ```
     pub fn set_region<R, S, I>(&mut self, reg: R, mut it: I)
     where
@@ -562,46 +511,6 @@ impl<P: Pixel> Raster<P> {
             debug_assert!(suffix.is_empty());
             v
         }
-    }
-}
-
-impl<'a, P: Pixel> RasterIter<'a, P> {
-    /// Create a new `Raster` pixel `Iterator`.
-    ///
-    /// * `region` Region of pixels to iterate.
-    fn new(raster: &'a Raster<P>, region: Region) -> Self {
-        let y = u32::try_from(region.y).unwrap_or(0);
-        let bottom = u32::try_from(region.bottom()).unwrap_or(0);
-        let x = u32::try_from(region.x).unwrap_or(0);
-        let right = u32::try_from(region.right()).unwrap_or(0);
-        let left = x;
-        RasterIter {
-            raster,
-            left,
-            right,
-            bottom,
-            x,
-            y,
-        }
-    }
-}
-
-impl<'a, P: Pixel> Iterator for RasterIter<'a, P> {
-    type Item = P;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.x >= self.right {
-            self.x = self.left;
-            self.y += 1;
-            if self.y >= self.bottom {
-                return None;
-            }
-        }
-        let x = self.x as i32;
-        let y = self.y as i32;
-        let p = self.raster.pixel(x, y);
-        self.x += 1;
-        Some(p)
     }
 }
 
