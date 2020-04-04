@@ -480,6 +480,10 @@ impl<P: Pixel> Raster<P> {
     /// * `to` Region within `self` (destination).
     /// * `src` Source `Raster`.
     /// * `from` Region within source `Raster`.
+    ///
+    /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
+    /// *height*) or the unit type `()`.  Using `()` has the same result as
+    /// `Raster::region()`.
     /// ```bob
     /// *------------+      *-------------+
     /// |            |      |    *------+ |
@@ -502,7 +506,7 @@ impl<P: Pixel> Raster<P> {
     /// let gray = RasterBuilder::<SGray16>::new()
     ///     .with_color(5, 5, SGray16::new(0x80));
     /// // ... load image data
-    /// rgb.compose_raster((40, 40, 5, 5), &gray, (0, 0, 5, 5));
+    /// rgb.compose_raster((40, 40, 5, 5), &gray, ());
     /// ```
     pub fn compose_raster<R0, S, R1>(
         &mut self,
@@ -638,6 +642,13 @@ impl<'a, P: Pixel> Iterator for RowsMut<'a, P> {
 impl From<(i32, i32, u32, u32)> for Region {
     fn from(r: (i32, i32, u32, u32)) -> Self {
         Region::new(r.0, r.1, r.2, r.3)
+    }
+}
+
+impl From<()> for Region {
+    fn from(_: ()) -> Self {
+        const MAX: u32 = std::i32::MAX as u32;
+        Region::new(0, 0, MAX, MAX)
     }
 }
 
@@ -851,9 +862,9 @@ mod test {
             Gray8::new(0x60));
         let g3 = RasterBuilder::<Gray8>::new().with_color(3, 3,
             Gray8::new(0x80));
-        g0.compose_raster((-1, 2, 3, 3), &g1, g1.region());
-        g0.compose_raster((2, -1, 3, 3), &g2, g2.region());
-        g0.compose_raster((-2, -2, 3, 3), &g3, g3.region());
+        g0.compose_raster((-1, 2, 3, 3), &g1, ());
+        g0.compose_raster((2, -1, 3, 3), &g2, ());
+        g0.compose_raster((-2, -2, 3, 3), &g3, ());
         let v = vec![
             Gray8::new(0x80), Gray8::new(0x00), Gray8::new(0x60),
             Gray8::new(0x00), Gray8::new(0x00), Gray8::new(0x60),
@@ -866,7 +877,7 @@ mod test {
         let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(3, 3);
         let gray = RasterBuilder::<SGray16>::new().with_color(3, 3,
             SGray16::new(0x8000));
-        rgb.compose_raster((0, 0, 3, 3), &gray, (0, 1, 3, 3));
+        rgb.compose_raster((), &gray, (0, 1, 3, 3));
         let mut v = vec![SRgb8::new(0x80, 0x80, 0x80); 6];
         v.extend_from_slice(&vec![SRgb8::new(0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);
