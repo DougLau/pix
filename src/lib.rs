@@ -10,7 +10,7 @@
 //!
 //! [alpha mode]: alpha/trait.Mode.html
 //! [channel]: channel/trait.Channel.html
-//! [color model]: trait.ColorModel.html
+//! [color model]: model/trait.ColorModel.html
 //! [gamma mode]: gamma/trait.Mode.html
 //! [pixel]: el/trait.Pixel.html
 //! [raster]: struct.Raster.html
