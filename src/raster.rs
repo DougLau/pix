@@ -418,6 +418,7 @@ impl<P: Pixel> Raster<P> {
     /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
     /// *height*) or the unit type `()`.  Using `()` has the same result as
     /// `Raster::region()`.
+    ///
     /// ```bob
     /// *------------+      *-------------+
     /// |            |      |    *------+ |
@@ -615,6 +616,42 @@ mod test {
         Ok(())
     }
     #[test]
+    fn with_buffer_rgb8() {
+        let b = vec![
+            0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
+            0x00,0xBB,0x00, 0x66,0x77,0x88, 0x99,0xAA,0xBB,
+            0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
+        ];
+        let r = RasterBuilder::<SRgb8>::new().with_u8_buffer(3, 3, b);
+        let v = vec![
+            SRgb8::new(0xAA, 0x00, 0x00), SRgb8::new(0x00, 0x11, 0x22),
+            SRgb8::new(0x33, 0x44, 0x55),
+            SRgb8::new(0x00, 0xBB, 0x00), SRgb8::new(0x66, 0x77, 0x88),
+            SRgb8::new(0x99, 0xAA, 0xBB),
+            SRgb8::new(0x00, 0x00, 0xCC), SRgb8::new(0xCC, 0xDD, 0xEE),
+            SRgb8::new(0xFF, 0x00, 0x11),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+    #[test]
+    fn with_buffer_graya16() {
+        let b = vec![
+            0x1001,0x5005, 0x1000,0x3002, 0x5004,0x7006,
+            0x2002,0x6006, 0x9008,0xB00A, 0xD00C,0xF00E,
+            0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
+        ];
+        let r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
+        let v = vec![
+            SGraya16::new(0x1001, 0x5005), SGraya16::new(0x1000, 0x3002),
+            SGraya16::new(0x5004, 0x7006),
+            SGraya16::new(0x2002, 0x6006), SGraya16::new(0x9008, 0xB00A),
+            SGraya16::new(0xD00C, 0xF00E),
+            SGraya16::new(0x3003, 0x7007), SGraya16::new(0xE00F, 0xC00D),
+            SGraya16::new(0xA00B, 0x8009),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+    #[test]
     fn pixel_mut_mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
         *r.pixel_mut(0, 0) = Mask8::new(0xFF);
@@ -645,101 +682,58 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn mask32() {
+    fn compose_color_gray8() {
+        let mut r = RasterBuilder::<SGray8>::new().with_clear(3, 3);
+        r.compose_color((0, 0, 1, 1), SGray8::new(0x23));
+        r.compose_color((10, 10, 1, 1), SGray8::new(0x45));
+        r.compose_color((1, 1, 10, 10), SGray8::new(0xBB));
+        let v = vec![
+            SGray8::new(0x23), SGray8::new(0), SGray8::new(0),
+            SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
+            SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+    #[test]
+    fn compose_color_mask32() {
         let p: Vec<_> = vec![
-            0.25, 0.5, 0.75, 1.0,
-            0.5, 0.55, 0.7, 0.8,
-            0.75, 0.65, 0.6, 0.4,
-            1.0, 0.75, 0.5, 0.25,
+            0.25, 0.5, 0.75,
+            0.5, 0.6, 0.7,
+            0.85, 0.65, 0.45,
         ]
         .iter()
         .map(|p| Mask32::new(*p))
         .collect();
-        let mut r = RasterBuilder::new().with_pixels(4, 4, p);
-        let clr = Mask32::new(0.05);
-        r.compose_color((1, 1, 2, 2), clr);
+        let mut r = RasterBuilder::new().with_pixels(3, 3, p);
+        let clr = Mask32::new(0.1);
+        r.compose_color((-2, -1, 4, 3), clr);
         let v: Vec<_> = vec![
-            0.25, 0.5, 0.75, 1.0,
-            0.5, 0.05, 0.05, 0.8,
-            0.75, 0.05, 0.05, 0.4,
-            1.0, 0.75, 0.5, 0.25,
+            0.1, 0.1, 0.75,
+            0.1, 0.1, 0.7,
+            0.85, 0.65, 0.45,
         ]
         .iter()
         .map(|p| Mask32::new(*p))
         .collect();
-        let r2 = RasterBuilder::new().with_pixels(4, 4, v);
+        let r2 = RasterBuilder::new().with_pixels(3, 3, v);
         assert_eq!(r.pixels(), r2.pixels());
     }
     #[test]
-    fn rgb8() {
-        let mut r = RasterBuilder::<SRgb8>::new().with_clear(4, 4);
-        let rgb = SRgb8::new(0xCC, 0xAA, 0xBB);
-        r.compose_color((1, 1, 2, 2), rgb);
+    fn compose_color_srgb8() {
+        let mut r = RasterBuilder::<SRgb8>::new().with_clear(3, 3);
+        r.compose_color((2, -1, 3, 4), SRgb8::new(0xCC, 0xAA, 0xBB));
         let v = vec![
-            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
-            SRgb8::new(0xCC, 0xAA, 0xBB), SRgb8::new(0xCC, 0xAA, 0xBB),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
-            SRgb8::new(0xCC, 0xAA, 0xBB), SRgb8::new(0xCC, 0xAA, 0xBB),
-            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn gray8() {
-        let mut r = RasterBuilder::<SGray8>::new().with_clear(4, 4);
-        r.compose_color((0, 0, 1, 1), SGray8::new(0x23));
-        r.compose_color((10, 10, 1, 1), SGray8::new(0x45));
-        r.compose_color((2, 2, 10, 10), SGray8::new(0xBB));
-        let v = vec![
-            SGray8::new(0x23), SGray8::new(0), SGray8::new(0), SGray8::new(0),
-            SGray8::new(0), SGray8::new(0), SGray8::new(0), SGray8::new(0),
-            SGray8::new(0), SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
-            SGray8::new(0), SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
-        ];
-        assert_eq!(r.pixels(), &v[..]);
-    }
-    #[test]
-    fn rgb8_buffer() {
-        let b = vec![
-            0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
-            0x00,0xBB,0x00, 0x66,0x77,0x88, 0x99,0xAA,0xBB,
-            0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
-        ];
-        let mut r = RasterBuilder::<SRgb8>::new().with_u8_buffer(3, 3, b);
-        let rgb = SRgb8::new(0x12, 0x34, 0x56);
-        r.compose_color((0, 1, 2, 1), rgb);
-        let v = vec![
-            SRgb8::new(0xAA, 0x00, 0x00), SRgb8::new(0x00, 0x11, 0x22),
-            SRgb8::new(0x33, 0x44, 0x55),
-            SRgb8::new(0x12, 0x34, 0x56), SRgb8::new(0x12, 0x34, 0x56),
-            SRgb8::new(0x99, 0xAA, 0xBB),
-            SRgb8::new(0x00, 0x00, 0xCC), SRgb8::new(0xCC, 0xDD, 0xEE),
-            SRgb8::new(0xFF, 0x00, 0x11),
-        ];
-        assert_eq!(r.pixels(), &v[..]);
-    }
-    #[test]
-    fn graya16_buffer() {
-        let b = vec![
-            0x1001,0x5005, 0x1000,0x3002, 0x5004,0x7006,
-            0x2002,0x6006, 0x9008,0xB00A, 0xD00C,0xF00E,
-            0x3003,0x7007, 0xE00F,0xC00D, 0xA00B,0x8009,
-        ];
-        let mut r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
-        r.compose_color((1, 0, 2, 2), SGraya16::new(0x4444, 0xFFFF));
-        let v = vec![
-            SGraya16::new(0x1001, 0x5005), SGraya16::new(0x4444, 0xFFFF),
-            SGraya16::new(0x4444, 0xFFFF), SGraya16::new(0x2002, 0x6006),
-            SGraya16::new(0x4444, 0xFFFF), SGraya16::new(0x4444, 0xFFFF),
-            SGraya16::new(0x3003, 0x7007), SGraya16::new(0xE00F, 0xC00D),
-            SGraya16::new(0xA00B, 0x8009),
-        ];
-        assert_eq!(r.pixels(), &v[..]);
-    }
-    #[test]
-    fn compose_raster_gray_to_gray() {
+    fn compose_raster_gray() {
         let mut g0 = RasterBuilder::<Gray8>::new().with_clear(3, 3);
         let g1 = RasterBuilder::<Gray8>::new().with_color(3, 3,
             Gray8::new(0x40));
@@ -758,7 +752,7 @@ mod test {
         assert_eq!(g0.pixels(), &v[..]);
     }
     #[test]
-    fn compose_raster_gray_to_rgb() {
+    fn compose_raster_rgb() {
         let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(3, 3);
         let gray = RasterBuilder::<SGray16>::new().with_color(3, 3,
             SGray16::new(0x8000));
