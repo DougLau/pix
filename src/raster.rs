@@ -167,8 +167,7 @@ impl<P: Pixel> RasterBuilder<P> {
         P::Chan: From<S::Chan>,
     {
         let mut r = RasterBuilder::new().with_clear(src.width(), src.height());
-        let reg = src.region();
-        r.compose_raster(reg, src, reg);
+        r.compose_raster((), src, ());
         r
     }
 
