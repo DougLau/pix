@@ -59,7 +59,9 @@ pub use crate::hwb::{
 };
 pub use crate::mask::{Mask16, Mask32, Mask8};
 pub use crate::palette::Palette;
-pub use crate::raster::{Raster, RasterBuilder, RasterIter, Region};
+pub use crate::raster::{
+    Raster, RasterBuilder, RasterIter, Region, Rows, RowsMut,
+};
 pub use crate::rgb::{
     Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,

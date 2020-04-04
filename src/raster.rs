@@ -7,6 +7,7 @@ use crate::channel::{Ch16, Ch8};
 use crate::el::Pixel;
 use std::convert::TryFrom;
 use std::marker::PhantomData;
+use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 
 /// Builder for [Raster](struct.Raster.html) images.
 ///
@@ -37,8 +38,8 @@ pub struct RasterBuilder<P: Pixel> {
 /// raster.set_region((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<P: Pixel> {
-    width: u32,
-    height: u32,
+    width: i32,
+    height: i32,
     pixels: Box<[P]>,
 }
 
@@ -60,7 +61,7 @@ pub struct Raster<P: Pixel> {
 /// # use pix::*;
 /// let mut gray = RasterBuilder::<SGraya16>::new().with_clear(40, 40);
 /// // ... load raster data
-/// let region = gray.region().intersection((20, 20, 10, 10));
+/// let region = gray.intersection((20, 20, 10, 10));
 /// let it = gray.region_iter(region);
 /// ```
 pub struct RasterIter<'a, P: Pixel> {
@@ -70,6 +71,28 @@ pub struct RasterIter<'a, P: Pixel> {
     bottom: u32,
     x: u32,
     y: u32,
+}
+
+/// `Iterator` of *rows* in a [raster], as slices of [pixel]s.
+///
+/// This struct is created by the [rows] method of [Raster].
+///
+/// [pixel]: el/trait.Pixel.html
+/// [raster]: struct.Raster.html
+/// [rows]: struct.Raster.html#method.rows
+pub struct Rows<'a, P: Pixel> {
+    chunks: ChunksExact<'a, P>,
+}
+
+/// `Iterator` of *rows* in a [raster], as mutable slices of [pixel]s.
+///
+/// This struct is created by the [rows_mut] method of [Raster].
+///
+/// [pixel]: el/trait.Pixel.html
+/// [raster]: struct.Raster.html
+/// [rows_mut]: struct.Raster.html#method.rows_mut
+pub struct RowsMut<'a, P: Pixel> {
+    chunks: ChunksExactMut<'a, P>,
 }
 
 /// Location / dimensions of pixels relative to a [Raster](struct.Raster.html).
@@ -90,8 +113,8 @@ pub struct RasterIter<'a, P: Pixel> {
 pub struct Region {
     x: i32,
     y: i32,
-    width: u32,
-    height: u32,
+    width: i32,
+    height: i32,
 }
 
 impl<P: Pixel> Into<Box<[P]>> for Raster<P> {
@@ -122,6 +145,7 @@ impl<P: Pixel> RasterBuilder<P> {
         let _pixel = PhantomData;
         RasterBuilder { _pixel }
     }
+
     /// Build a `Raster` with all pixels set to the default value.
     ///
     /// ## Examples
@@ -135,6 +159,7 @@ impl<P: Pixel> RasterBuilder<P> {
     pub fn with_clear(self, width: u32, height: u32) -> Raster<P> {
         self.with_color(width, height, P::default())
     }
+
     /// Build a `Raster` with all pixels set to one color.
     ///
     /// ## Example
@@ -144,6 +169,8 @@ impl<P: Pixel> RasterBuilder<P> {
     /// let r = RasterBuilder::<SRgb8>::new().with_color(15, 15, clr);
     /// ```
     pub fn with_color(self, width: u32, height: u32, clr: P) -> Raster<P> {
+        let width = i32::try_from(width).unwrap();
+        let height = i32::try_from(height).unwrap();
         let len = (width * height) as usize;
         let pixels = vec![clr; len].into_boxed_slice();
         Raster {
@@ -152,6 +179,7 @@ impl<P: Pixel> RasterBuilder<P> {
             pixels,
         }
     }
+
     /// Build a `Raster` by copying another `Raster`.
     ///
     /// * `S` `Pixel` format of source `Raster`.
@@ -170,9 +198,10 @@ impl<P: Pixel> RasterBuilder<P> {
     {
         let mut r = RasterBuilder::new().with_clear(src.width(), src.height());
         let reg = src.region();
-        r.set_region(reg, src.region_iter(reg));
+        r.compose_raster(reg, src, reg);
         r
     }
+
     /// Build a `Raster` with owned pixel data.  You can get ownership of the
     /// pixel data back from the `Raster` as either a `Vec<P>` or a `Box<[P]>`
     /// by calling `into()`.
@@ -200,6 +229,8 @@ impl<P: Pixel> RasterBuilder<P> {
     where
         B: Into<Box<[P]>>,
     {
+        let width = i32::try_from(width).unwrap();
+        let height = i32::try_from(height).unwrap();
         let len = (width * height) as usize;
         let pixels = pixels.into();
         assert_eq!(len, pixels.len());
@@ -209,6 +240,7 @@ impl<P: Pixel> RasterBuilder<P> {
             pixels,
         }
     }
+
     /// Build a `Raster` from a `u8` buffer.
     ///
     /// * `B` Owned pixed type (`Vec` or boxed slice).
@@ -230,15 +262,20 @@ impl<P: Pixel> RasterBuilder<P> {
         B: Into<Box<[u8]>>,
         P: Pixel<Chan = Ch8>,
     {
+        let width = i32::try_from(width).unwrap();
+        let height = i32::try_from(height).unwrap();
         let len = (width * height) as usize;
+        assert!(len > 0);
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
-        assert_eq!(len * std::mem::size_of::<P>(), capacity);
+        assert_eq!(
+            len * std::mem::size_of::<P>(),
+            capacity * std::mem::size_of::<u8>()
+        );
         let slice = Box::<[u8]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
-            let slice = std::slice::from_raw_parts_mut(ptr, len);
-            Box::from_raw(slice)
+            Box::from_raw(from_raw_parts_mut(ptr, len))
         };
         Raster {
             width,
@@ -246,6 +283,7 @@ impl<P: Pixel> RasterBuilder<P> {
             pixels,
         }
     }
+
     /// Build a `Raster` from a `u16` buffer.
     ///
     /// * `B` Owned pixed type (`Vec` or boxed slice).
@@ -267,7 +305,10 @@ impl<P: Pixel> RasterBuilder<P> {
         B: Into<Box<[u16]>>,
         P: Pixel<Chan = Ch16>,
     {
+        let width = i32::try_from(width).unwrap();
+        let height = i32::try_from(height).unwrap();
         let len = (width * height) as usize;
+        assert!(len > 0);
         let buffer: Box<[u16]> = buffer.into();
         let capacity = buffer.len();
         assert_eq!(
@@ -277,8 +318,7 @@ impl<P: Pixel> RasterBuilder<P> {
         let slice = Box::<[u16]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
-            let slice = std::slice::from_raw_parts_mut(ptr, len);
-            Box::from_raw(slice)
+            Box::from_raw(from_raw_parts_mut(ptr, len))
         };
         Raster {
             width,
@@ -291,31 +331,79 @@ impl<P: Pixel> RasterBuilder<P> {
 impl<P: Pixel> Raster<P> {
     /// Get width of `Raster`.
     pub fn width(&self) -> u32 {
-        self.width
+        self.width as u32
     }
+
     /// Get height of `Raster`.
     pub fn height(&self) -> u32 {
-        self.height
+        self.height as u32
     }
-    /// Get one pixel.
-    pub fn pixel(&self, x: u32, y: u32) -> P {
-        let row = &self.as_slice_row(y);
-        row[x as usize]
-    }
-    /// Get a mutable pixel.
-    pub fn pixel_mut(&mut self, x: u32, y: u32) -> &mut P {
-        &mut self.as_slice_row_mut(y)[x as usize]
-    }
-    /// Clear all pixels to format default.
+
+    /// Clear all pixels to default value.
     pub fn clear(&mut self) {
         for p in self.pixels.iter_mut() {
             *p = P::default();
         }
     }
+
+    /// Get one pixel.
+    pub fn pixel(&self, x: i32, y: i32) -> P {
+        debug_assert!(x >= 0 && x < self.width);
+        debug_assert!(y >= 0 && y < self.height);
+        let i = (self.width * y + x) as usize;
+        self.pixels[i]
+    }
+
+    /// Get a mutable pixel.
+    pub fn pixel_mut(&mut self, x: i32, y: i32) -> &mut P {
+        debug_assert!(x >= 0 && x < self.width);
+        debug_assert!(y >= 0 && y < self.height);
+        let i = (self.width * y + x) as usize;
+        &mut self.pixels[i]
+    }
+
+    /// Get a slice of all pixels.
+    pub fn pixels(&self) -> &[P] {
+        &self.pixels
+    }
+
+    /// Get a mutable slice of all pixels.
+    pub fn pixels_mut(&mut self) -> &mut [P] {
+        &mut self.pixels
+    }
+
+    /// Get an `Iterator` of rows within a `Raster`.
+    pub fn rows(&self) -> Rows<P> {
+        Rows::new(self)
+    }
+
+    /// Get an `Iterator` of mutable rows within a `Raster`.
+    pub fn rows_mut(&mut self) -> RowsMut<P> {
+        RowsMut::new(self)
+    }
+
     /// Get `Region` of entire `Raster`.
     pub fn region(&self) -> Region {
         Region::new(0, 0, self.width(), self.height())
     }
+
+    /// Get intersection with a `Region`
+    pub fn intersection<R>(&self, reg: R) -> Region
+    where
+        R: Into<Region>,
+    {
+        let reg = reg.into();
+        let x0 = reg.x.max(0);
+        let x1 = reg.right().min(self.width);
+        debug_assert!(x1 >= x0);
+        let w = (x1 - x0) as u32;
+        let y0 = reg.y.max(0);
+        let y1 = reg.bottom().min(self.height);
+        debug_assert!(y1 >= y0);
+        let h = (y1 - y0) as u32;
+        Region::new(x0, y0, w, h)
+    }
+
     /// Get an `Iterator` of pixels within a `Region`.
     ///
     /// * `reg` Region within `Raster`.
@@ -325,6 +413,7 @@ impl<P: Pixel> Raster<P> {
     {
         RasterIter::new(self, reg.into())
     }
+
     /// Set a `Region` using a pixel `Iterator`.
     ///
     /// * `reg` Region within `Raster`.
@@ -348,8 +437,8 @@ impl<P: Pixel> Raster<P> {
     /// let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
     /// let mut gray = RasterBuilder::<SGray16>::new().with_clear(50, 50);
     /// // ... load image data
-    /// let src = gray.region().intersection((20, 10, 25, 25));
-    /// let dst = rgb.region().intersection((40, 40, 25, 25));
+    /// let src = gray.intersection((20, 10, 25, 25));
+    /// let dst = rgb.intersection((40, 40, 25, 25));
     /// // Regions must have the same shape!
     /// rgb.set_region(dst, gray.region_iter(src));
     /// ```
@@ -366,14 +455,14 @@ impl<P: Pixel> Raster<P> {
         } else {
             self.width()
         };
-        let x1 = self.width().min(x0 + reg.width);
+        let x1 = self.width().min(x0 + reg.width());
         let (x0, x1) = (x0 as usize, x1 as usize);
         let y0 = if reg.y >= 0 {
             reg.y as u32
         } else {
             self.height()
         };
-        let y1 = self.height().min(y0 + reg.height);
+        let y1 = self.height().min(y0 + reg.height());
         if y0 < y1 && x0 < x1 {
             for yi in y0..y1 {
                 let row = self.as_slice_row_mut(yi);
@@ -385,50 +474,90 @@ impl<P: Pixel> Raster<P> {
             }
         }
     }
-    /// Get view of pixels as a slice.
-    pub fn as_slice(&self) -> &[P] {
-        &self.pixels
+
+    /// Compose from a source `Raster`.
+    ///
+    /// * `to` Region within `self` (destination).
+    /// * `src` Source `Raster`.
+    /// * `from` Region within source `Raster`.
+    /// ```bob
+    /// *------------+      *-------------+
+    /// |            |      |    *------+ |
+    /// | *------+   |      |    |      | |
+    /// | |      |   |      |    | from | |
+    /// | |  to  |   | <--- |    +------+ |
+    /// | +------+   |      |             |
+    /// |            |      |     src     |
+    /// |    self    |      +-------------+
+    /// +------------+
+    /// ```
+    /// The composed `Region` is clamped to the smaller of `to` and `from` in
+    /// both `X` and `Y` dimensions.  Also, `to` and `from` are clipped to
+    /// their respective `Raster` dimensions.
+    ///
+    /// ### Copy part of one `Raster` to another, converting pixel format
+    /// ```
+    /// # use pix::*;
+    /// let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(100, 100);
+    /// let gray = RasterBuilder::<SGray16>::new()
+    ///     .with_color(5, 5, SGray16::new(0x80));
+    /// // ... load image data
+    /// rgb.compose_raster((40, 40, 5, 5), &gray, (0, 0, 5, 5));
+    /// ```
+    pub fn compose_raster<R0, S, R1>(
+        &mut self,
+        to: R0,
+        src: &Raster<S>,
+        from: R1,
+    ) where
+        R0: Into<Region>,
+        R1: Into<Region>,
+        S: Pixel,
+        P::Chan: From<S::Chan>,
+    {
+        let (to, from) = (to.into(), from.into());
+        let tx = to.x.min(0).abs();
+        let ty = to.y.min(0).abs();
+        let fx = from.x.min(0).abs();
+        let fy = from.y.min(0).abs();
+        let to = self.intersection(to);
+        let from = src.intersection(from);
+        let width = to.width().min(from.width());
+        let height = to.height().min(from.height());
+        if width > 0 && height > 0 {
+            let to = Region::new(to.x + fx, to.y + fy, width, height);
+            let from = Region::new(from.x + tx, from.y + ty, width, height);
+            let srows = src.rows().skip(from.y as usize);
+            let drows = self.rows_mut().skip(to.y as usize);
+            for (drow, srow) in drows.take(height as usize).zip(srows) {
+                let drow = &mut drow[to.x as usize..];
+                let srow = &srow[from.x as usize..];
+                for (d, s) in drow.iter_mut().take(width as usize).zip(srow) {
+                    *d = s.convert();
+                }
+            }
+        }
     }
-    /// Get view of pixels as a mutable slice.
-    pub fn as_slice_mut(&mut self) -> &mut [P] {
-        &mut self.pixels
-    }
-    /// Get view of a row of pixels as a slice.
-    pub fn as_slice_row(&self, y: u32) -> &[P] {
-        debug_assert!(y < self.height);
-        let s = (y * self.width) as usize;
-        let t = s + self.width as usize;
-        &self.pixels[s..t]
-    }
+
     /// Get view of a row of pixels as a mutable slice.
-    pub fn as_slice_row_mut(&mut self, y: u32) -> &mut [P] {
-        debug_assert!(y < self.height);
-        let s = (y * self.width) as usize;
-        let t = s + self.width as usize;
+    fn as_slice_row_mut(&mut self, y: u32) -> &mut [P] {
+        debug_assert!(y < self.height());
+        let width = self.width();
+        let s = (y * width) as usize;
+        let t = s + width as usize;
         &mut self.pixels[s..t]
     }
-    /// Get view of a row of pixels as a `u8` slice.
-    pub fn as_u8_slice_row(&self, y: u32) -> &[u8] {
-        debug_assert!(y < self.height);
-        let s = (y * self.width) as usize;
-        let t = s + self.width as usize;
-        Self::u8_slice(&self.pixels[s..t])
-    }
-    /// Get view of a pixel slice as a `u8` slice.
-    fn u8_slice(pix: &[P]) -> &[u8] {
-        unsafe { pix.align_to::<u8>().1 }
-    }
+
     /// Get view of pixels as a `u8` slice.
+    ///
+    /// Q: Is this UB when P::Chan is Ch32?
     pub fn as_u8_slice(&self) -> &[u8] {
-        Self::u8_slice(&self.pixels)
-    }
-    /// Get view of a pixel slice as a mutable `u8` slice.
-    fn u8_slice_mut(pix: &mut [P]) -> &mut [u8] {
-        unsafe { pix.align_to_mut::<u8>().1 }
-    }
-    /// Get view of pixels as a mutable `u8` slice.
-    pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
-        Self::u8_slice_mut(&mut self.pixels)
+        unsafe {
+            let (prefix, v, suffix) = &self.pixels.align_to::<u8>();
+            debug_assert!(prefix.is_empty());
+            debug_assert!(suffix.is_empty());
+            v
+        }
     }
 }
 
@@ -464,9 +593,45 @@ impl<'a, P: Pixel> Iterator for RasterIter<'a, P> {
                 return None;
             }
         }
-        let p = self.raster.pixel(self.x, self.y);
+        let x = self.x as i32;
+        let y = self.y as i32;
+        let p = self.raster.pixel(x, y);
         self.x += 1;
         Some(p)
+    }
+}
+
+impl<'a, P: Pixel> Rows<'a, P> {
+    /// Create a new row `Iterator`.
+    fn new(raster: &'a Raster<P>) -> Self {
+        let width = usize::try_from(raster.width()).unwrap();
+        let chunks = raster.pixels.chunks_exact(width);
+        Rows { chunks }
+    }
+}
+
+impl<'a, P: Pixel> Iterator for Rows<'a, P> {
+    type Item = &'a [P];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.chunks.next()
+    }
+}
+
+impl<'a, P: Pixel> RowsMut<'a, P> {
+    /// Create a new mutable row `Iterator`.
+    fn new(raster: &'a mut Raster<P>) -> Self {
+        let width = usize::try_from(raster.width()).unwrap();
+        let chunks = raster.pixels.chunks_exact_mut(width);
+        RowsMut { chunks }
+    }
+}
+
+impl<'a, P: Pixel> Iterator for RowsMut<'a, P> {
+    type Item = &'a mut [P];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.chunks.next()
     }
 }
 
@@ -479,6 +644,8 @@ impl From<(i32, i32, u32, u32)> for Region {
 impl Region {
     /// Create a new `Region`
     pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
+        let width = i32::try_from(width).unwrap_or(0);
+        let height = i32::try_from(height).unwrap_or(0);
         Region {
             x,
             y,
@@ -486,6 +653,7 @@ impl Region {
             height,
         }
     }
+
     /// Get intersection with another `Region`
     pub fn intersection<R>(self, rhs: R) -> Self
     where
@@ -500,21 +668,25 @@ impl Region {
         let h = (y1 - y0) as u32;
         Region::new(x0, y0, w, h)
     }
+
+    /// Get the width
+    fn width(self) -> u32 {
+        self.width as u32
+    }
+
+    /// Get the height
+    fn height(self) -> u32 {
+        self.height as u32
+    }
+
     /// Get right side
     fn right(self) -> i32 {
-        let x = i64::from(self.x) + i64::from(self.width);
-        match i32::try_from(x) {
-            Ok(x) => x,
-            _ => self.x,
-        }
+        self.x.saturating_add(self.width)
     }
+
     /// Get bottom side
     fn bottom(self) -> i32 {
-        let y = i64::from(self.y) + i64::from(self.height);
-        match i32::try_from(y) {
-            Ok(y) => y,
-            _ => self.y,
-        }
+        self.y.saturating_add(self.height)
     }
 }
 
@@ -523,18 +695,46 @@ impl Region {
 mod test {
     use super::super::*;
     #[test]
-    fn mask8() {
+    fn region_size() {
+        assert_eq!(std::mem::size_of::<Region>(), 16);
+    }
+    #[test]
+    fn intersect() -> Result<(), ()> {
+        let r = Region::new(0, 0, 5, 5);
+        assert_eq!(r, Region::new(0, 0, 5, 5));
+        assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)));
+        assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)));
+        assert_eq!(
+            Region::new(0, 0, 4, 4),
+            r.intersection(Region::new(-1, -1, 5, 5))
+        );
+        assert_eq!(
+            Region::new(1, 2, 1, 3),
+            r.intersection(Region::new(1, 2, 1, 100))
+        );
+        assert_eq!(
+            Region::new(2, 1, 3, 1),
+            r.intersection(Region::new(2, 1, 100, 1))
+        );
+        Ok(())
+    }
+    #[test]
+    fn pixel_mut_mask8() {
         let mut r = RasterBuilder::<Mask8>::new().with_clear(3, 3);
         *r.pixel_mut(0, 0) = Mask8::new(0xFF);
         *r.pixel_mut(2, 0) = Mask8::new(0x12);
         *r.pixel_mut(1, 1) = Mask8::new(0x34);
         *r.pixel_mut(0, 2) = Mask8::new(0x56);
         *r.pixel_mut(2, 2) = Mask8::new(0x78);
-        let v = vec![0xFF,0x00,0x12, 0x00,0x34,0x00, 0x56,0x00,0x78];
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        let v = vec![
+            Mask8::new(0xFF), Mask8::new(0x00), Mask8::new(0x12),
+            Mask8::new(0x00), Mask8::new(0x34), Mask8::new(0x00),
+            Mask8::new(0x56), Mask8::new(0x00), Mask8::new(0x78),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn mask16() {
+    fn pixel_mut_mask16() {
         let mut r = RasterBuilder::<Mask16>::new().with_clear(3, 3);
         *r.pixel_mut(2, 0) = Mask16::new(0x9ABC);
         *r.pixel_mut(1, 1) = Mask16::new(0x5678);
@@ -542,11 +742,11 @@ mod test {
         *r.pixel_mut(0, 0) = Mask16::new(1.0);
         *r.pixel_mut(2, 2) = Mask16::new(0x8080);
         let v = vec![
-            0xFF,0xFF, 0x00,0x00, 0xBC,0x9A,
-            0x00,0x00, 0x78,0x56, 0x00,0x00,
-            0x34,0x12, 0x00,0x00, 0x80,0x80,
+            Mask16::new(0xFFFF), Mask16::new(0x0000), Mask16::new(0x9ABC),
+            Mask16::new(0x0000), Mask16::new(0x5678), Mask16::new(0x0000),
+            Mask16::new(0x1234), Mask16::new(0x0000), Mask16::new(0x8080),
         ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
     fn mask32() {
@@ -572,7 +772,7 @@ mod test {
         .map(|p| Mask32::new(*p))
         .collect();
         let r2 = RasterBuilder::new().with_pixels(4, 4, v);
-        assert_eq!(r.as_slice(), r2.as_slice());
+        assert_eq!(r.pixels(), r2.pixels());
     }
     #[test]
     fn rgb8() {
@@ -580,12 +780,15 @@ mod test {
         let rgb = SRgb8::new(0xCC, 0xAA, 0xBB);
         r.set_region((1, 1, 2, 2), rgb);
         let v = vec![
-            0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
-            0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
-            0x00,0x00,0x00, 0xCC,0xAA,0xBB, 0xCC,0xAA,0xBB, 0x00,0x00,0x00,
-            0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00, 0x00,0x00,0x00,
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB), SRgb8::new(0xCC, 0xAA, 0xBB),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB), SRgb8::new(0xCC, 0xAA, 0xBB),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
         ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
     fn gray8() {
@@ -594,12 +797,12 @@ mod test {
         r.set_region((10, 10, 1, 1), SGray8::new(0x45));
         r.set_region((2, 2, 10, 10), SGray8::new(0xBB));
         let v = vec![
-            0x23, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0xBB, 0xBB,
-            0x00, 0x00, 0xBB, 0xBB,
+            SGray8::new(0x23), SGray8::new(0), SGray8::new(0), SGray8::new(0),
+            SGray8::new(0), SGray8::new(0), SGray8::new(0), SGray8::new(0),
+            SGray8::new(0), SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
+            SGray8::new(0), SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
         ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
     fn rgb8_buffer() {
@@ -612,11 +815,14 @@ mod test {
         let rgb = SRgb8::new(0x12, 0x34, 0x56);
         r.set_region((0, 1, 2, 1), rgb);
         let v = vec![
-            0xAA,0x00,0x00, 0x00,0x11,0x22, 0x33,0x44,0x55,
-            0x12,0x34,0x56, 0x12,0x34,0x56, 0x99,0xAA,0xBB,
-            0x00,0x00,0xCC, 0xCC,0xDD,0xEE, 0xFF,0x00,0x11,
+            SRgb8::new(0xAA, 0x00, 0x00), SRgb8::new(0x00, 0x11, 0x22),
+            SRgb8::new(0x33, 0x44, 0x55),
+            SRgb8::new(0x12, 0x34, 0x56), SRgb8::new(0x12, 0x34, 0x56),
+            SRgb8::new(0x99, 0xAA, 0xBB),
+            SRgb8::new(0x00, 0x00, 0xCC), SRgb8::new(0xCC, 0xDD, 0xEE),
+            SRgb8::new(0xFF, 0x00, 0x11),
         ];
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
     fn graya16_buffer() {
@@ -628,29 +834,45 @@ mod test {
         let mut r = RasterBuilder::<SGraya16>::new().with_u16_buffer(3, 3, b);
         r.set_region((1, 0, 2, 2), SGraya16::new(0x4444, 0xFFFF));
         let v = vec![
-            0x01,0x10,0x05,0x50, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
-            0x02,0x20,0x06,0x60, 0x44,0x44,0xFF,0xFF, 0x44,0x44,0xFF,0xFF,
-            0x03,0x30,0x07,0x70, 0x0F,0xE0,0x0D,0xC0, 0x0B,0xA0,0x09,0x80,
+            SGraya16::new(0x1001, 0x5005), SGraya16::new(0x4444, 0xFFFF),
+            SGraya16::new(0x4444, 0xFFFF), SGraya16::new(0x2002, 0x6006),
+            SGraya16::new(0x4444, 0xFFFF), SGraya16::new(0x4444, 0xFFFF),
+            SGraya16::new(0x3003, 0x7007), SGraya16::new(0xE00F, 0xC00D),
+            SGraya16::new(0xA00B, 0x8009),
         ];
-        // FIXME: this will fail on big-endian archs
-        assert_eq!(r.as_u8_slice(), &v[..]);
+        assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn copy_region_gray() {
-        let mut g0 = RasterBuilder::<SGray16>::new().with_clear(3, 3);
-        let mut g1 = RasterBuilder::<Gray16>::new().with_clear(3, 3);
-        g0.set_region((0, 2, 2, 5), SGray16::new(0x4455));
-        g0.set_region((2, 0, 3, 2), SGray8::new(0x33));
-        g1.set_region(g1.region(), g0.region_iter(g0.region()));
+    fn compose_raster_gray_to_gray() {
+        let mut g0 = RasterBuilder::<Gray8>::new().with_clear(3, 3);
+        let g1 = RasterBuilder::<Gray8>::new().with_color(3, 3,
+            Gray8::new(0x40));
+        let g2 = RasterBuilder::<Gray8>::new().with_color(3, 3,
+            Gray8::new(0x60));
+        let g3 = RasterBuilder::<Gray8>::new().with_color(3, 3,
+            Gray8::new(0x80));
+        g0.compose_raster((-1, 2, 3, 3), &g1, g1.region());
+        g0.compose_raster((2, -1, 3, 3), &g2, g2.region());
+        g0.compose_raster((-2, -2, 3, 3), &g3, g3.region());
         let v = vec![
-            0x00,0x00, 0x00,0x00, 0x7A,0x08,
-            0x00,0x00, 0x00,0x00, 0x7A,0x08,
-            0xD4,0x0E, 0xD4,0x0E, 0x00,0x00,
+            Gray8::new(0x80), Gray8::new(0x00), Gray8::new(0x60),
+            Gray8::new(0x00), Gray8::new(0x00), Gray8::new(0x60),
+            Gray8::new(0x40), Gray8::new(0x40), Gray8::new(0x00),
         ];
-        assert_eq!(g1.as_u8_slice(), &v[..]);
+        assert_eq!(g0.pixels(), &v[..]);
     }
     #[test]
-    fn from_rgb8() {
+    fn compose_raster_gray_to_rgb() {
+        let mut rgb = RasterBuilder::<SRgb8>::new().with_clear(3, 3);
+        let gray = RasterBuilder::<SGray16>::new().with_color(3, 3,
+            SGray16::new(0x8000));
+        rgb.compose_raster((0, 0, 3, 3), &gray, (0, 1, 3, 3));
+        let mut v = vec![SRgb8::new(0x80, 0x80, 0x80); 6];
+        v.extend_from_slice(&vec![SRgb8::new(0, 0, 0); 3]);
+        assert_eq!(rgb.pixels(), &v[..]);
+    }
+    #[test]
+    fn with_raster_rgb() {
         let r = RasterBuilder::<SRgb8>::new().with_clear(50, 50);
         let _ = RasterBuilder::<SRgb16>::new().with_raster(&r);
         let _ = RasterBuilder::<SRgb32>::new().with_raster(&r);
@@ -668,7 +890,7 @@ mod test {
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
     }
     #[test]
-    fn from_mask8() {
+    fn with_raster_mask8() {
         let r = RasterBuilder::<Mask8>::new().with_clear(50, 50);
         let _ = RasterBuilder::<SRgb8>::new().with_raster(&r);
         let _ = RasterBuilder::<SRgb16>::new().with_raster(&r);
@@ -685,29 +907,5 @@ mod test {
         let _ = RasterBuilder::<Mask8>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask16>::new().with_raster(&r);
         let _ = RasterBuilder::<Mask32>::new().with_raster(&r);
-    }
-    #[test]
-    fn region_size() {
-        assert_eq!(std::mem::size_of::<Region>(), 16);
-    }
-    #[test]
-    fn intersect() -> Result<(), ()> {
-        let r = Region::new(0, 0, 5, 5);
-        assert_eq!(r, Region::new(0, 0, 5, 5));
-        assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)));
-        assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)));
-        assert_eq!(
-            Region::new(0, 0, 4, 4),
-            r.intersection(Region::new(-1, -1, 5, 5))
-        );
-        assert_eq!(
-            Region::new(1, 2, 1, 3),
-            r.intersection(Region::new(1, 2, 1, 100))
-        );
-        assert_eq!(
-            Region::new(2, 1, 3, 1),
-            r.intersection(Region::new(2, 1, 100, 1))
-        );
-        Ok(())
     }
 }
