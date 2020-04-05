@@ -337,7 +337,7 @@ impl<P: Pixel> Raster<P> {
         Region::new(x0, y0, w, h)
     }
 
-    /// Compose a source color to a region of the `Raster`.
+    /// Composite a source color to a region of the `Raster`.
     ///
     /// * `reg` Region within `self`.  It can be a `Region` struct, tuple of
     ///         (*x*, *y*, *width*, *height*) or the unit type `()`.  Using
@@ -377,7 +377,7 @@ impl<P: Pixel> Raster<P> {
         }
     }
 
-    /// Compose from a source `Raster`.
+    /// Composite from a source `Raster`.
     ///
     /// * `to` Region within `self` (destination).
     /// * `src` Source `Raster`.
