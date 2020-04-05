@@ -16,11 +16,9 @@ pub trait PorterDuff: Sealed {
         P: Pixel;
 
     /// Composite source and destination pixel slices
-    fn composite<D, S>(dst: &mut [D], src: &[S])
+    fn composite<P>(dst: &mut [P], src: &[P])
     where
-        D: Pixel,
-        S: Pixel,
-        D::Chan: From<S::Chan>;
+        P: Pixel;
 }
 
 /// Source compositing (copy source to destination)
@@ -36,14 +34,12 @@ impl PorterDuff for Source {
         }
     }
 
-    fn composite<D, S>(dst: &mut [D], src: &[S])
+    fn composite<P>(dst: &mut [P], src: &[P])
     where
-        D: Pixel,
-        S: Pixel,
-        D::Chan: From<S::Chan>
+        P: Pixel,
     {
         for (d, s) in dst.iter_mut().zip(src) {
-            *d = s.convert();
+            *d = *s;
         }
     }
 }
