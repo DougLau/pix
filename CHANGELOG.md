@@ -3,6 +3,7 @@
 ### Added
 * `Pix1::From<f32>`
 * Raster::pixel_mut(x, y); replaces set_pixel
+* ops module with Porter-Duff compositing
 * Raster::composite_color
 * Raster::composite_raster
 * Raster::rows and ::rows_mut

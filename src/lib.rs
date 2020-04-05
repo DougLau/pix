@@ -37,6 +37,7 @@ mod hue;
 mod hwb;
 mod mask;
 pub mod model;
+pub mod ops;
 mod palette;
 mod private;
 mod raster;
