@@ -28,7 +28,7 @@ use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 /// ```
 /// # use pix::*;
 /// let mut r = Raster::<SRgb8>::with_clear(10, 10);
-/// r.compose_color((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
+/// r.composite_color((2, 4, 3, 3), SRgb8::new(0xFF, 0xFF, 0x00));
 /// ```
 pub struct Raster<P: Pixel> {
     width: i32,
@@ -146,7 +146,7 @@ impl<P: Pixel> Raster<P> {
         P::Chan: From<S::Chan>,
     {
         let mut r = Raster::with_clear(src.width(), src.height());
-        r.compose_raster((), src, ());
+        r.composite_raster((), src, ());
         r
     }
 
@@ -169,7 +169,7 @@ impl<P: Pixel> Raster<P> {
     /// let p = vec![Rgb8::new(255, 0, 255); 16];  // vec of magenta pix
     /// let mut r = Raster::with_pixels(4, 4, p);  // convert to raster
     /// let clr = Rgb8::new(0x00, 0xFF, 0x00);     // green
-    /// r.compose_color((2, 0, 1, 3), clr);        // make stripe
+    /// r.composite_color((2, 0, 1, 3), clr);      // make stripe
     /// let p2 = Into::<Vec<Rgb8>>::into(r);       // convert back to vec
     /// ```
     pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Self
@@ -348,15 +348,15 @@ impl<P: Pixel> Raster<P> {
     /// ```
     /// # use pix::*;
     /// let mut r = Raster::<SRgb32>::with_clear(360, 240);
-    /// r.compose_color((), SRgb32::new(0.5, 0.2, 0.8));
+    /// r.composite_color((), SRgb32::new(0.5, 0.2, 0.8));
     /// ```
     /// ### Set rectangle to solid color
     /// ```
     /// # use pix::*;
     /// let mut r = Raster::<SRgb8>::with_clear(100, 100);
-    /// r.compose_color((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
+    /// r.composite_color((20, 40, 25, 50), SRgb8::new(0xDD, 0x96, 0x70));
     /// ```
-    pub fn compose_color<R, S>(&mut self, reg: R, clr: S)
+    pub fn composite_color<R, S>(&mut self, reg: R, clr: S)
     where
         R: Into<Region>,
         S: Pixel,
@@ -398,7 +398,7 @@ impl<P: Pixel> Raster<P> {
     /// |    self    |      +-------------+
     /// +------------+
     /// ```
-    /// The composed `Region` is clamped to the smaller of `to` and `from` in
+    /// The composited `Region` is clamped to the smaller of `to` and `from` in
     /// both `X` and `Y` dimensions.  Also, `to` and `from` are clipped to
     /// their respective `Raster` dimensions.
     ///
@@ -408,9 +408,9 @@ impl<P: Pixel> Raster<P> {
     /// let mut rgb = Raster::<SRgb8>::with_clear(100, 100);
     /// let gray = Raster::<SGray16>::with_color(5, 5, SGray16::new(0x80));
     /// // ... load image data
-    /// rgb.compose_raster((40, 40, 5, 5), &gray, ());
+    /// rgb.composite_raster((40, 40, 5, 5), &gray, ());
     /// ```
-    pub fn compose_raster<R0, S, R1>(
+    pub fn composite_raster<R0, S, R1>(
         &mut self,
         to: R0,
         src: &Raster<S>,
@@ -665,11 +665,11 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn compose_color_gray8() {
+    fn composite_color_gray8() {
         let mut r = Raster::<SGray8>::with_clear(3, 3);
-        r.compose_color((0, 0, 1, 1), SGray8::new(0x23));
-        r.compose_color((10, 10, 1, 1), SGray8::new(0x45));
-        r.compose_color((1, 1, 10, 10), SGray8::new(0xBB));
+        r.composite_color((0, 0, 1, 1), SGray8::new(0x23));
+        r.composite_color((10, 10, 1, 1), SGray8::new(0x45));
+        r.composite_color((1, 1, 10, 10), SGray8::new(0xBB));
         let v = vec![
             SGray8::new(0x23), SGray8::new(0), SGray8::new(0),
             SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
@@ -678,9 +678,9 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn compose_color_srgb8() {
+    fn composite_color_srgb8() {
         let mut r = Raster::<SRgb8>::with_clear(3, 3);
-        r.compose_color((2, -1, 3, 4), SRgb8::new(0xCC, 0xAA, 0xBB));
+        r.composite_color((2, -1, 3, 4), SRgb8::new(0xCC, 0xAA, 0xBB));
         let v = vec![
             SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
             SRgb8::new(0xCC, 0xAA, 0xBB),
@@ -692,14 +692,14 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn compose_raster_gray() {
+    fn composite_raster_gray() {
         let mut g0 = Raster::<Gray8>::with_clear(3, 3);
         let g1 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x40));
         let g2 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x60));
         let g3 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x80));
-        g0.compose_raster((-1, 2, 3, 3), &g1, ());
-        g0.compose_raster((2, -1, 3, 3), &g2, ());
-        g0.compose_raster((-2, -2, 3, 3), &g3, ());
+        g0.composite_raster((-1, 2, 3, 3), &g1, ());
+        g0.composite_raster((2, -1, 3, 3), &g2, ());
+        g0.composite_raster((-2, -2, 3, 3), &g3, ());
         let v = vec![
             Gray8::new(0x80), Gray8::new(0x00), Gray8::new(0x60),
             Gray8::new(0x00), Gray8::new(0x00), Gray8::new(0x60),
@@ -708,10 +708,10 @@ mod test {
         assert_eq!(g0.pixels(), &v[..]);
     }
     #[test]
-    fn compose_raster_rgb() {
+    fn composite_raster_rgb() {
         let mut rgb = Raster::<SRgb8>::with_clear(3, 3);
         let gray = Raster::<SGray16>::with_color(3, 3, SGray16::new(0x8000));
-        rgb.compose_raster((), &gray, (0, 1, 3, 3));
+        rgb.composite_raster((), &gray, (0, 1, 3, 3));
         let mut v = vec![SRgb8::new(0x80, 0x80, 0x80); 6];
         v.extend_from_slice(&vec![SRgb8::new(0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);

@@ -3,8 +3,8 @@
 ### Added
 * `Pix1::From<f32>`
 * Raster::pixel_mut(x, y); replaces set_pixel
-* Raster::compose_color
-* Raster::compose_raster
+* Raster::composite_color
+* Raster::composite_raster
 * Raster::rows and ::rows_mut
 * Raster::with_ constructors
 
