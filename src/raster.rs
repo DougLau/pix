@@ -99,6 +99,10 @@ impl<P: Pixel> Into<Vec<P>> for Raster<P> {
 impl<P: Pixel> Raster<P> {
     /// Construct a `Raster` with all pixels set to the default value.
     ///
+    /// # Panics
+    ///
+    /// Panics if `width` or `height` is greater than `std::i32::MAX`.
+    ///
     /// ## Examples
     /// ```
     /// # use pix::*;
@@ -112,6 +116,10 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Construct a `Raster` with all pixels set to one color.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `width` or `height` is greater than `std::i32::MAX`.
     ///
     /// ## Example
     /// ```
@@ -163,7 +171,8 @@ impl<P: Pixel> Raster<P> {
     ///
     /// # Panics
     ///
-    /// Panics if `pixels` length is not equal to `width` * `height`.
+    /// * If `width` or `height` is greater than `std::i32::MAX`
+    /// * If `pixels` length is not equal to `width` * `height`
     ///
     /// ## Example
     /// ```
@@ -200,8 +209,9 @@ impl<P: Pixel> Raster<P> {
     ///
     /// # Panics
     ///
-    /// Panics if `buffer` length is not equal to `width` * `height` *
-    /// `std::mem::size_of::<P>()`.
+    /// * If `width` or `height` is greater than `std::i32::MAX`
+    /// * If `buffer` length is not equal to `width` * `height` *
+    ///   `std::mem::size_of::<P>()`
     pub fn with_u8_buffer<B>(width: u32, height: u32, buffer: B) -> Self
     where
         B: Into<Box<[u8]>>,
@@ -238,8 +248,9 @@ impl<P: Pixel> Raster<P> {
     ///
     /// # Panics
     ///
-    /// Panics if `buffer` length is not equal to `width` * `height` *
-    /// `std::mem::size_of::<P>()`.
+    /// * If `width` or `height` is greater than `std::i32::MAX`
+    /// * If `buffer` length is not equal to `width` * `height` *
+    ///   `std::mem::size_of::<P>()`
     pub fn with_u16_buffer<B>(width: u32, height: u32, buffer: B) -> Self
     where
         B: Into<Box<[u16]>>,
