@@ -6,6 +6,7 @@
 * Raster::compose_color
 * Raster::compose_raster
 * Raster::rows and ::rows_mut
+* Raster::with_ constructors
 
 ### Changed
 * GrayModel to Gray
@@ -21,6 +22,7 @@
 * Raster::set_pixel(x, y, p)
 * `Pix1::From<u8>` and `Pix1::From<i32>`
 * Raster::set_region
+* RasterBuilder (use Raster::with_ methods instead)
 
 ## [0.10.0] - 2020-03-26
 ### Added

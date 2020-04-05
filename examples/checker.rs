@@ -1,11 +1,11 @@
-use pix::{Raster, RasterBuilder, SGray8};
+use pix::{Raster, SGray8};
 use std::fs::File;
 use std::io;
 use std::io::Write;
 
 fn main() -> Result<(), io::Error> {
     let v = SGray8::new(255);
-    let mut r = RasterBuilder::<SGray8>::new().with_clear(16, 16);
+    let mut r = Raster::<SGray8>::with_clear(16, 16);
     for y in 0..16 {
         for x in 0..16 {
             if x + y & 1 != 0 {

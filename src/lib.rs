@@ -18,9 +18,9 @@
 //! ### Example: Convert Raster Format
 //! ```
 //! # use pix::*;
-//! let mut src = RasterBuilder::<SRgb8>::new().with_clear(120, 120);
+//! let mut src = Raster::<SRgb8>::with_clear(120, 120);
 //! // ... load pixels into raster
-//! let dst: Raster<Rgba8p> = RasterBuilder::new().with_raster(&src);
+//! let dst: Raster<Rgba8p> = Raster::with_raster(&src);
 //! ```
 //!
 #![warn(missing_docs)]
@@ -59,7 +59,7 @@ pub use crate::hwb::{
 };
 pub use crate::mask::{Mask16, Mask32, Mask8};
 pub use crate::palette::Palette;
-pub use crate::raster::{Raster, RasterBuilder, Region, Rows, RowsMut};
+pub use crate::raster::{Raster, Region, Rows, RowsMut};
 pub use crate::rgb::{
     Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
