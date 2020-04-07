@@ -104,7 +104,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Gamma mode
     type Gamma: gamma::Mode;
 
-    /// Make a pixel from an array of channels.
+    /// Make a pixel from a slice of channels.
     fn from_channels(ch: &[Self::Chan]) -> Self;
 
     /// Convert from a pixel with a different bit depth.
