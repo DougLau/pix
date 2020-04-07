@@ -5,7 +5,7 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8};
-use crate::el::{Pix1, Pix2, Pixel, PixRgba};
+use crate::el::{Pix1, Pix2, PixRgba, Pixel};
 use crate::gamma::{Linear, Srgb};
 use crate::model::ColorModel;
 use std::ops::Range;

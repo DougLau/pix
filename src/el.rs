@@ -170,12 +170,8 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
 }
 
 /// Rgba pixel type
-pub type PixRgba<P> = Pix4::<
-    <P as Pixel>::Chan,
-    Rgb,
-    <P as Pixel>::Alpha,
-    <P as Pixel>::Gamma,
->;
+pub type PixRgba<P> =
+    Pix4<<P as Pixel>::Chan, Rgb, <P as Pixel>::Alpha, <P as Pixel>::Gamma>;
 
 /// Convert a pixel to another format with the same color model.
 ///
@@ -227,7 +223,7 @@ where
     D::Chan: From<S::Chan>,
 {
     let rgba = S::Model::into_rgba::<S>(src);
-    let rgba = convert_same_model::<PixRgba::<D>, PixRgba::<S>>(rgba);
+    let rgba = convert_same_model::<PixRgba<D>, PixRgba<S>>(rgba);
     D::Model::from_rgba::<D>(rgba)
 }
 

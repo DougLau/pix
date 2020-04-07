@@ -3,7 +3,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 //! Color models
-use crate::el::{Pixel, PixRgba};
+use crate::el::{PixRgba, Pixel};
 pub use crate::gray::Gray;
 pub use crate::hsl::Hsl;
 pub use crate::hsv::Hsv;

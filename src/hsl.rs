@@ -5,7 +5,7 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
-use crate::el::{Pix3, Pix4, Pixel, PixRgba};
+use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::gamma::Linear;
 use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::model::ColorModel;
