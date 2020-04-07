@@ -96,27 +96,27 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        let r = if Self::red(p) > Self::red(rhs) {
+        let red = if Self::red(p) > Self::red(rhs) {
             Self::red(p) - Self::red(rhs)
         } else {
             Self::red(rhs) - Self::red(p)
         };
-        let g = if Self::green(p) > Self::green(rhs) {
+        let green = if Self::green(p) > Self::green(rhs) {
             Self::green(p) - Self::green(rhs)
         } else {
             Self::green(rhs) - Self::green(p)
         };
-        let b = if Self::blue(p) > Self::blue(rhs) {
+        let blue = if Self::blue(p) > Self::blue(rhs) {
             Self::blue(p) - Self::blue(rhs)
         } else {
             Self::blue(rhs) - Self::blue(p)
         };
-        let a = if Self::alpha(p) > Self::alpha(rhs) {
+        let alpha = if Self::alpha(p) > Self::alpha(rhs) {
             Self::alpha(p) - Self::alpha(rhs)
         } else {
             Self::alpha(rhs) - Self::alpha(p)
         };
-        P::from_channels(&[r, g, b, a])
+        P::from_channels(&[red, green, blue, alpha])
     }
 
     /// Check if all `Channel`s are within threshold
@@ -141,11 +141,11 @@ impl ColorModel for Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        let r = Rgb::red(p).into();
-        let g = Rgb::green(p).into();
-        let b = Rgb::blue(p).into();
-        let a = Rgb::alpha(p).into();
-        PixRgba::<P>::new(r, g, b, a)
+        let red = Rgb::red(p).into();
+        let green = Rgb::green(p).into();
+        let blue = Rgb::blue(p).into();
+        let alpha = Rgb::alpha(p).into();
+        PixRgba::<P>::new(red, green, blue, alpha)
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

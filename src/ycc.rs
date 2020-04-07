@@ -113,10 +113,10 @@ impl ColorModel for YCbCr {
         let cb = Self::cb(p).into();
         let cr = Self::cr(p).into();
 
-        let r = y + (cr - 0.5) * 1.402;
-        let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
-        let b = y + (cb - 0.5) * 1.772;
-        PixRgba::<P>::new(r.into(), g.into(), b.into(), Self::alpha(p).into())
+        let red = y + (cr - 0.5) * 1.402;
+        let green = y - (cb - 0.5) * 0.344_136 - (cr - 0.5) * 0.714_136;
+        let blue = y + (cb - 0.5) * 1.772;
+        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
@@ -131,8 +131,8 @@ impl ColorModel for YCbCr {
         let alpha = channels[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
-        let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
-        let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
+        let cb = 0.5 - (0.168_736 * red) - (0.331_264 * green) + (0.5 * blue);
+        let cr = 0.5 + (0.5 * red) - (0.418_688 * green) - (0.081_312 * blue);
 
         P::from_channels(&[y.into(), cb.into(), cr.into(), alpha])
     }
