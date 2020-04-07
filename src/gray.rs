@@ -73,7 +73,7 @@ impl ColorModel for Gray {
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    fn from_rgba<P>(rgba: PixRgba<P>) -> P
     where
         P: Pixel<Model = Self>,
     {
@@ -81,11 +81,12 @@ impl ColorModel for Gray {
         const GREEN_COEF: f32 = 0.7152;
         const BLUE_COEF: f32 = 0.0722;
 
-        let red = rgba[0].into() * RED_COEF;
-        let green = rgba[1].into() * GREEN_COEF;
-        let blue = rgba[2].into() * BLUE_COEF;
+        let chan = rgba.channels();
+        let red = chan[0].into() * RED_COEF;
+        let green = chan[1].into() * GREEN_COEF;
+        let blue = chan[2].into() * BLUE_COEF;
         let value = P::Chan::from(red + green + blue);
-        let alpha = rgba[3];
+        let alpha = chan[3];
         P::from_channels(&[value, alpha])
     }
 }

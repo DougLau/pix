@@ -149,11 +149,11 @@ impl ColorModel for Rgb {
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    fn from_rgba<P>(rgba: PixRgba<P>) -> P
     where
         P: Pixel<Model = Self>,
     {
-        P::from_channels(rgba)
+        P::from_channels(rgba.channels())
     }
 }
 

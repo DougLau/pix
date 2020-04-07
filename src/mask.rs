@@ -52,12 +52,12 @@ impl ColorModel for Mask {
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    fn from_rgba<P>(rgba: PixRgba<P>) -> P
     where
         P: Pixel<Model = Self>,
     {
-        let chan = [rgba[3]];
-        P::from_channels(&chan)
+        let chan = rgba.channels();
+        P::from_channels(&[chan[3]])
     }
 }
 

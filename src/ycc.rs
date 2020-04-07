@@ -120,14 +120,15 @@ impl ColorModel for YCbCr {
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    fn from_rgba<P>(rgba: PixRgba<P>) -> P
     where
         P: Pixel<Model = Self>,
     {
-        let red = rgba[0].into();
-        let green = rgba[1].into();
-        let blue = rgba[2].into();
-        let alpha = rgba[3];
+        let channels = rgba.channels();
+        let red = channels[0].into();
+        let green = channels[1].into();
+        let blue = channels[2].into();
+        let alpha = channels[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
         let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);

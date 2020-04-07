@@ -228,7 +228,7 @@ where
 {
     let rgba = S::Model::into_rgba::<S>(src);
     let rgba = convert_same_model::<PixRgba::<D>, PixRgba::<S>>(rgba);
-    D::Model::from_rgba::<D>(rgba.channels())
+    D::Model::from_rgba::<D>(rgba)
 }
 
 /// [Pixel] with one [channel] in its [color model].

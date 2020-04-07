@@ -140,14 +140,15 @@ impl ColorModel for Hsl {
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    fn from_rgba<P>(rgba: PixRgba<P>) -> P
     where
         P: Pixel<Model = Self>,
     {
-        let red = rgba[0];
-        let green = rgba[1];
-        let blue = rgba[2];
-        let alpha = rgba[3];
+        let chan = rgba.channels();
+        let red = chan[0];
+        let green = chan[1];
+        let blue = chan[2];
+        let alpha = chan[3];
         let (hue, chroma, val) = rgb_to_hue_chroma_value(red, green, blue);
         let lightness = val - chroma * P::Chan::from(0.5);
         let min_l = lightness.min(P::Chan::MAX - lightness);
