@@ -4,11 +4,13 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
-use crate::alpha;
+use crate::alpha::{self, Mode as _};
 use crate::channel::Channel;
-use crate::gamma;
+use crate::gamma::{self, Mode as _};
 use crate::model::ColorModel;
 use crate::private::Sealed;
+use crate::rgb::Rgb;
+use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -103,10 +105,22 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     type Gamma: gamma::Mode;
 
     /// Make a pixel from an array of channels.
-    fn from_channels<H>(ch: [H; 4]) -> Self
+    fn from_channels<H>(ch: &[H]) -> Self
     where
-        H: Copy,
+        H: Channel,
         Self::Chan: From<H>;
+
+    /// Convert from a pixel with a different bit depth.
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>;
+
+    /// Get the channels.
+    fn channels(&self) -> &[Self::Chan];
+
+    /// Get the channels mutably.
+    fn channels_mut(&mut self) -> &mut [Self::Chan];
 
     /// Get the first channel.
     fn one(self) -> Self::Chan {
@@ -136,10 +150,88 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         D: Pixel,
         D::Chan: From<Self::Chan>,
     {
-        let channels = Self::Model::into_channels::<Self, D>(self);
-        let channels = channels.convert::<Self, D>();
-        D::Model::from_channels::<Self, D>(channels)
+        if TypeId::of::<Self::Model>() == TypeId::of::<D::Model>() {
+            convert_same_model::<D, Self>(self)
+        } else {
+            convert_thru_rgba::<D, Self>(self)
+        }
     }
+
+    /// Convert channels to linear gamma
+    fn to_linear_gamma<C: Channel>(channels: &mut [C]) {
+        channels[Self::Model::LINEAR]
+            .iter_mut()
+            .for_each(|c| *c = Self::Gamma::to_linear(*c));
+    }
+
+    /// Convert channels from linear gamma
+    fn from_linear_gamma(channels: &mut [Self::Chan]) {
+        channels[Self::Model::LINEAR]
+            .iter_mut()
+            .for_each(|c| *c = Self::Gamma::from_linear(*c));
+    }
+}
+
+/// Rgba pixel type
+pub type PixRgba<P> = Pix4::<
+    <P as Pixel>::Chan,
+    Rgb,
+    <P as Pixel>::Alpha,
+    <P as Pixel>::Gamma,
+>;
+
+/// Convert a pixel to another format with the same color model.
+///
+/// * `D` Destination pixel format.
+/// * `S` Source pixel format.
+/// * `src` Source pixel.
+fn convert_same_model<D, S>(src: S) -> D
+where
+    D: Pixel,
+    S: Pixel,
+    D::Chan: From<S::Chan>,
+{
+    let mut dst = D::from_bit_depth(src);
+    if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>()
+        || TypeId::of::<S::Gamma>() != TypeId::of::<D::Gamma>()
+    {
+        let mut channels = dst.channels_mut();
+        convert_alpha_gamma::<D, S>(&mut channels);
+    }
+    dst
+}
+
+/// Convert *alpha* / *gamma* to another pixel format
+fn convert_alpha_gamma<D, S>(channels: &mut [D::Chan])
+where
+    D: Pixel,
+    S: Pixel,
+{
+    S::to_linear_gamma(channels);
+    if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
+        let alpha = channels[D::Model::ALPHA];
+        for c in channels[D::Model::LINEAR].iter_mut() {
+            *c = S::Alpha::decode(*c, alpha);
+            *c = D::Alpha::encode(*c, alpha);
+        }
+    }
+    D::from_linear_gamma(channels);
+}
+
+/// Convert a pixel to another format thru RGBA.
+///
+/// * `D` Destination pixel format.
+/// * `S` Source pixel format.
+/// * `src` Source pixel.
+fn convert_thru_rgba<D, S>(src: S) -> D
+where
+    D: Pixel,
+    S: Pixel,
+    D::Chan: From<S::Chan>,
+{
+    let rgba = S::Model::into_rgba::<S>(src);
+    let rgba = convert_same_model::<PixRgba::<D>, PixRgba::<S>>(rgba);
+    D::Model::from_rgba::<D>(rgba.channels())
 }
 
 /// [Pixel] with one [channel] in its [color model].
@@ -156,7 +248,7 @@ where
     A: alpha::Mode,
     G: gamma::Mode,
 {
-    one: C,
+    channels: [C; 1],
     _model: PhantomData<M>,
     _alpha: PhantomData<A>,
     _gamma: PhantomData<G>,
@@ -180,9 +272,9 @@ where
     where
         C: From<H>,
     {
-        let one = C::from(one);
+        let channels = [C::from(one); 1];
         Pix1 {
-            one,
+            channels,
             _model: PhantomData,
             _alpha: PhantomData,
             _gamma: PhantomData,
@@ -202,17 +294,37 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: [H; 4]) -> Self
+    fn from_channels<H>(ch: &[H]) -> Self
     where
-        H: Copy,
+        H: Channel,
         Self::Chan: From<H>,
     {
         let one = Self::Chan::from(ch[0]);
         Self::new(one)
     }
 
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>,
+    {
+        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
+            panic!("Invalid pixel conversion");
+        }
+        let one = Self::Chan::from(p.one());
+        Self::new(one)
+    }
+
+    fn channels(&self) -> &[Self::Chan] {
+        &self.channels
+    }
+
+    fn channels_mut(&mut self) -> &mut [Self::Chan] {
+        &mut self.channels
+    }
+
     fn one(self) -> C {
-        self.one
+        self.channels[0]
     }
 }
 
@@ -230,8 +342,7 @@ where
     A: alpha::Mode,
     G: gamma::Mode,
 {
-    one: C,
-    two: C,
+    channels: [C; 2],
     _model: PhantomData<M>,
     _alpha: PhantomData<A>,
     _gamma: PhantomData<G>,
@@ -257,9 +368,9 @@ where
     {
         let one = C::from(one);
         let two = C::from(two);
+        let channels = [one, two];
         Pix2 {
-            one,
-            two,
+            channels,
             _model: PhantomData,
             _alpha: PhantomData,
             _gamma: PhantomData,
@@ -279,9 +390,9 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: [H; 4]) -> Self
+    fn from_channels<H>(ch: &[H]) -> Self
     where
-        H: Copy,
+        H: Channel,
         Self::Chan: From<H>,
     {
         let one = ch[0];
@@ -289,12 +400,33 @@ where
         Self::new(one, two)
     }
 
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>,
+    {
+        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
+            panic!("Invalid pixel conversion");
+        }
+        let one = Self::Chan::from(p.one());
+        let two = Self::Chan::from(p.two());
+        Self::new(one, two)
+    }
+
+    fn channels(&self) -> &[Self::Chan] {
+        &self.channels
+    }
+
+    fn channels_mut(&mut self) -> &mut [Self::Chan] {
+        &mut self.channels
+    }
+
     fn one(self) -> C {
-        self.one
+        self.channels[0]
     }
 
     fn two(self) -> C {
-        self.two
+        self.channels[1]
     }
 }
 
@@ -312,9 +444,7 @@ where
     A: alpha::Mode,
     G: gamma::Mode,
 {
-    one: C,
-    two: C,
-    three: C,
+    channels: [C; 3],
     _model: PhantomData<M>,
     _alpha: PhantomData<A>,
     _gamma: PhantomData<G>,
@@ -341,10 +471,9 @@ where
         let one = C::from(one);
         let two = C::from(two);
         let three = C::from(three);
+        let channels = [one, two, three];
         Pix3 {
-            one,
-            two,
-            three,
+            channels,
             _model: PhantomData,
             _alpha: PhantomData,
             _gamma: PhantomData,
@@ -364,9 +493,9 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: [H; 4]) -> Self
+    fn from_channels<H>(ch: &[H]) -> Self
     where
-        H: Copy,
+        H: Channel,
         Self::Chan: From<H>,
     {
         let one = ch[0];
@@ -375,16 +504,38 @@ where
         Self::new(one, two, three)
     }
 
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>,
+    {
+        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
+            panic!("Invalid pixel conversion");
+        }
+        let one = Self::Chan::from(p.one());
+        let two = Self::Chan::from(p.two());
+        let three = Self::Chan::from(p.three());
+        Self::new(one, two, three)
+    }
+
+    fn channels(&self) -> &[Self::Chan] {
+        &self.channels
+    }
+
+    fn channels_mut(&mut self) -> &mut [Self::Chan] {
+        &mut self.channels
+    }
+
     fn one(self) -> C {
-        self.one
+        self.channels[0]
     }
 
     fn two(self) -> C {
-        self.two
+        self.channels[1]
     }
 
     fn three(self) -> C {
-        self.three
+        self.channels[2]
     }
 }
 
@@ -402,10 +553,7 @@ where
     A: alpha::Mode,
     G: gamma::Mode,
 {
-    one: C,
-    two: C,
-    three: C,
-    four: C,
+    channels: [C; 4],
     _model: PhantomData<M>,
     _alpha: PhantomData<A>,
     _gamma: PhantomData<G>,
@@ -433,11 +581,9 @@ where
         let two = C::from(two);
         let three = C::from(three);
         let four = C::from(four);
+        let channels = [one, two, three, four];
         Pix4 {
-            one,
-            two,
-            three,
-            four,
+            channels,
             _model: PhantomData,
             _alpha: PhantomData,
             _gamma: PhantomData,
@@ -457,9 +603,9 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: [H; 4]) -> Self
+    fn from_channels<H>(ch: &[H]) -> Self
     where
-        H: Copy,
+        H: Channel,
         Self::Chan: From<H>,
     {
         let one = ch[0];
@@ -469,20 +615,43 @@ where
         Self::new(one, two, three, four)
     }
 
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>,
+    {
+        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
+            panic!("Invalid pixel conversion");
+        }
+        let one = Self::Chan::from(p.one());
+        let two = Self::Chan::from(p.two());
+        let three = Self::Chan::from(p.three());
+        let four = Self::Chan::from(p.four());
+        Self::new(one, two, three, four)
+    }
+
+    fn channels(&self) -> &[Self::Chan] {
+        &self.channels
+    }
+
+    fn channels_mut(&mut self) -> &mut [Self::Chan] {
+        &mut self.channels
+    }
+
     fn one(self) -> C {
-        self.one
+        self.channels[0]
     }
 
     fn two(self) -> C {
-        self.two
+        self.channels[1]
     }
 
     fn three(self) -> C {
-        self.three
+        self.channels[2]
     }
 
     fn four(self) -> C {
-        self.four
+        self.channels[3]
     }
 }
 

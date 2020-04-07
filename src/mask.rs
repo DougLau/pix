@@ -5,9 +5,10 @@
 //
 use crate::alpha::Straight;
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
-use crate::el::{Pix1, Pixel};
+use crate::el::{Pix1, Pixel, PixRgba};
 use crate::gamma::Linear;
-use crate::model::{Channels, ColorModel};
+use crate::model::ColorModel;
+use std::ops::Range;
 
 /// Mask [color model].
 ///
@@ -37,35 +38,27 @@ impl Mask {
 }
 
 impl ColorModel for Mask {
-    /// Convert into channels shared by pixel types
-    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
-    where
-        S: Pixel<Model = Self>,
-        D: Pixel,
-    {
-        Channels::new(Self::into_rgba(src), 3)
-    }
+    const CIRCULAR: Range<usize> = 0..0;
+    const LINEAR: Range<usize> = 0..0;
+    const ALPHA: usize = 0;
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    fn into_rgba<P>(p: P) -> PixRgba<P>
     where
         P: Pixel<Model = Self>,
     {
-        let max = P::Chan::MAX;
-        [max, max, max, Self::alpha(p)]
-    }
-
-    /// Convert from channels shared by pixel types
-    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        debug_assert_eq!(channels.alpha_idx(), 3);
-        Self::from_rgba::<D>(channels.into_array())
+        let max = P::Chan::MAX.into();
+        PixRgba::<P>::new(max, max, max, Self::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         let min = P::Chan::MIN;
         let chan = [rgba[3], min, min, min];
-        P::from_channels::<P::Chan>(chan)
+        P::from_channels::<P::Chan>(&chan)
     }
 }
 

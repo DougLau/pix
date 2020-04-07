@@ -5,10 +5,10 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
-use crate::el::{Pix1, Pix2, Pixel};
+use crate::el::{Pix1, Pix2, Pixel, PixRgba};
 use crate::gamma::{Linear, Srgb};
-use crate::model::{Channels, ColorModel};
-use std::any::TypeId;
+use crate::model::ColorModel;
+use std::ops::Range;
 
 /// Gray [color model].
 ///
@@ -59,42 +59,24 @@ impl Gray {
 }
 
 impl ColorModel for Gray {
-    /// Convert into channels shared by pixel types
-    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
-    where
-        S: Pixel<Model = Self>,
-        D: Pixel,
-    {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            let min = S::Chan::MIN;
-            Channels::new([Self::value(src), Self::alpha(src), min, min], 1)
-        } else {
-            Channels::new(Self::into_rgba(src), 3)
-        }
-    }
+    const CIRCULAR: Range<usize> = 0..0;
+    const LINEAR: Range<usize> = 0..1;
+    const ALPHA: usize = 1;
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    fn into_rgba<P>(p: P) -> PixRgba<P>
     where
         P: Pixel<Model = Self>,
     {
-        let value = Self::value(p);
-        [value, value, value, Self::alpha(p)]
-    }
-
-    /// Convert from channels shared by pixel types
-    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            debug_assert_eq!(channels.alpha_idx(), 1);
-            D::from_channels::<D::Chan>(channels.into_array())
-        } else {
-            debug_assert_eq!(channels.alpha_idx(), 3);
-            Self::from_rgba::<D>(channels.into_array())
-        }
+        let value = Self::value(p).into();
+        PixRgba::<P>::new(value, value, value, Self::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         const RED_COEF: f32 = 0.2126;
         const GREEN_COEF: f32 = 0.7152;
         const BLUE_COEF: f32 = 0.0722;
@@ -105,7 +87,7 @@ impl ColorModel for Gray {
         let value = P::Chan::from(red + green + blue);
         let alpha = rgba[3];
         let min = P::Chan::MIN;
-        P::from_channels::<P::Chan>([value, alpha, min, min])
+        P::from_channels::<P::Chan>(&[value, alpha, min, min])
     }
 }
 

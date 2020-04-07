@@ -5,9 +5,10 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8};
-use crate::el::{Pix3, Pix4, Pixel};
+use crate::el::{Pix3, Pix4, Pixel, PixRgba};
 use crate::gamma::{Linear, Srgb};
-use crate::model::{Channels, ColorModel};
+use crate::model::ColorModel;
+use std::ops::Range;
 
 /// [RGB] additive [color model].
 ///
@@ -115,7 +116,7 @@ impl Rgb {
         } else {
             Self::alpha(rhs) - Self::alpha(p)
         };
-        P::from_channels::<P::Chan>([r, g, b, a])
+        P::from_channels::<P::Chan>(&[r, g, b, a])
     }
 
     /// Check if all `Channel`s are within threshold
@@ -131,31 +132,27 @@ impl Rgb {
 }
 
 impl ColorModel for Rgb {
-    /// Convert into channels shared by pixel types
-    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
-    where
-        S: Pixel<Model = Self>,
-        D: Pixel,
-    {
-        Channels::new(Self::into_rgba(src), 3)
-    }
+    const CIRCULAR: Range<usize> = 0..0;
+    const LINEAR: Range<usize> = 0..3;
+    const ALPHA: usize = 3;
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    fn into_rgba<P>(p: P) -> PixRgba<P>
     where
         P: Pixel<Model = Self>,
     {
-        [Rgb::red(p), Rgb::green(p), Rgb::blue(p), Rgb::alpha(p)]
-    }
-
-    /// Convert from channels shared by pixel types
-    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        debug_assert_eq!(channels.alpha_idx(), 3);
-        Self::from_rgba::<D>(channels.into_array())
+        let r = Rgb::red(p).into();
+        let g = Rgb::green(p).into();
+        let b = Rgb::blue(p).into();
+        let a = Rgb::alpha(p).into();
+        PixRgba::<P>::new(r, g, b, a)
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         P::from_channels::<P::Chan>(rgba)
     }
 }

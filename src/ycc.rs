@@ -5,10 +5,10 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8};
-use crate::el::{Pix3, Pix4, Pixel};
+use crate::el::{Pix3, Pix4, Pixel, PixRgba};
 use crate::gamma::Linear;
-use crate::model::{Channels, ColorModel};
-use std::any::TypeId;
+use crate::model::ColorModel;
+use std::ops::Range;
 
 /// [YCbCr] [color model] used in JPEG format.
 ///
@@ -100,24 +100,12 @@ impl YCbCr {
 }
 
 impl ColorModel for YCbCr {
-    /// Convert into channels shared by pixel types
-    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
-    where
-        S: Pixel<Model = Self>,
-        D: Pixel,
-    {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            Channels::new(
-                [Self::y(src), Self::cb(src), Self::cr(src), Self::alpha(src)],
-                3,
-            )
-        } else {
-            Channels::new(Self::into_rgba(src), 3)
-        }
-    }
+    const CIRCULAR: Range<usize> = 0..0;
+    const LINEAR: Range<usize> = 0..3;
+    const ALPHA: usize = 3;
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    fn into_rgba<P>(p: P) -> PixRgba<P>
     where
         P: Pixel<Model = Self>,
     {
@@ -128,22 +116,14 @@ impl ColorModel for YCbCr {
         let r = y + (cr - 0.5) * 1.402;
         let g = y - (cb - 0.5) * 0.344136 - (cr - 0.5) * 0.714136;
         let b = y + (cb - 0.5) * 1.772;
-        [r.into(), g.into(), b.into(), Self::alpha(p)]
-    }
-
-    /// Convert from channels shared by pixel types
-    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            debug_assert_eq!(channels.alpha_idx(), 3);
-            D::from_channels::<D::Chan>(channels.into_array())
-        } else {
-            debug_assert_eq!(channels.alpha_idx(), 3);
-            Self::from_rgba(channels.into_array())
-        }
+        PixRgba::<P>::new(r.into(), g.into(), b.into(), Self::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         let red = rgba[0].into();
         let green = rgba[1].into();
         let blue = rgba[2].into();
@@ -153,7 +133,7 @@ impl ColorModel for YCbCr {
         let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
         let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
 
-        P::from_channels::<P::Chan>([y.into(), cb.into(), cr.into(), alpha])
+        P::from_channels::<P::Chan>(&[y.into(), cb.into(), cr.into(), alpha])
     }
 }
 

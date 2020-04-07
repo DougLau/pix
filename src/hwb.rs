@@ -4,11 +4,11 @@
 //
 use crate::alpha::{Premultiplied, Straight};
 use crate::channel::{Ch16, Ch32, Ch8, Channel};
-use crate::el::{Pix3, Pix4, Pixel};
+use crate::el::{Pix3, Pix4, Pixel, PixRgba};
 use crate::gamma::Linear;
 use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
-use crate::model::{Channels, ColorModel};
-use std::any::TypeId;
+use crate::model::ColorModel;
+use std::ops::Range;
 
 /// [HWB] [color model].
 ///
@@ -128,29 +128,12 @@ impl Hwb {
 }
 
 impl ColorModel for Hwb {
-    /// Convert into channels shared by pixel types
-    fn into_channels<S, D>(src: S) -> Channels<S::Chan>
-    where
-        S: Pixel<Model = Self>,
-        D: Pixel,
-    {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            Channels::new(
-                [
-                    Self::whiteness(src),
-                    Self::blackness(src),
-                    Self::alpha(src),
-                    Self::hue(src),
-                ],
-                2,
-            )
-        } else {
-            Channels::new(Self::into_rgba(src), 3)
-        }
-    }
+    const CIRCULAR: Range<usize> = 0..1;
+    const LINEAR: Range<usize> = 1..3;
+    const ALPHA: usize = 3;
 
     /// Convert into *red*, *green*, *blue* and *alpha* components
-    fn into_rgba<P>(p: P) -> [P::Chan; 4]
+    fn into_rgba<P>(p: P) -> PixRgba<P>
     where
         P: Pixel<Model = Self>,
     {
@@ -161,23 +144,18 @@ impl ColorModel for Hwb {
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = v - chroma;
-        [red + m, green + m, blue + m, Self::alpha(p)]
-    }
 
-    /// Convert from channels shared by pixel types
-    fn from_channels<S: Pixel, D: Pixel>(channels: Channels<D::Chan>) -> D {
-        if TypeId::of::<S::Model>() == TypeId::of::<D::Model>() {
-            debug_assert_eq!(channels.alpha_idx(), 2);
-            let ch = channels.into_array();
-            D::from_channels::<D::Chan>([ch[3], ch[0], ch[1], ch[2]])
-        } else {
-            debug_assert_eq!(channels.alpha_idx(), 3);
-            Self::from_rgba::<D>(channels.into_array())
-        }
+        let red = (red + m).into();
+        let green = (green + m).into();
+        let blue = (blue + m).into();
+        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
-    fn from_rgba<P: Pixel>(rgba: [P::Chan; 4]) -> P {
+    fn from_rgba<P>(rgba: &[P::Chan]) -> P
+    where
+        P: Pixel<Model = Self>,
+    {
         let red = rgba[0];
         let green = rgba[1];
         let blue = rgba[2];
@@ -186,7 +164,7 @@ impl ColorModel for Hwb {
         let sat_v = chroma / val;
         let whiteness = (P::Chan::MAX - sat_v) * val;
         let blackness = P::Chan::MAX - val;
-        P::from_channels::<P::Chan>([hue, whiteness, blackness, alpha])
+        P::from_channels::<P::Chan>(&[hue, whiteness, blackness, alpha])
     }
 }
 
