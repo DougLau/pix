@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 ///
 /// [alpha mode]: ../alpha/trait.Mode.html
 /// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
+/// [color model]: ../model/trait.ColorModel.html
 /// [convert]: trait.Pixel.html#method.convert
 /// [gamma mode]: ../gamma/trait.Mode.html
 ///
@@ -234,7 +234,7 @@ where
 /// [Pixel] with one [channel] in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
+/// [color model]: ../model/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -324,7 +324,7 @@ where
 /// [Pixel] with two [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
+/// [color model]: ../model/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -422,7 +422,7 @@ where
 /// [Pixel] with three [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
+/// [color model]: ../model/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -527,7 +527,7 @@ where
 /// [Pixel] with four [channel]s in its [color model].
 ///
 /// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
+/// [color model]: ../model/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
