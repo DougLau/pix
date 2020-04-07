@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::alpha::{Premultiplied, Straight};
-use crate::channel::{Ch16, Ch32, Ch8, Channel};
+use crate::channel::{Ch16, Ch32, Ch8};
 use crate::el::{Pix1, Pix2, Pixel, PixRgba};
 use crate::gamma::{Linear, Srgb};
 use crate::model::ColorModel;
@@ -86,8 +86,7 @@ impl ColorModel for Gray {
         let blue = rgba[2].into() * BLUE_COEF;
         let value = P::Chan::from(red + green + blue);
         let alpha = rgba[3];
-        let min = P::Chan::MIN;
-        P::from_channels::<P::Chan>(&[value, alpha, min, min])
+        P::from_channels::<P::Chan>(&[value, alpha])
     }
 }
 
