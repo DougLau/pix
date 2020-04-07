@@ -150,7 +150,7 @@ impl ColorModel for Hsv {
         let alpha = rgba[3];
         let (hue, chroma, val) = rgb_to_hue_chroma_value(red, green, blue);
         let sat_v = chroma / val;
-        P::from_channels::<P::Chan>(&[hue, sat_v, val, alpha])
+        P::from_channels(&[hue, sat_v, val, alpha])
     }
 }
 

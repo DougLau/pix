@@ -164,7 +164,7 @@ impl ColorModel for Hwb {
         let sat_v = chroma / val;
         let whiteness = (P::Chan::MAX - sat_v) * val;
         let blackness = P::Chan::MAX - val;
-        P::from_channels::<P::Chan>(&[hue, whiteness, blackness, alpha])
+        P::from_channels(&[hue, whiteness, blackness, alpha])
     }
 }
 

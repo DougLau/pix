@@ -133,7 +133,7 @@ impl ColorModel for YCbCr {
         let cb = 0.5 - (0.168736 * red) - (0.331264 * green) + (0.5 * blue);
         let cr = 0.5 + (0.5 * red) - (0.418688 * green) - (0.081312 * blue);
 
-        P::from_channels::<P::Chan>(&[y.into(), cb.into(), cr.into(), alpha])
+        P::from_channels(&[y.into(), cb.into(), cr.into(), alpha])
     }
 }
 

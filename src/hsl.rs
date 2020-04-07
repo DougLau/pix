@@ -152,7 +152,7 @@ impl ColorModel for Hsl {
         let lightness = val - chroma * P::Chan::from(0.5);
         let min_l = lightness.min(P::Chan::MAX - lightness);
         let sat_l = (val - lightness) / min_l;
-        P::from_channels::<P::Chan>(&[hue, sat_l, lightness, alpha])
+        P::from_channels(&[hue, sat_l, lightness, alpha])
     }
 }
 

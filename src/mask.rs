@@ -57,7 +57,7 @@ impl ColorModel for Mask {
         P: Pixel<Model = Self>,
     {
         let chan = [rgba[3]];
-        P::from_channels::<P::Chan>(&chan)
+        P::from_channels(&chan)
     }
 }
 

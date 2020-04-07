@@ -116,7 +116,7 @@ impl Rgb {
         } else {
             Self::alpha(rhs) - Self::alpha(p)
         };
-        P::from_channels::<P::Chan>(&[r, g, b, a])
+        P::from_channels(&[r, g, b, a])
     }
 
     /// Check if all `Channel`s are within threshold
@@ -153,7 +153,7 @@ impl ColorModel for Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        P::from_channels::<P::Chan>(rgba)
+        P::from_channels(rgba)
     }
 }
 

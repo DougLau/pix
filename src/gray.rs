@@ -86,7 +86,7 @@ impl ColorModel for Gray {
         let blue = rgba[2].into() * BLUE_COEF;
         let value = P::Chan::from(red + green + blue);
         let alpha = rgba[3];
-        P::from_channels::<P::Chan>(&[value, alpha])
+        P::from_channels(&[value, alpha])
     }
 }
 

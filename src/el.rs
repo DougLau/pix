@@ -105,10 +105,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     type Gamma: gamma::Mode;
 
     /// Make a pixel from an array of channels.
-    fn from_channels<H>(ch: &[H]) -> Self
-    where
-        H: Channel,
-        Self::Chan: From<H>;
+    fn from_channels(ch: &[Self::Chan]) -> Self;
 
     /// Convert from a pixel with a different bit depth.
     fn from_bit_depth<P>(p: P) -> Self
@@ -294,12 +291,8 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: &[H]) -> Self
-    where
-        H: Channel,
-        Self::Chan: From<H>,
-    {
-        let one = Self::Chan::from(ch[0]);
+    fn from_channels(ch: &[C]) -> Self {
+        let one = ch[0].into();
         Self::new(one)
     }
 
@@ -390,13 +383,9 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: &[H]) -> Self
-    where
-        H: Channel,
-        Self::Chan: From<H>,
-    {
-        let one = ch[0];
-        let two = ch[1];
+    fn from_channels(ch: &[C]) -> Self {
+        let one = ch[0].into();
+        let two = ch[1].into();
         Self::new(one, two)
     }
 
@@ -493,14 +482,10 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: &[H]) -> Self
-    where
-        H: Channel,
-        Self::Chan: From<H>,
-    {
-        let one = ch[0];
-        let two = ch[1];
-        let three = ch[2];
+    fn from_channels(ch: &[C]) -> Self {
+        let one = ch[0].into();
+        let two = ch[1].into();
+        let three = ch[2].into();
         Self::new(one, two, three)
     }
 
@@ -603,15 +588,11 @@ where
     type Alpha = A;
     type Gamma = G;
 
-    fn from_channels<H>(ch: &[H]) -> Self
-    where
-        H: Channel,
-        Self::Chan: From<H>,
-    {
-        let one = ch[0];
-        let two = ch[1];
-        let three = ch[2];
-        let four = ch[3];
+    fn from_channels(ch: &[C]) -> Self {
+        let one = ch[0].into();
+        let two = ch[1].into();
+        let three = ch[2].into();
+        let four = ch[3].into();
         Self::new(one, two, three, four)
     }
 
