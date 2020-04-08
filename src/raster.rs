@@ -3,7 +3,7 @@
 // Copyright (c) 2017-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::channel::{Ch16, Ch8};
+use crate::chan::{Ch16, Ch8};
 use crate::el::Pixel;
 use crate::ops::PorterDuff;
 use std::convert::TryFrom;
@@ -12,12 +12,12 @@ use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 /// Image arranged as a rectangular array of pixels.
 ///
 /// A `Raster` can be constructed using one of the *with_* methods:
-/// * [with_clear](struct.Raster.html#method.with_clear)
-/// * [with_color](struct.Raster.html#method.with_color)
-/// * [with_raster](struct.Raster.html#method.with_raster)
-/// * [with_pixels](struct.Raster.html#method.with_pixels)
-/// * [with_u8_buffer](struct.Raster.html#method.with_u8_buffer)
-/// * [with_u16_buffer](struct.Raster.html#method.with_u16_buffer)
+/// * [with_clear](#method.with_clear)
+/// * [with_color](#method.with_color)
+/// * [with_raster](#method.with_raster)
+/// * [with_pixels](#method.with_pixels)
+/// * [with_u8_buffer](#method.with_u8_buffer)
+/// * [with_u16_buffer](#method.with_u16_buffer)
 ///
 /// ### Create a clear `Raster`
 /// ```
@@ -584,9 +584,8 @@ impl Region {
 #[cfg(test)]
 #[rustfmt::skip]
 mod test {
-    use super::*;
-    use super::super::*;
-    use super::super::ops::Source;
+    use crate::*;
+    use crate::ops::*;
     #[test]
     fn region_size() {
         assert_eq!(std::mem::size_of::<Region>(), 16);
@@ -703,6 +702,18 @@ mod test {
             SGray8::new(0x23), SGray8::new(0), SGray8::new(0),
             SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
             SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+    #[test]
+    fn composite_color_gray8_over() {
+        let clr = Graya8p::new(0x20, 0x40);
+        let mut r = Raster::<Graya8p>::with_color(2, 2, clr);
+        r.composite_color((0, 0, 3, 1), Graya8p::new(0x60, 0xA0), SourceOver);
+        r.composite_color((1, 1, 4, 4), Graya8p::new(0x80, 0x80), SourceOver);
+        let v = vec![
+            Graya8p::new(0x6B, 0xB7), Graya8p::new(0x6B, 0xB7),
+            Graya8p::new(0x20, 0x40), Graya8p::new(0x8F, 0x9F),
         ];
         assert_eq!(r.pixels(), &v[..]);
     }

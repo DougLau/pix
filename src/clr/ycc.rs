@@ -3,22 +3,19 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 // Copyright (c) 2020  Douglas P Lau
 //
-use crate::alpha::{Premultiplied, Straight};
-use crate::channel::{Ch16, Ch32, Ch8};
+use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Straight};
+use crate::clr::ColorModel;
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
-use crate::gamma::Linear;
-use crate::model::ColorModel;
 use std::ops::Range;
 
 /// [YCbCr] [color model] used in JPEG format.
 ///
 /// The components are *[y]*, *[cb]*, *[cr]* and optional *alpha*.
 ///
-/// [cb]: model/struct.YCbCr.html#method.cb
-/// [cr]: model/struct.YCbCr.html#method.cr
-/// [channel]: trait.Channel.html
+/// [cb]: #method.cb
+/// [cr]: #method.cr
 /// [color model]: trait.ColorModel.html
-/// [y]: model/struct.YCbCr.html#method.y
+/// [y]: #method.y
 /// [ycbcr]: https://en.wikipedia.org/wiki/YCbCr
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct YCbCr {}
@@ -31,8 +28,8 @@ impl YCbCr {
     /// # Example: YCbCr Y
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch32;
-    /// # use pix::model::YCbCr;
+    /// # use pix::chan::Ch32;
+    /// # use pix::clr::YCbCr;
     /// let p = YCbCr32::new(0.25, 0.5, 1.0);
     /// assert_eq!(YCbCr::y(p), Ch32::new(0.25));
     /// ```
@@ -50,8 +47,8 @@ impl YCbCr {
     /// # Example: YCbCr Cb
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch16;
-    /// # use pix::model::YCbCr;
+    /// # use pix::chan::Ch16;
+    /// # use pix::clr::YCbCr;
     /// let p = YCbCr16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(YCbCr::cb(p), Ch16::new(0x1234));
     /// ```
@@ -69,8 +66,8 @@ impl YCbCr {
     /// # Example: YCbCr Cr
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch8;
-    /// # use pix::model::YCbCr;
+    /// # use pix::chan::Ch8;
+    /// # use pix::clr::YCbCr;
     /// let p = YCbCr8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(YCbCr::cr(p), Ch8::new(0xA0));
     /// ```
@@ -86,8 +83,8 @@ impl YCbCr {
     /// # Example: YCbCr Alpha
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch8;
-    /// # use pix::model::YCbCr;
+    /// # use pix::chan::Ch8;
+    /// # use pix::clr::YCbCr;
     /// let p = YCbCra8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(YCbCr::alpha(p), Ch8::new(0xB0));
     /// ```
@@ -124,11 +121,11 @@ impl ColorModel for YCbCr {
     where
         P: Pixel<Model = Self>,
     {
-        let channels = rgba.channels();
-        let red = channels[0].into();
-        let green = channels[1].into();
-        let blue = channels[2].into();
-        let alpha = channels[3];
+        let chan = rgba.channels();
+        let red = chan[0].into();
+        let green = chan[1].into();
+        let blue = chan[2].into();
+        let alpha = chan[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);
         let cb = 0.5 - (0.168_736 * red) - (0.331_264 * green) + (0.5 * blue);
@@ -138,62 +135,47 @@ impl ColorModel for YCbCr {
     }
 }
 
-/// [YCbCr](model/struct.YCbCr.html) 8-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 8-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCr8 = Pix3<Ch8, YCbCr, Straight, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 16-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 16-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCr16 = Pix3<Ch16, YCbCr, Straight, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 32-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 32-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCr32 = Pix3<Ch32, YCbCr, Straight, Linear>;
 
-/// [YCbCr](model/struct.YCbCr.html) 8-bit
-/// [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 8-bit
+/// [straight](chan/struct.Straight.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra8 = Pix4<Ch8, YCbCr, Straight, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 16-bit
-/// [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 16-bit
+/// [straight](chan/struct.Straight.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra16 = Pix4<Ch16, YCbCr, Straight, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 32-bit
-/// [straight](alpha/struct.Straight.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 32-bit
+/// [straight](chan/struct.Straight.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra32 = Pix4<Ch32, YCbCr, Straight, Linear>;
 
-/// [YCbCr](model/struct.YCbCr.html) 8-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 8-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra8p = Pix4<Ch8, YCbCr, Premultiplied, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 16-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 16-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra16p = Pix4<Ch16, YCbCr, Premultiplied, Linear>;
-/// [YCbCr](model/struct.YCbCr.html) 32-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [YCbCr](clr/struct.YCbCr.html) 32-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type YCbCra32p = Pix4<Ch32, YCbCr, Premultiplied, Linear>;
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn check_sizes() {
-        assert_eq!(std::mem::size_of::<YCbCr8>(), 3);
-        assert_eq!(std::mem::size_of::<YCbCr16>(), 6);
-        assert_eq!(std::mem::size_of::<YCbCr32>(), 12);
-        assert_eq!(std::mem::size_of::<YCbCra8>(), 4);
-        assert_eq!(std::mem::size_of::<YCbCra16>(), 8);
-        assert_eq!(std::mem::size_of::<YCbCra32>(), 16);
-    }
-}

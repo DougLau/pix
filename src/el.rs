@@ -4,48 +4,46 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
-use crate::alpha::{self, Mode as _};
-use crate::channel::Channel;
-use crate::gamma::{self, Mode as _};
-use crate::model::ColorModel;
+use crate::chan::{Alpha, Channel, Gamma};
+use crate::clr::{ColorModel, Rgb};
 use crate::private::Sealed;
-use crate::rgb::Rgb;
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-/// Pixel [channel], [color model], [alpha mode] and [gamma mode].
+/// Pixel [channel], [color model], [alpha] and [gamma] mode.
 ///
 /// A pixel can be converted to another format using the [convert] method.
 ///
-/// [alpha mode]: ../alpha/trait.Mode.html
-/// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../model/trait.ColorModel.html
-/// [convert]: trait.Pixel.html#method.convert
-/// [gamma mode]: ../gamma/trait.Mode.html
+/// [alpha]: ../chan/trait.Alpha.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../clr/trait.ColorModel.html
+/// [convert]: #method.convert
+/// [gamma]: ../chan/trait.Gamma.html
 ///
 /// ### Type Alias Naming Scheme
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
-/// * _Color model_: [`Rgb`] / [`Gray`] / [`Hsv`] / [`Hsl`] / [`Hwb`] /
-///                  [`YCbCr`] / [`Mask`].
+/// * _Color model_: [`Rgb`] / [`Bgr`] / [`Gray`] / [`Hsv`] / [`Hsl`] /
+///                  [`Hwb`] / [`YCbCr`] / [`Mask`].
 /// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
-/// [channels]: ../channel/trait.Channel.html
-/// [`gray`]: ../model/struct.Gray.html
-/// [`hsl`]: ../model/struct.Hsl.html
-/// [`hsv`]: ../model/struct.Hsv.html
-/// [`hwb`]: ../model/struct.Hwb.html
-/// [linear]: ../gamma/struct.Linear.html
-/// [`mask`]: ../model/struct.Mask.html
-/// [premultiplied]: ../alpha/struct.Premultiplied.html
-/// [`Rgb`]: ../model/struct.Rgb.html
-/// [sRGB]: ../gamma/struct.Srgb.html
-/// [straight]: ../alpha/struct.Straight.html
-/// [`YCbCr`]: ../model/struct.YCbCr.html
+/// [`bgr`]: ../clr/struct.Bgr.html
+/// [channels]: ../chan/trait.Channel.html
+/// [`gray`]: ../clr/struct.Gray.html
+/// [`hsl`]: ../clr/struct.Hsl.html
+/// [`hsv`]: ../clr/struct.Hsv.html
+/// [`hwb`]: ../clr/struct.Hwb.html
+/// [linear]: ../chan/struct.Linear.html
+/// [`mask`]: ../clr/struct.Mask.html
+/// [premultiplied]: ../chan/struct.Premultiplied.html
+/// [`Rgb`]: ../clr/struct.Rgb.html
+/// [sRGB]: ../chan/struct.Srgb.html
+/// [straight]: ../chan/struct.Straight.html
+/// [`YCbCr`]: ../clr/struct.YCbCr.html
 ///
 /// ### Type Aliases
 ///
@@ -99,10 +97,10 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     type Model: ColorModel;
 
     /// Alpha mode
-    type Alpha: alpha::Mode;
+    type Alpha: Alpha;
 
     /// Gamma mode
-    type Gamma: gamma::Mode;
+    type Gamma: Gamma;
 
     /// Make a pixel from a slice of channels.
     fn from_channels(ch: &[Self::Chan]) -> Self;
@@ -139,6 +137,12 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         Self::Chan::MAX
     }
 
+    /// Get the *alpha* channel.
+    fn alpha(self) -> Self::Chan {
+        let chan = self.channels();
+        chan[Self::Model::ALPHA]
+    }
+
     /// Convert a pixel to another format
     ///
     /// * `D` Destination format.
@@ -169,7 +173,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     }
 }
 
-/// Rgba pixel type
+/// Rgba pixel type for color model conversions
 pub type PixRgba<P> =
     Pix4<<P as Pixel>::Chan, Rgb, <P as Pixel>::Alpha, <P as Pixel>::Gamma>;
 
@@ -229,8 +233,8 @@ where
 
 /// [Pixel] with one [channel] in its [color model].
 ///
-/// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../model/trait.ColorModel.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../clr/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -238,8 +242,8 @@ pub struct Pix1<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     channels: [C; 1],
     _model: PhantomData<M>,
@@ -251,8 +255,8 @@ impl<C, M, A, G> Pix1<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     /// Create a one-channel color.
     ///
@@ -279,8 +283,8 @@ impl<C, M, A, G> Pixel for Pix1<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     type Chan = C;
     type Model = M;
@@ -319,8 +323,8 @@ where
 
 /// [Pixel] with two [channel]s in its [color model].
 ///
-/// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../model/trait.ColorModel.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../clr/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -328,8 +332,8 @@ pub struct Pix2<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     channels: [C; 2],
     _model: PhantomData<M>,
@@ -341,8 +345,8 @@ impl<C, M, A, G> Pix2<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     /// Create a two-channel color.
     ///
@@ -371,8 +375,8 @@ impl<C, M, A, G> Pixel for Pix2<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     type Chan = C;
     type Model = M;
@@ -417,8 +421,8 @@ where
 
 /// [Pixel] with three [channel]s in its [color model].
 ///
-/// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../model/trait.ColorModel.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../clr/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -426,8 +430,8 @@ pub struct Pix3<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     channels: [C; 3],
     _model: PhantomData<M>,
@@ -439,8 +443,8 @@ impl<C, M, A, G> Pix3<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     /// Create a three-channel color.
     ///
@@ -470,8 +474,8 @@ impl<C, M, A, G> Pixel for Pix3<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     type Chan = C;
     type Model = M;
@@ -522,8 +526,8 @@ where
 
 /// [Pixel] with four [channel]s in its [color model].
 ///
-/// [channel]: ../channel/trait.Channel.html
-/// [color model]: ../model/trait.ColorModel.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../clr/trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -531,8 +535,8 @@ pub struct Pix4<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     channels: [C; 4],
     _model: PhantomData<M>,
@@ -544,8 +548,8 @@ impl<C, M, A, G> Pix4<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     /// Create a four-channel color.
     ///
@@ -576,8 +580,8 @@ impl<C, M, A, G> Pixel for Pix4<C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
-    A: alpha::Mode,
-    G: gamma::Mode,
+    A: Alpha,
+    G: Gamma,
 {
     type Chan = C;
     type Model = M;
@@ -634,8 +638,28 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::super::*;
-    use super::*;
+    use crate::*;
+    use crate::el::*;
+
+    #[test]
+    fn check_sizes() {
+        assert_eq!(std::mem::size_of::<Mask8>(), 1);
+        assert_eq!(std::mem::size_of::<Mask16>(), 2);
+        assert_eq!(std::mem::size_of::<Mask32>(), 4);
+        assert_eq!(std::mem::size_of::<SGray8>(), 1);
+        assert_eq!(std::mem::size_of::<SGray16>(), 2);
+        assert_eq!(std::mem::size_of::<SGray32>(), 4);
+        assert_eq!(std::mem::size_of::<SGraya8>(), 2);
+        assert_eq!(std::mem::size_of::<SGraya16>(), 4);
+        assert_eq!(std::mem::size_of::<SGraya32>(), 8);
+        assert_eq!(std::mem::size_of::<Rgb8>(), 3);
+        assert_eq!(std::mem::size_of::<Rgb16>(), 6);
+        assert_eq!(std::mem::size_of::<Rgb32>(), 12);
+        assert_eq!(std::mem::size_of::<Rgba8>(), 4);
+        assert_eq!(std::mem::size_of::<Rgba16>(), 8);
+        assert_eq!(std::mem::size_of::<Rgba32>(), 16);
+    }
+
     #[test]
     fn gray_to_rgb() {
         assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert(),);

@@ -1,13 +1,103 @@
-// channel.rs       Color channels
+// chan.rs      Color channels
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! Module for channel items
-use crate::gamma::SrgbValue;
+//! Component channels
+use crate::private::Sealed;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, Div, Mul, Sub};
+
+/// *Alpha* encoding mode.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
+pub trait Alpha: Copy + Clone + Debug + Default + PartialEq + Sealed {
+    /// Encode one `Channel` using the alpha mode.
+    fn encode<C: Channel>(c: C, a: C) -> C;
+    /// Decode one `Channel` using the alpha mode.
+    fn decode<C: Channel>(c: C, a: C) -> C;
+}
+
+/// [Channel](trait.Channel.html)s are *straight*, not premultiplied with
+/// *alpha*.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Straight;
+
+/// [Channel](trait.Channel.html)s are premultiplied, or associated, with
+/// *alpha*.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Premultiplied;
+
+impl Alpha for Straight {
+    fn encode<C: Channel>(c: C, _a: C) -> C {
+        c
+    }
+    fn decode<C: Channel>(c: C, _a: C) -> C {
+        c
+    }
+}
+
+impl Alpha for Premultiplied {
+    fn encode<C: Channel>(c: C, a: C) -> C {
+        c * a
+    }
+    fn decode<C: Channel>(c: C, a: C) -> C {
+        c / a
+    }
+}
+
+// Include functions to convert gamma between linear and sRGB
+include!("srgb_gamma.rs");
+
+// Include build-time sRGB gamma look-up tables
+include!(concat!(env!("OUT_DIR"), "/gamma_lut.rs"));
+
+/// *Gamma* encoding mode.
+///
+/// This trait is *sealed*, and cannot be implemented outside of this crate.
+pub trait Gamma: Copy + Clone + Debug + Default + PartialEq + Sealed {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C;
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C;
+}
+
+/// [Channel](trait.Channel.html)s are encoded with linear
+/// [gamma](trait.Gamma.html).
+///
+/// This mode should be used when editing `Raster`s.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Linear;
+
+/// [Channel](trait.Channel.html)s are corrected using the sRGB
+/// [gamma](trait.Gamma.html) formula.
+///
+/// This mode is for displaying and storing `Raster`s.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct Srgb;
+
+impl Gamma for Linear {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C {
+        c
+    }
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C {
+        c
+    }
+}
+
+impl Gamma for Srgb {
+    /// Convert a `Channel` value to linear.
+    fn to_linear<C: Channel>(c: C) -> C {
+        c.decode_srgb()
+    }
+    /// Convert a `Channel` value from linear.
+    fn from_linear<C: Channel>(c: C) -> C {
+        c.encode_srgb()
+    }
+}
 
 /// *Component* of a [color model], such as *red*, *green*, *etc*.
 ///
@@ -18,7 +108,7 @@ use std::ops::{Add, Div, Mul, Sub};
 /// [Ch8]: struct.Ch8.html
 /// [Ch16]: struct.Ch16.html
 /// [Ch32]: struct.Ch32.html
-/// [color model]: ../model/trait.ColorModel.html
+/// [color model]: ../clr/trait.ColorModel.html
 pub trait Channel:
     Copy
     + Debug
@@ -30,7 +120,7 @@ pub trait Channel:
     + Div<Output = Self>
     + Mul<Output = Self>
     + Sub<Output = Self>
-    + SrgbValue
+    + Sealed
 {
     /// Minimum intensity (*zero*)
     const MIN: Self;
@@ -46,6 +136,12 @@ pub trait Channel:
 
     /// Wrapping subtraction
     fn wrapping_sub(self, rhs: Self) -> Self;
+
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self;
+
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -54,7 +150,7 @@ pub trait Channel:
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::channel::*;
+/// # use pix::chan::*;
 /// let c: Ch8 = std::u8::MIN.into();
 /// assert_eq!(c, Ch8::MIN);
 /// let c: Ch16 = c.into();
@@ -73,7 +169,7 @@ pub struct Ch8(u8);
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::channel::*;
+/// # use pix::chan::*;
 /// let c: Ch16 = std::u16::MIN.into();
 /// assert_eq!(c, Ch16::MIN);
 /// let c: Ch8 = c.into();
@@ -92,7 +188,7 @@ pub struct Ch16(u16);
 /// between 0 and 1, inclusive.
 ///
 /// ```
-/// # use pix::channel::*;
+/// # use pix::chan::*;
 /// let c: Ch32 = 0.0.into();
 /// assert_eq!(c, Ch32::MIN);
 /// let c: Ch8 = c.into();
@@ -135,6 +231,18 @@ impl Channel for Ch8 {
     fn wrapping_sub(self, rhs: Self) -> Self {
         let v = self.0.wrapping_sub(rhs.0);
         Self::new(v)
+    }
+
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        let s = ENCODE_SRGB_U8[usize::from(u8::from(self))];
+        Self::new(s)
+    }
+
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        let s = DECODE_SRGB_U8[usize::from(u8::from(self))];
+        Self::new(s)
     }
 }
 
@@ -249,6 +357,20 @@ impl Channel for Ch16 {
     fn wrapping_sub(self, rhs: Self) -> Self {
         let v = self.0.wrapping_sub(rhs.0);
         Self::new(v)
+    }
+
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        let s = f32::from(u16::from(self)) / 65535.0;
+        let s = (srgb_gamma_encode(s) * 65535.0).round() as u16;
+        Self::new(s)
+    }
+
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        let s = f32::from(u16::from(self)) / 65535.0;
+        let s = (srgb_gamma_decode(s) * 65535.0).round() as u16;
+        Self::new(s)
     }
 }
 
@@ -396,6 +518,18 @@ impl Channel for Ch32 {
             Self::new(v + 1.0)
         }
     }
+
+    /// Encode an sRGB gamma value from linear intensity
+    fn encode_srgb(self) -> Self {
+        let s = srgb_gamma_encode(f32::from(self));
+        Self::new(s)
+    }
+
+    /// Decode an sRGB gamma value into linear intensity
+    fn decode_srgb(self) -> Self {
+        let s = srgb_gamma_decode(f32::from(self));
+        Self::new(s)
+    }
 }
 
 impl From<Ch8> for Ch32 {
@@ -500,6 +634,25 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn lut_encode_u8() {
+        for i in 0..=255 {
+            let s = i as f32 / 255.0;
+            let v = (srgb_gamma_encode(s) * 255.0).round() as u8;
+            assert_eq!(v, ENCODE_SRGB_U8[i]);
+        }
+    }
+
+    #[test]
+    fn lut_decode_u8() {
+        for i in 0..=255 {
+            let s = i as f32 / 255.0;
+            let v = (srgb_gamma_decode(s) * 255.0).round() as u8;
+            assert_eq!(v, DECODE_SRGB_U8[i]);
+        }
+    }
+
     #[test]
     fn ch8_into() {
         assert_eq!(Ch8::new(255), 255.into());
@@ -514,6 +667,7 @@ mod test {
         assert_eq!(Ch8::new(128), Ch16::new(32768).into());
         assert_eq!(Ch8::new(128), Ch32::new(0.5).into());
     }
+
     #[test]
     fn ch16_into() {
         assert_eq!(Ch16::new(65535), 65535.into());
@@ -523,6 +677,7 @@ mod test {
         assert_eq!(Ch16::new(0), Ch8::new(0).into());
         assert_eq!(Ch16::new(65535), Ch8::new(255).into());
     }
+
     #[test]
     fn ch32_into() {
         assert_eq!(Ch32::new(1.0), 1.0.into());
@@ -532,6 +687,7 @@ mod test {
         assert_eq!(Ch32::new(0.0), Ch8::new(0).into());
         assert_eq!(Ch32::new(1.0), Ch8::new(255).into());
     }
+
     #[test]
     fn ch8_mul() {
         assert_eq!(Ch8::new(255), Ch8::new(255) * 1.0);
@@ -544,6 +700,7 @@ mod test {
         assert_eq!(Ch8::new(16), Ch8::new(128) * 0.125);
         assert_eq!(Ch8::new(8), Ch8::new(128) * 0.0625);
     }
+
     #[test]
     fn ch8_div() {
         assert_eq!(Ch8::new(255), Ch8::new(255) / 1.0);

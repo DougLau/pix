@@ -3,12 +3,9 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 // Copyright (c) 2020  Douglas P Lau
 //
-use crate::alpha::{Premultiplied, Straight};
-use crate::channel::{Ch16, Ch32, Ch8, Channel};
+use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
+use crate::clr::{ColorModel, hue::{rgb_to_hue_chroma_value, Hexcone}};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
-use crate::gamma::Linear;
-use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
-use crate::model::ColorModel;
 use std::ops::Range;
 
 /// [HSL] bi-hexcone [color model].
@@ -17,10 +14,10 @@ use std::ops::Range;
 /// *alpha*.
 ///
 /// [color model]: trait.ColorModel.html
-/// [hue]: model/struct.Hsl.html#method.hue
+/// [hue]: #method.hue
 /// [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
-/// [lightness]: model/struct.Hsl.html#method.lightness
-/// [saturation]: model/struct.Hsl.html#method.saturation
+/// [lightness]: #method.lightness
+/// [saturation]: #method.saturation
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Hsl {}
 
@@ -42,13 +39,13 @@ impl Hsl {
     /// # Example: HSL Hue
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch32;
-    /// # use pix::model::Hsl;
+    /// # use pix::chan::Ch32;
+    /// # use pix::clr::Hsl;
     /// let p = Hsl32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hsl::hue(p), Ch32::new(0.25));
     /// ```
-    /// [Channel::MIN]: channel/trait.Channel.html#associatedconstant.MIN
-    /// [Channel::MAX]: channel/trait.Channel.html#associatedconstant.MAX
+    /// [Channel::MIN]: chan/trait.Channel.html#associatedconstant.MIN
+    /// [Channel::MAX]: chan/trait.Channel.html#associatedconstant.MAX
     pub fn hue<P: Pixel>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
@@ -65,8 +62,8 @@ impl Hsl {
     /// # Example: HSL Saturation
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch16;
-    /// # use pix::model::Hsl;
+    /// # use pix::chan::Ch16;
+    /// # use pix::clr::Hsl;
     /// let p = Hsl16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Hsl::saturation(p), Ch16::new(0x1234));
     /// ```
@@ -86,8 +83,8 @@ impl Hsl {
     /// # Example: HSL Lightness
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch8;
-    /// # use pix::model::Hsl;
+    /// # use pix::chan::Ch8;
+    /// # use pix::clr::Hsl;
     /// let p = Hsl8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsl::lightness(p), Ch8::new(0xA0));
     /// ```
@@ -103,8 +100,8 @@ impl Hsl {
     /// # Example: HSL Alpha
     /// ```
     /// # use pix::*;
-    /// # use pix::channel::Ch8;
-    /// # use pix::model::Hsl;
+    /// # use pix::chan::Ch8;
+    /// # use pix::clr::Hsl;
     /// let p = Hsla8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hsl::alpha(p), Ch8::new(0xB0));
     /// ```
@@ -157,62 +154,52 @@ impl ColorModel for Hsl {
     }
 }
 
-/// [Hsl](model/struct.Hsl.html) 8-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 8-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsl8 = Pix3<Ch8, Hsl, Straight, Linear>;
-/// [Hsl](model/struct.Hsl.html) 16-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 16-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsl16 = Pix3<Ch16, Hsl, Straight, Linear>;
-/// [Hsl](model/struct.Hsl.html) 32-bit opaque (no *alpha* channel)
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 32-bit opaque (no *alpha* channel)
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsl32 = Pix3<Ch32, Hsl, Straight, Linear>;
 
-/// [Hsl](model/struct.Hsl.html) 8-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 8-bit [straight](chan/struct.Straight.html)
+/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla8 = Pix4<Ch8, Hsl, Straight, Linear>;
-/// [Hsl](model/struct.Hsl.html) 16-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 16-bit [straight](chan/struct.Straight.html)
+/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla16 = Pix4<Ch16, Hsl, Straight, Linear>;
-/// [Hsl](model/struct.Hsl.html) 32-bit [straight](alpha/struct.Straight.html)
-/// alpha [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 32-bit [straight](chan/struct.Straight.html)
+/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla32 = Pix4<Ch32, Hsl, Straight, Linear>;
 
-/// [Hsl](model/struct.Hsl.html) 8-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 8-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla8p = Pix4<Ch8, Hsl, Premultiplied, Linear>;
-/// [Hsl](model/struct.Hsl.html) 16-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 16-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla16p = Pix4<Ch16, Hsl, Premultiplied, Linear>;
-/// [Hsl](model/struct.Hsl.html) 32-bit
-/// [premultiplied](alpha/struct.Premultiplied.html) alpha
-/// [linear](gamma/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Hsl](clr/struct.Hsl.html) 32-bit
+/// [premultiplied](chan/struct.Premultiplied.html) alpha
+/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hsla32p = Pix4<Ch32, Hsl, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {
-    use super::super::*;
-    use super::*;
-
-    #[test]
-    fn check_sizes() {
-        assert_eq!(std::mem::size_of::<Hsl8>(), 3);
-        assert_eq!(std::mem::size_of::<Hsl16>(), 6);
-        assert_eq!(std::mem::size_of::<Hsl32>(), 12);
-        assert_eq!(std::mem::size_of::<Hsla8>(), 4);
-        assert_eq!(std::mem::size_of::<Hsla16>(), 8);
-        assert_eq!(std::mem::size_of::<Hsla32>(), 16);
-    }
+    use crate::*;
+    use crate::el::Pixel;
 
     #[test]
     fn hsl_to_rgb() {

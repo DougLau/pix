@@ -2,7 +2,7 @@
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 //
-use crate::rgb::Rgb;
+use crate::clr::Rgb;
 use crate::SRgb8;
 
 /// Color table for use with indexed `Raster`s.

@@ -10,6 +10,10 @@
 * Raster::with_ constructors
 
 ### Changed
+* Renamed channel module to chan
+* Moved alpha/gamma stuff to chan module
+* Renamed model module to clr
+* Moved color model impls to clr module
 * GrayModel to Gray
 * HslModel to Hsl
 * HsvModel to Hsv

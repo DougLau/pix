@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 // Copyright (c) 2020  Douglas P Lau
 //
-use crate::channel::Channel;
+use crate::chan::Channel;
 
 /// Hexcone for color hue
 #[derive(Clone, Copy, Debug)]

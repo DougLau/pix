@@ -4,24 +4,17 @@
 //
 //! Color models
 use crate::el::{PixRgba, Pixel};
-pub use crate::gray::Gray;
-pub use crate::hsl::Hsl;
-pub use crate::hsv::Hsv;
-pub use crate::hwb::Hwb;
-pub use crate::mask::Mask;
-use crate::private::Sealed;
-pub use crate::rgb::Rgb;
-pub use crate::ycc::YCbCr;
+pub use crate::clr::{Gray, Hsl, Hsv, Hwb, Mask, Rgb, YCbCr};
+use std::any::Any;
 use std::fmt::Debug;
 use std::ops::Range;
 
 /// Model for pixel colors.
 ///
-/// Existing color models are [Rgb], [Gray], [Hsv], [Hsl], [Hwb], [YCbCr] and
-/// [Mask].
+/// Existing color models are [Rgb], [Bgr], [Gray], [Hsv], [Hsl], [Hwb],
+/// [YCbCr] and [Mask].
 ///
-/// This trait is *sealed*, and cannot be implemented outside of this crate.
-///
+/// [bgr]: struct.Bgr.html
 /// [convert]: el/trait.Pixel.html#method.convert
 /// [gray]: struct.Gray.html
 /// [hsl]: struct.Hsl.html
@@ -30,9 +23,7 @@ use std::ops::Range;
 /// [mask]: struct.Mask.html
 /// [rgb]: struct.Rgb.html
 /// [ycbcr]: struct.YCbCr.html
-pub trait ColorModel:
-    Clone + Copy + Debug + Default + PartialEq + Sealed
-{
+pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Any {
     /// Range of circular channel numbers
     const CIRCULAR: Range<usize>;
 
