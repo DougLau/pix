@@ -128,9 +128,6 @@ pub trait Channel:
     /// Maximum intensity (*one*)
     const MAX: Self;
 
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self;
-
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self;
 
@@ -214,12 +211,6 @@ impl Channel for Ch8 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch8 = Ch8(0xFF);
-
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self {
-        let v = f32::from(Ch32::from(self)).powf(g);
-        Ch32::new(v).into()
-    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
@@ -340,12 +331,6 @@ impl Channel for Ch16 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch16 = Ch16(0xFFFF);
-
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self {
-        let v = f32::from(Ch32::from(self)).powf(g);
-        Ch32::new(v).into()
-    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
@@ -493,11 +478,6 @@ impl Channel for Ch32 {
 
     /// Maximum intensity (*one*)
     const MAX: Ch32 = Ch32(1.0);
-
-    /// Raise to given power
-    fn powf(self, g: f32) -> Self {
-        Ch32::new(self.0.powf(g))
-    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
