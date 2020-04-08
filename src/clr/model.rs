@@ -3,8 +3,8 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 //! Color models
-use crate::el::{PixRgba, Pixel};
 pub use crate::clr::{Gray, Hsl, Hsv, Hwb, Mask, Rgb, YCbCr};
+use crate::el::{PixRgba, Pixel};
 use std::any::Any;
 use std::fmt::Debug;
 use std::ops::Range;

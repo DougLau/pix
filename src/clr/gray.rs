@@ -169,8 +169,8 @@ pub type SGraya32p = Pix2<Ch32, Gray, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {
-    use crate::*;
     use crate::el::Pixel;
+    use crate::*;
 
     #[test]
     fn rgb_to_gray() {

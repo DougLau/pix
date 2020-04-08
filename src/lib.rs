@@ -54,8 +54,6 @@ pub use crate::clr::hwb::{
     Hwb16, Hwb32, Hwb8, Hwba16, Hwba16p, Hwba32, Hwba32p, Hwba8, Hwba8p,
 };
 pub use crate::clr::mask::{Mask16, Mask32, Mask8};
-pub use crate::palette::Palette;
-pub use crate::raster::{Raster, Region, Rows, RowsMut};
 pub use crate::clr::rgb::{
     Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
@@ -65,3 +63,5 @@ pub use crate::clr::ycc::{
     YCbCr16, YCbCr32, YCbCr8, YCbCra16, YCbCra16p, YCbCra32, YCbCra32p,
     YCbCra8, YCbCra8p,
 };
+pub use crate::palette::Palette;
+pub use crate::raster::{Raster, Region, Rows, RowsMut};

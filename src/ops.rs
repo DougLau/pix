@@ -86,7 +86,8 @@ fn source_over_premultiplied<P: Pixel>(dst: &mut P, src: &P) {
     let one_minus_src_a = P::Chan::MAX - src.alpha();
     let s_chan = &src.channels()[P::Model::LINEAR];
     let d_chan = &mut dst.channels_mut()[P::Model::LINEAR];
-    d_chan.iter_mut()
+    d_chan
+        .iter_mut()
         .zip(s_chan)
         .for_each(|(d, s)| *d = *s + *d * one_minus_src_a);
     // FIXME: composite circular channels

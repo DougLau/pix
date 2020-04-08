@@ -4,7 +4,10 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Straight};
-use crate::clr::{ColorModel, hue::{rgb_to_hue_chroma_value, Hexcone}};
+use crate::clr::{
+    hue::{rgb_to_hue_chroma_value, Hexcone},
+    ColorModel,
+};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use std::ops::Range;
 
@@ -196,8 +199,8 @@ pub type Hsva32p = Pix4<Ch32, Hsv, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {
-    use crate::*;
     use crate::el::Pixel;
+    use crate::*;
 
     #[test]
     fn hsv_to_rgb() {

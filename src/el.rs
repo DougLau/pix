@@ -638,8 +638,8 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::*;
     use crate::el::*;
+    use crate::*;
 
     #[test]
     fn check_sizes() {
