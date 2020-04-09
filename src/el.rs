@@ -5,7 +5,7 @@
 //
 //! Module for `pix::el` items
 use crate::chan::{Alpha, Channel, Gamma};
-use crate::clr::{ColorModel, Rgb};
+use crate::clr::{ColorModel, Matte, Rgb};
 use crate::private::Sealed;
 use std::any::TypeId;
 use std::fmt::Debug;
@@ -173,27 +173,53 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     }
 
     /// Composite a color with a pixel slice
-    fn composite_color(dst: &mut [Self], clr: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
-    {
+    fn composite_color(
+        dst: &mut [Self],
+        clr: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
+    ) {
         for d in dst.iter_mut() {
             d.composite_channels(clr, &op);
         }
     }
 
-    /// Composite two slices of pixels
-    fn composite_slice(dst: &mut [Self], src: &[Self],
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
+    /// Composite matte with color to destination pixel slice
+    fn composite_matte<M>(
+        dst: &mut [Self],
+        src: &[M],
+        clr: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
+    )
+    where
+        M: Pixel<
+            Chan = Self::Chan,
+            Model = Matte,
+            Gamma = Self::Gamma,
+        >,
     {
+        for (d, s) in dst.iter_mut().zip(src) {
+            let alpha = Matte::alpha(*s);
+            d.composite_channels_matte(&alpha, clr, &op);
+        }
+    }
+
+    /// Composite two slices of pixels
+    fn composite_slice(
+        dst: &mut [Self],
+        src: &[Self],
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
+    ) {
         for (d, s) in dst.iter_mut().zip(src) {
             d.composite_channels(s, &op);
         }
     }
 
-    /// Composite two pixels
-    fn composite_channels(&mut self, src: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
-    {
+    /// Composite the channels of two pixels
+    fn composite_channels(
+        &mut self,
+        src: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
+    ) {
         let a1 = Self::Chan::MAX - src.alpha();
         let s_chan = &src.channels()[Self::Model::LINEAR];
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
@@ -206,6 +232,29 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
             let sa = &src.alpha();
             let da = &mut self.channels_mut()[Self::Model::ALPHA];
             op(da, sa, &a1);
+        }
+    }
+
+    /// Composite the channels of pixels with a matte and color
+    fn composite_channels_matte(
+        &mut self,
+        alpha: &Self::Chan,
+        src: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
+    )
+    {
+        let a1 = Self::Chan::MAX - *alpha;
+        let s_chan = &src.channels()[Self::Model::LINEAR];
+        let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
+        d_chan
+            .iter_mut()
+            .zip(s_chan)
+            .for_each(|(d, s)| op(d, &(*s * *alpha), &a1));
+        // FIXME: composite circular channels
+        if self.channels().len() > Self::Model::ALPHA {
+            let da = &mut self.channels_mut()[Self::Model::ALPHA];
+            let sa = src.alpha() * *alpha;
+            op(da, &sa, &a1);
         }
     }
 }

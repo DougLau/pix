@@ -4,6 +4,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::chan::{Ch16, Ch8};
+use crate::clr::Matte;
 use crate::el::Pixel;
 use crate::ops::PorterDuff;
 use std::convert::TryFrom;
@@ -412,6 +413,49 @@ impl<P: Pixel> Raster<P> {
         }
     }
 
+    /// Composite from a matte `Raster` and color.
+    pub fn composite_matte<R0, R1, M, O>(
+        &mut self,
+        to: R0,
+        src: &Raster<M>,
+        from: R1,
+        clr: P,
+        _op: O,
+    ) where
+        R0: Into<Region>,
+        R1: Into<Region>,
+        M: Pixel<
+            Chan = P::Chan,
+            Model = Matte,
+           // Alpha = P::Alpha,
+            Gamma = P::Gamma,
+        >,
+        O: PorterDuff,
+    {
+        let (to, from) = (to.into(), from.into());
+        let tx = to.x.min(0).abs();
+        let ty = to.y.min(0).abs();
+        let fx = from.x.min(0).abs();
+        let fy = from.y.min(0).abs();
+        let to = self.intersection(to);
+        let from = src.intersection(from);
+        let width = to.width().min(from.width());
+        let height = to.height().min(from.height());
+        if width > 0 && height > 0 {
+            let to = Region::new(to.x + fx, to.y + fy, width, height);
+            let from = Region::new(from.x + tx, from.y + ty, width, height);
+            let srows = src.rows().skip(from.y as usize);
+            let drows = self.rows_mut().skip(to.y as usize);
+            for (drow, srow) in drows.take(height as usize).zip(srows) {
+                let x0 = to.x as usize;
+                let x1 = x0 + width as usize;
+                let drow = &mut drow[x0..x1];
+                let srow = &srow[from.x as usize..];
+                O::composite_matte(drow, srow, clr);
+            }
+        }
+    }
+
     /// Composite from a source `Raster`.
     ///
     /// * `to` Region within `self` (destination).
@@ -597,10 +641,12 @@ impl Region {
 mod test {
     use crate::*;
     use crate::ops::*;
+
     #[test]
     fn region_size() {
         assert_eq!(std::mem::size_of::<Region>(), 16);
     }
+
     #[test]
     fn intersect() -> Result<(), ()> {
         let r = Region::new(0, 0, 5, 5);
@@ -621,6 +667,7 @@ mod test {
         );
         Ok(())
     }
+
     #[test]
     fn with_buffer_rgb8() {
         let b = vec![
@@ -639,6 +686,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn with_buffer_graya16() {
         let b = vec![
@@ -657,6 +705,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn with_pixels_matte32() {
         let p = vec![
@@ -667,6 +716,7 @@ mod test {
         let r = Raster::with_pixels(3, 3, p.clone());
         assert_eq!(r.pixels(), &p[..]);
     }
+
     #[test]
     fn pixel_mut_matte8() {
         let mut r = Raster::<Matte8>::with_clear(3, 3);
@@ -682,6 +732,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn pixel_mut_matte16() {
         let mut r = Raster::<Matte16>::with_clear(3, 3);
@@ -697,12 +748,14 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn raster_with_color() {
         let r = Raster::<Hwb8>::with_color(3, 3, Hwb8::new(0x80, 0, 0));
         let v = vec![Hwb8::new(0x80, 0, 0); 9];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn composite_color_gray8() {
         let mut r = Raster::<SGray8>::with_clear(3, 3);
@@ -716,6 +769,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn composite_color_gray8_over() {
         let clr = Graya8p::new(0x20, 0x40);
@@ -728,6 +782,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn composite_color_srgb8() {
         let mut r = Raster::<SRgb8>::with_clear(3, 3);
@@ -742,6 +797,7 @@ mod test {
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
+
     #[test]
     fn composite_raster_gray() {
         let mut g0 = Raster::<Gray8>::with_clear(3, 3);
@@ -758,6 +814,7 @@ mod test {
         ];
         assert_eq!(g0.pixels(), &v[..]);
     }
+
     #[test]
     fn composite_raster_rgb() {
         let mut rgb = Raster::<SRgb8>::with_clear(3, 3);
@@ -768,6 +825,53 @@ mod test {
         v.extend_from_slice(&vec![SRgb8::new(0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);
     }
+
+    #[test]
+    fn composite_matte_full() {
+        let mut r = Raster::<Rgba8p>::with_clear(2, 2);
+        let mut m = Raster::<Matte8>::with_clear(2, 2);
+        *m.pixel_mut(0, 0) = Matte8::new(0xFF);
+        *m.pixel_mut(1, 1) = Matte8::new(0x80);
+        let v = [
+            Matte8::new(0xFF), Matte8::new(0),
+            Matte8::new(0), Matte8::new(0x80),
+        ];
+        assert_eq!(m.pixels(), &v);
+        let c = Rgba8p::new(0xFF, 0x80, 0x40, 0xFF);
+        r.composite_matte((), &m, (), c, SrcOver);
+        let v = [
+            Rgba8p::new(0xFF, 0x80, 0x40, 0xFF), Rgba8p::new(0, 0, 0, 0),
+            Rgba8p::new(0, 0, 0, 0), Rgba8p::new(0x80, 0x40, 0x20, 0x80),
+        ];
+        assert_eq!(r.pixels(), &v);
+    }
+
+    #[test]
+    fn composite_matte_smaller() {
+        let mut r = Raster::<Rgba8p>::with_clear(3, 3);
+        let m = vec![
+            Matte8::new(0xFF), Matte8::new(0x80),
+            Matte8::new(0x40), Matte8::new(0x20),
+        ];
+        let m = Raster::<Matte8>::with_pixels(2, 2, m);
+        let c = Rgba8p::new(0x40, 0x80, 0x60, 0x80);
+        r.composite_matte((1, 1, 4, 4), &m, (), c, SrcOver);
+        let v = [
+            Rgba8p::new(0, 0, 0, 0),
+            Rgba8p::new(0, 0, 0, 0),
+            Rgba8p::new(0, 0, 0, 0),
+
+            Rgba8p::new(0, 0, 0, 0),
+            Rgba8p::new(0x40, 0x80, 0x60, 0x80),
+            Rgba8p::new(0x20, 0x40, 0x30, 0x40),
+
+            Rgba8p::new(0, 0, 0, 0),
+            Rgba8p::new(0x10, 0x20, 0x18, 0x20),
+            Rgba8p::new(0x08, 0x10, 0x0C, 0x10),
+        ];
+        assert_eq!(r.pixels(), &v);
+    }
+
     #[test]
     fn with_raster_rgb() {
         let r = Raster::<SRgb8>::with_clear(50, 50);
@@ -786,6 +890,7 @@ mod test {
         let _ = Raster::<Matte16>::with_raster(&r);
         let _ = Raster::<Matte32>::with_raster(&r);
     }
+
     #[test]
     fn with_raster_matte8() {
         let r = Raster::<Matte8>::with_clear(50, 50);

@@ -4,6 +4,7 @@
 //
 //! Porter-Duff compositing operations
 use crate::chan::Premultiplied;
+use crate::clr::Matte;
 use crate::el::Pixel;
 use crate::private::Sealed;
 use std::any::TypeId;
@@ -16,6 +17,16 @@ pub trait PorterDuff: Sealed {
     fn composite_color<P>(dst: &mut [P], clr: P)
     where
         P: Pixel;
+
+    /// Composite matte with color to destination pixel slice
+    fn composite_matte<P, M>(dst: &mut [P], src: &[M], clr: P)
+    where
+        P: Pixel,
+        M: Pixel<
+            Chan = P::Chan,
+            Model = Matte,
+            Gamma = P::Gamma,
+        >;
 
     /// Composite source and destination pixel slices
     fn composite_slice<P>(dst: &mut [P], src: &[P])
@@ -37,6 +48,18 @@ impl PorterDuff for Src {
         P::composite_color(dst, &clr, |d, s, _a1| *d = *s);
     }
 
+    fn composite_matte<P, M>(dst: &mut [P], src: &[M], clr: P)
+    where
+        P: Pixel,
+        M: Pixel<
+            Chan = P::Chan,
+            Model = Matte,
+            Gamma = P::Gamma,
+        >,
+    {
+        P::composite_matte(dst, src, &clr, |d, s, _a1| *d = *s);
+    }
+
     fn composite_slice<P>(dst: &mut [P], src: &[P])
     where
         P: Pixel,
@@ -55,6 +78,18 @@ impl PorterDuff for SrcOver {
         } else {
             todo!();
         }
+    }
+
+    fn composite_matte<P, M>(dst: &mut [P], src: &[M], clr: P)
+    where
+        P: Pixel,
+        M: Pixel<
+            Chan = P::Chan,
+            Model = Matte,
+            Gamma = P::Gamma,
+        >,
+    {
+        P::composite_matte(dst, src, &clr, |d, s, a1| *d = *s + *d * *a1);
     }
 
     fn composite_slice<P>(dst: &mut [P], src: &[P])
