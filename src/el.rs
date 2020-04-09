@@ -140,7 +140,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Get the *alpha* channel.
     fn alpha(self) -> Self::Chan {
         let chan = self.channels();
-        chan[Self::Model::ALPHA]
+        *chan.get(Self::Model::ALPHA).unwrap_or(&Self::Chan::MAX)
     }
 
     /// Convert a pixel to another format
@@ -170,6 +170,43 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         channels[Self::Model::LINEAR]
             .iter_mut()
             .for_each(|c| *c = Self::Gamma::from_linear(*c));
+    }
+
+    /// Composite a color with a pixel slice
+    fn composite_color(dst: &mut [Self], clr: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
+    {
+        for d in dst.iter_mut() {
+            d.composite_channels(clr, &op);
+        }
+    }
+
+    /// Composite two slices of pixels
+    fn composite_slice(dst: &mut [Self], src: &[Self],
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
+    {
+        for (d, s) in dst.iter_mut().zip(src) {
+            d.composite_channels(s, &op);
+        }
+    }
+
+    /// Composite two pixels
+    fn composite_channels(&mut self, src: &Self,
+        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan))
+    {
+        let a1 = Self::Chan::MAX - src.alpha();
+        let s_chan = &src.channels()[Self::Model::LINEAR];
+        let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
+        d_chan
+            .iter_mut()
+            .zip(s_chan)
+            .for_each(|(d, s)| op(d, s, &a1));
+        // FIXME: composite circular channels
+        if self.channels().len() > Self::Model::ALPHA {
+            let sa = &src.alpha();
+            let da = &mut self.channels_mut()[Self::Model::ALPHA];
+            op(da, sa, &a1);
+        }
     }
 }
 

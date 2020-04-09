@@ -3,8 +3,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 //! Porter-Duff compositing operations
-use crate::chan::{Channel, Premultiplied};
-use crate::clr::ColorModel;
+use crate::chan::Premultiplied;
 use crate::el::Pixel;
 use crate::private::Sealed;
 use std::any::TypeId;
@@ -19,83 +18,53 @@ pub trait PorterDuff: Sealed {
         P: Pixel;
 
     /// Composite source and destination pixel slices
-    fn composite<P>(dst: &mut [P], src: &[P])
+    fn composite_slice<P>(dst: &mut [P], src: &[P])
     where
         P: Pixel;
 }
 
 /// Source compositing (copy source to destination)
-pub struct Source;
+pub struct Src;
 
 /// Source Over compositing (standard alpha blending)
-pub struct SourceOver;
+pub struct SrcOver;
 
-impl PorterDuff for Source {
+impl PorterDuff for Src {
     fn composite_color<P>(dst: &mut [P], clr: P)
     where
         P: Pixel,
     {
-        for d in dst.iter_mut() {
-            *d = clr;
-        }
+        P::composite_color(dst, &clr, |d, s, _a1| *d = *s);
     }
 
-    fn composite<P>(dst: &mut [P], src: &[P])
+    fn composite_slice<P>(dst: &mut [P], src: &[P])
     where
         P: Pixel,
     {
-        for (d, s) in dst.iter_mut().zip(src) {
-            *d = *s;
-        }
+        P::composite_slice(dst, src, |d, s, _a1| *d = *s);
     }
 }
 
-impl PorterDuff for SourceOver {
+impl PorterDuff for SrcOver {
     fn composite_color<P>(dst: &mut [P], clr: P)
     where
         P: Pixel,
     {
         if TypeId::of::<P::Alpha>() == TypeId::of::<Premultiplied>() {
-            for d in dst.iter_mut() {
-                source_over_premultiplied(d, &clr);
-            }
+            P::composite_color(dst, &clr, |d, s, a1| *d = *s + *d * *a1);
         } else {
-            for d in dst.iter_mut() {
-                source_over_straight(d, &clr);
-            }
+            todo!();
         }
     }
 
-    fn composite<P>(dst: &mut [P], src: &[P])
+    fn composite_slice<P>(dst: &mut [P], src: &[P])
     where
         P: Pixel,
     {
         if TypeId::of::<P::Alpha>() == TypeId::of::<Premultiplied>() {
-            for (d, s) in dst.iter_mut().zip(src) {
-                source_over_premultiplied(d, s);
-            }
+            P::composite_slice(dst, src, |d, s, a1| *d = *s + *d * *a1);
         } else {
-            for (d, s) in dst.iter_mut().zip(src) {
-                source_over_straight(d, s);
-            }
+            todo!();
         }
     }
-}
-
-fn source_over_premultiplied<P: Pixel>(dst: &mut P, src: &P) {
-    let one_minus_src_a = P::Chan::MAX - src.alpha();
-    let s_chan = &src.channels()[P::Model::LINEAR];
-    let d_chan = &mut dst.channels_mut()[P::Model::LINEAR];
-    d_chan
-        .iter_mut()
-        .zip(s_chan)
-        .for_each(|(d, s)| *d = *s + *d * one_minus_src_a);
-    // FIXME: composite circular channels
-    let sa = &src.channels()[P::Model::ALPHA];
-    let da = &mut dst.channels_mut()[P::Model::ALPHA];
-    *da = *sa + *da * one_minus_src_a;
-}
-
-fn source_over_straight<P: Pixel>(_dst: &mut P, _src: &P) {
-    todo!();
 }
