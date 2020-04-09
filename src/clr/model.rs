@@ -3,7 +3,7 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 //! Color models
-pub use crate::clr::{Gray, Hsl, Hsv, Hwb, Mask, Rgb, YCbCr};
+pub use crate::clr::{Gray, Hsl, Hsv, Hwb, Matte, Rgb, YCbCr};
 use crate::el::{PixRgba, Pixel};
 use std::any::Any;
 use std::fmt::Debug;
@@ -12,7 +12,7 @@ use std::ops::Range;
 /// Model for pixel colors.
 ///
 /// Existing color models are [Rgb], [Bgr], [Gray], [Hsv], [Hsl], [Hwb],
-/// [YCbCr] and [Mask].
+/// [YCbCr] and [Matte].
 ///
 /// [bgr]: struct.Bgr.html
 /// [convert]: el/trait.Pixel.html#method.convert
@@ -20,7 +20,7 @@ use std::ops::Range;
 /// [hsl]: struct.Hsl.html
 /// [hsv]: struct.Hsv.html
 /// [hwb]: struct.Hwb.html
-/// [mask]: struct.Mask.html
+/// [matte]: struct.Matte.html
 /// [rgb]: struct.Rgb.html
 /// [ycbcr]: struct.YCbCr.html
 pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Any {

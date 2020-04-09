@@ -54,7 +54,7 @@ pub use crate::clr::hsv::{
 pub use crate::clr::hwb::{
     Hwb16, Hwb32, Hwb8, Hwba16, Hwba16p, Hwba32, Hwba32p, Hwba8, Hwba8p,
 };
-pub use crate::clr::mask::{Mask16, Mask32, Mask8};
+pub use crate::clr::matte::{Matte16, Matte32, Matte8};
 pub use crate::clr::rgb::{
     Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
     SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,

@@ -199,15 +199,15 @@ mod test {
     }
 
     #[test]
-    fn mask_to_gray() {
-        assert_eq!(SGraya8::new(0xFF, 0xAB), Mask16::new(0xABCD).convert());
-        assert_eq!(SGraya8::new(0xFF, 0x98), Mask16::new(0x9876).convert());
+    fn matte_to_gray() {
+        assert_eq!(SGraya8::new(0xFF, 0xAB), Matte16::new(0xABCD).convert());
+        assert_eq!(SGraya8::new(0xFF, 0x98), Matte16::new(0x9876).convert());
     }
 
     #[test]
-    fn gray_to_mask() {
-        assert_eq!(Mask16::new(0x9494), SGraya8::new(0x67, 0x94).convert());
-        assert_eq!(Mask16::new(0xA2A2), SGraya8::new(0xBA, 0xA2).convert());
-        assert_eq!(Mask8::new(0x80), SGraya32::new(0.75, 0.5).convert());
+    fn gray_to_matte() {
+        assert_eq!(Matte16::new(0x9494), SGraya8::new(0x67, 0x94).convert());
+        assert_eq!(Matte16::new(0xA2A2), SGraya8::new(0xBA, 0xA2).convert());
+        assert_eq!(Matte8::new(0x80), SGraya32::new(0.75, 0.5).convert());
     }
 }

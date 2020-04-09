@@ -18,7 +18,7 @@
 * HslModel to Hsl
 * HsvModel to Hsv
 * HwbModel to Hwb
-* MaskModel to Mask
+* MaskModel to Matte
 * RgbModel to Rgb
 * YCbCrModel to YCbCr
 * Moved `alpha` associated functions out of ColorModel trait

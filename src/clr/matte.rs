@@ -1,4 +1,4 @@
-// mask.rs      Alpha mask color model.
+// matte.rs     Alpha matte color model.
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
@@ -8,24 +8,26 @@ use crate::clr::ColorModel;
 use crate::el::{Pix1, PixRgba, Pixel};
 use std::ops::Range;
 
-/// Mask [color model].
+/// Matte [color model].
 ///
-/// The component is *alpha* only.
+/// The component is *[alpha]* only.
 ///
+/// [alpha]: #method.alpha
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-pub struct Mask {}
+pub struct Matte {}
 
-impl Mask {
+impl Matte {
     /// Get the *alpha* component.
     ///
-    /// # Example: Mask Alpha
+    /// # Example: Matte Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Mask;
-    /// let p = Mask8::new(0x94);
-    /// assert_eq!(Mask::alpha(p), Ch8::new(0x94));
+    /// use pix::Matte8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Matte;
+    ///
+    /// let p = Matte8::new(0x94);
+    /// assert_eq!(Matte::alpha(p), Ch8::new(0x94));
     /// ```
     pub fn alpha<P: Pixel>(p: P) -> P::Chan
     where
@@ -35,7 +37,7 @@ impl Mask {
     }
 }
 
-impl ColorModel for Mask {
+impl ColorModel for Matte {
     const CIRCULAR: Range<usize> = 0..0;
     const LINEAR: Range<usize> = 0..0;
     const ALPHA: usize = 0;
@@ -59,17 +61,17 @@ impl ColorModel for Mask {
     }
 }
 
-/// [Mask](clr/struct.Mask.html) 8-bit [straight](chan/struct.Straight.html)
+/// [Matte](clr/struct.Matte.html) 8-bit [straight](chan/struct.Straight.html)
 /// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask8 = Pix1<Ch8, Mask, Straight, Linear>;
+pub type Matte8 = Pix1<Ch8, Matte, Straight, Linear>;
 
-/// [Mask](clr/struct.Mask.html) 16-bit [straight](chan/struct.Straight.html)
+/// [Matte](clr/struct.Matte.html) 16-bit [straight](chan/struct.Straight.html)
 /// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask16 = Pix1<Ch16, Mask, Straight, Linear>;
+pub type Matte16 = Pix1<Ch16, Matte, Straight, Linear>;
 
-/// [Mask](clr/struct.Mask.html) 32-bit [straight](chan/struct.Straight.html)
+/// [Matte](clr/struct.Matte.html) 32-bit [straight](chan/struct.Straight.html)
 /// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
-pub type Mask32 = Pix1<Ch32, Mask, Straight, Linear>;
+pub type Matte32 = Pix1<Ch32, Matte, Straight, Linear>;

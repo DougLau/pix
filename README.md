@@ -11,4 +11,4 @@ Rust crate for pixel and raster images.
 * `HSL` (*hue*, *saturation*, *lightness*)
 * `HWB` (*hue*, *whiteness*, *blackness*)
 * `YCbCr` (JPEG)
-* `Mask` (*alpha* only)
+* `Matte` (*alpha* only)

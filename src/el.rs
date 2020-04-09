@@ -25,7 +25,7 @@ use std::marker::PhantomData;
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
 /// * _Color model_: [`Rgb`] / [`Bgr`] / [`Gray`] / [`Hsv`] / [`Hsl`] /
-///                  [`Hwb`] / [`YCbCr`] / [`Mask`].
+///                  [`Hwb`] / [`YCbCr`] / [`Matte`].
 /// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
@@ -38,7 +38,7 @@ use std::marker::PhantomData;
 /// [`hsv`]: ../clr/struct.Hsv.html
 /// [`hwb`]: ../clr/struct.Hwb.html
 /// [linear]: ../chan/struct.Linear.html
-/// [`mask`]: ../clr/struct.Mask.html
+/// [`matte`]: ../clr/struct.Matte.html
 /// [premultiplied]: ../chan/struct.Premultiplied.html
 /// [`Rgb`]: ../clr/struct.Rgb.html
 /// [sRGB]: ../chan/struct.Srgb.html
@@ -83,10 +83,10 @@ use std::marker::PhantomData;
 ///   [SGraya8p](../type.SGraya8p.html),
 ///   [SRgba16p](../type.SRgba16p.html),
 ///   *etc.*
-/// * Alpha mask:
-///   [Mask8](../type.Mask8.html),
-///   [Mask16](../type.Mask16.html),
-///   [Mask32](../type.Mask32.html)
+/// * Alpha matte:
+///   [Matte8](../type.Matte8.html),
+///   [Matte16](../type.Matte16.html),
+///   [Matte32](../type.Matte32.html)
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
@@ -647,9 +647,9 @@ mod test {
 
     #[test]
     fn check_sizes() {
-        assert_eq!(std::mem::size_of::<Mask8>(), 1);
-        assert_eq!(std::mem::size_of::<Mask16>(), 2);
-        assert_eq!(std::mem::size_of::<Mask32>(), 4);
+        assert_eq!(std::mem::size_of::<Matte8>(), 1);
+        assert_eq!(std::mem::size_of::<Matte16>(), 2);
+        assert_eq!(std::mem::size_of::<Matte32>(), 4);
         assert_eq!(std::mem::size_of::<SGray8>(), 1);
         assert_eq!(std::mem::size_of::<SGray16>(), 2);
         assert_eq!(std::mem::size_of::<SGray32>(), 4);

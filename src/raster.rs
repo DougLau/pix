@@ -108,9 +108,10 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ## Examples
     /// ```
-    /// # use pix::*;
+    /// use pix::{Matte8, Raster, SGray8, SGraya32, SRgb16};
+    ///
     /// let r1 = Raster::<SGray8>::with_clear(20, 20);
-    /// let r2 = Raster::<Mask8>::with_clear(64, 64);
+    /// let r2 = Raster::<Matte8>::with_clear(64, 64);
     /// let r3 = Raster::<SRgb16>::with_clear(10, 10);
     /// let r4 = Raster::<SGraya32>::with_clear(100, 250);
     /// ```
@@ -651,42 +652,42 @@ mod test {
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn with_pixels_mask32() {
+    fn with_pixels_matte32() {
         let p = vec![
-            Mask32::new(0.25), Mask32::new(0.5), Mask32::new(0.75),
-            Mask32::new(0.5), Mask32::new(0.6), Mask32::new(0.7),
-            Mask32::new(0.85), Mask32::new(0.65), Mask32::new(0.45),
+            Matte32::new(0.25), Matte32::new(0.5), Matte32::new(0.75),
+            Matte32::new(0.5), Matte32::new(0.6), Matte32::new(0.7),
+            Matte32::new(0.85), Matte32::new(0.65), Matte32::new(0.45),
         ];
         let r = Raster::with_pixels(3, 3, p.clone());
         assert_eq!(r.pixels(), &p[..]);
     }
     #[test]
-    fn pixel_mut_mask8() {
-        let mut r = Raster::<Mask8>::with_clear(3, 3);
-        *r.pixel_mut(0, 0) = Mask8::new(0xFF);
-        *r.pixel_mut(2, 0) = Mask8::new(0x12);
-        *r.pixel_mut(1, 1) = Mask8::new(0x34);
-        *r.pixel_mut(0, 2) = Mask8::new(0x56);
-        *r.pixel_mut(2, 2) = Mask8::new(0x78);
+    fn pixel_mut_matte8() {
+        let mut r = Raster::<Matte8>::with_clear(3, 3);
+        *r.pixel_mut(0, 0) = Matte8::new(0xFF);
+        *r.pixel_mut(2, 0) = Matte8::new(0x12);
+        *r.pixel_mut(1, 1) = Matte8::new(0x34);
+        *r.pixel_mut(0, 2) = Matte8::new(0x56);
+        *r.pixel_mut(2, 2) = Matte8::new(0x78);
         let v = vec![
-            Mask8::new(0xFF), Mask8::new(0x00), Mask8::new(0x12),
-            Mask8::new(0x00), Mask8::new(0x34), Mask8::new(0x00),
-            Mask8::new(0x56), Mask8::new(0x00), Mask8::new(0x78),
+            Matte8::new(0xFF), Matte8::new(0x00), Matte8::new(0x12),
+            Matte8::new(0x00), Matte8::new(0x34), Matte8::new(0x00),
+            Matte8::new(0x56), Matte8::new(0x00), Matte8::new(0x78),
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
     #[test]
-    fn pixel_mut_mask16() {
-        let mut r = Raster::<Mask16>::with_clear(3, 3);
-        *r.pixel_mut(2, 0) = Mask16::new(0x9ABC);
-        *r.pixel_mut(1, 1) = Mask16::new(0x5678);
-        *r.pixel_mut(0, 2) = Mask16::new(0x1234);
-        *r.pixel_mut(0, 0) = Mask16::new(1.0);
-        *r.pixel_mut(2, 2) = Mask16::new(0x8080);
+    fn pixel_mut_matte16() {
+        let mut r = Raster::<Matte16>::with_clear(3, 3);
+        *r.pixel_mut(2, 0) = Matte16::new(0x9ABC);
+        *r.pixel_mut(1, 1) = Matte16::new(0x5678);
+        *r.pixel_mut(0, 2) = Matte16::new(0x1234);
+        *r.pixel_mut(0, 0) = Matte16::new(1.0);
+        *r.pixel_mut(2, 2) = Matte16::new(0x8080);
         let v = vec![
-            Mask16::new(0xFFFF), Mask16::new(0x0000), Mask16::new(0x9ABC),
-            Mask16::new(0x0000), Mask16::new(0x5678), Mask16::new(0x0000),
-            Mask16::new(0x1234), Mask16::new(0x0000), Mask16::new(0x8080),
+            Matte16::new(0xFFFF), Matte16::new(0x0000), Matte16::new(0x9ABC),
+            Matte16::new(0x0000), Matte16::new(0x5678), Matte16::new(0x0000),
+            Matte16::new(0x1234), Matte16::new(0x0000), Matte16::new(0x8080),
         ];
         assert_eq!(r.pixels(), &v[..]);
     }
@@ -775,13 +776,13 @@ mod test {
         let _ = Raster::<SGraya8>::with_raster(&r);
         let _ = Raster::<SGraya16>::with_raster(&r);
         let _ = Raster::<SGraya32>::with_raster(&r);
-        let _ = Raster::<Mask8>::with_raster(&r);
-        let _ = Raster::<Mask16>::with_raster(&r);
-        let _ = Raster::<Mask32>::with_raster(&r);
+        let _ = Raster::<Matte8>::with_raster(&r);
+        let _ = Raster::<Matte16>::with_raster(&r);
+        let _ = Raster::<Matte32>::with_raster(&r);
     }
     #[test]
-    fn with_raster_mask8() {
-        let r = Raster::<Mask8>::with_clear(50, 50);
+    fn with_raster_matte8() {
+        let r = Raster::<Matte8>::with_clear(50, 50);
         let _ = Raster::<SRgb8>::with_raster(&r);
         let _ = Raster::<SRgb16>::with_raster(&r);
         let _ = Raster::<SRgb32>::with_raster(&r);
@@ -794,8 +795,8 @@ mod test {
         let _ = Raster::<SGraya8>::with_raster(&r);
         let _ = Raster::<SGraya16>::with_raster(&r);
         let _ = Raster::<SGraya32>::with_raster(&r);
-        let _ = Raster::<Mask8>::with_raster(&r);
-        let _ = Raster::<Mask16>::with_raster(&r);
-        let _ = Raster::<Mask32>::with_raster(&r);
+        let _ = Raster::<Matte8>::with_raster(&r);
+        let _ = Raster::<Matte16>::with_raster(&r);
+        let _ = Raster::<Matte32>::with_raster(&r);
     }
 }
