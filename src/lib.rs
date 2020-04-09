@@ -17,7 +17,8 @@
 //!
 //! ### Example: Convert Raster Format
 //! ```
-//! # use pix::*;
+//! use pix::{Raster, Rgba8p, SRgb8};
+//!
 //! let mut src = Raster::<SRgb8>::with_clear(120, 120);
 //! // ... load pixels into raster
 //! let dst: Raster<Rgba8p> = Raster::with_raster(&src);

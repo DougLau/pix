@@ -14,8 +14,9 @@ use std::ops::Range;
 /// [HSL] bi-hexcone [color model].
 ///
 /// The components are *[hue]*, *[saturation]*, *[lightness]* and optional
-/// *alpha*.
+/// *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
 /// [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -41,9 +42,10 @@ impl Hsl {
     ///
     /// # Example: HSL Hue
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::Hsl;
+    /// use pix::Hsl32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Hsl;
+    ///
     /// let p = Hsl32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hsl::hue(p), Ch32::new(0.25));
     /// ```
@@ -64,9 +66,10 @@ impl Hsl {
     ///
     /// # Example: HSL Saturation
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Hsl;
+    /// use pix::Hsl16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hsl;
+    ///
     /// let p = Hsl16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Hsl::saturation(p), Ch16::new(0x1234));
     /// ```
@@ -85,9 +88,10 @@ impl Hsl {
     ///
     /// # Example: HSL Lightness
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hsl;
+    /// use pix::Hsl8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hsl;
+    ///
     /// let p = Hsl8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsl::lightness(p), Ch8::new(0xA0));
     /// ```
@@ -102,9 +106,10 @@ impl Hsl {
     ///
     /// # Example: HSL Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hsl;
+    /// use pix::Hsla8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hsl;
+    ///
     /// let p = Hsla8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hsl::alpha(p), Ch8::new(0xB0));
     /// ```

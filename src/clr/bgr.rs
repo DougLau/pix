@@ -9,8 +9,9 @@ use std::ops::Range;
 
 /// BGR arrangement of [RGB] [color model].
 ///
-/// The components are *[blue]*, *[green]*, *[red]* and optional *alpha*.
+/// The components are *[blue]*, *[green]*, *[red]* and optional *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [blue]: #method.blue
 /// [color model]: trait.ColorModel.html
 /// [green]: #method.green
@@ -24,9 +25,10 @@ impl Bgr {
     ///
     /// # Example: BGR Blue
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Bgr;
+    /// use pix::Bgr8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Bgr;
+    ///
     /// let p = Bgr8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Bgr::blue(p), Ch8::new(0x93));
     /// ```
@@ -41,9 +43,10 @@ impl Bgr {
     ///
     /// # Example: BGR Green
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Bgr;
+    /// use pix::Bgr16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Bgr;
+    ///
     /// let p = Bgr16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Bgr::green(p), Ch16::new(0x1234));
     /// ```
@@ -58,9 +61,10 @@ impl Bgr {
     ///
     /// # Example: BGR Red
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::Bgr;
+    /// use pix::Bgr32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Bgr;
+    ///
     /// let p = Bgr32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Bgr::red(p), Ch32::new(1.0));
     /// ```
@@ -75,9 +79,10 @@ impl Bgr {
     ///
     /// # Example: BGR Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Bgr;
+    /// use pix::Bgra8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Bgr;
+    ///
     /// let p = Bgra8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Bgr::alpha(p), Ch8::new(0xB0));
     /// ```

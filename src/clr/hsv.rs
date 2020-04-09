@@ -14,8 +14,9 @@ use std::ops::Range;
 /// [HSV] hexcone [color model], also known as HSB.
 ///
 /// The components are *[hue]*, *[saturation]*, *[value]* (or *brightness*) and
-/// optional *alpha*.
+/// optional *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
 /// [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -41,9 +42,10 @@ impl Hsv {
     ///
     /// # Example: HSV Hue
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::Hsv;
+    /// use pix::Hsv32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Hsv;
+    ///
     /// let p = Hsv32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hsv::hue(p), Ch32::new(0.25));
     /// ```
@@ -64,9 +66,10 @@ impl Hsv {
     ///
     /// # Example: HSV Saturation
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Hsv;
+    /// use pix::Hsv16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hsv;
+    ///
     /// let p = Hsv16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Hsv::saturation(p), Ch16::new(0x1234));
     /// ```
@@ -85,9 +88,10 @@ impl Hsv {
     ///
     /// # Example: HSV Lightness
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hsv;
+    /// use pix::Hsv8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hsv;
+    ///
     /// let p = Hsv8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsv::value(p), Ch8::new(0xA0));
     /// ```
@@ -102,9 +106,10 @@ impl Hsv {
     ///
     /// # Example: HSV Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hsv;
+    /// use pix::Hsva8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hsv;
+    ///
     /// let p = Hsva8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hsv::alpha(p), Ch8::new(0xB0));
     /// ```

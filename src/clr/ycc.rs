@@ -10,8 +10,9 @@ use std::ops::Range;
 
 /// [YCbCr] [color model] used in JPEG format.
 ///
-/// The components are *[y]*, *[cb]*, *[cr]* and optional *alpha*.
+/// The components are *[y]*, *[cb]*, *[cr]* and optional *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [cb]: #method.cb
 /// [cr]: #method.cr
 /// [color model]: trait.ColorModel.html
@@ -27,9 +28,10 @@ impl YCbCr {
     ///
     /// # Example: YCbCr Y
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::YCbCr;
+    /// use pix::YCbCr32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::YCbCr;
+    ///
     /// let p = YCbCr32::new(0.25, 0.5, 1.0);
     /// assert_eq!(YCbCr::y(p), Ch32::new(0.25));
     /// ```
@@ -46,9 +48,10 @@ impl YCbCr {
     ///
     /// # Example: YCbCr Cb
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::YCbCr;
+    /// use pix::YCbCr16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::YCbCr;
+    ///
     /// let p = YCbCr16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(YCbCr::cb(p), Ch16::new(0x1234));
     /// ```
@@ -65,9 +68,10 @@ impl YCbCr {
     ///
     /// # Example: YCbCr Cr
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::YCbCr;
+    /// use pix::YCbCr8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::YCbCr;
+    ///
     /// let p = YCbCr8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(YCbCr::cr(p), Ch8::new(0xA0));
     /// ```
@@ -82,9 +86,10 @@ impl YCbCr {
     ///
     /// # Example: YCbCr Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::YCbCr;
+    /// use pix::YCbCra8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::YCbCr;
+    ///
     /// let p = YCbCra8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(YCbCr::alpha(p), Ch8::new(0xB0));
     /// ```

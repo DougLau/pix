@@ -10,13 +10,15 @@ use std::ops::Range;
 
 /// Gray [color model].
 ///
-/// The components are *gray* and optional *alpha*.  Gray ranges from *black*
-/// to *white*.  With [sRGB] gamma it is *luma*, but with [linear] gamma it is
-/// *relative luminance*.
+/// The components are *[value]* and optional *[alpha]*.  *Value* ranges from
+/// *black* to *white*.  With [sRGB] gamma it is *luma*, but with [linear]
+/// gamma it is *relative luminance*.
 ///
+/// [alpha]: #method.alpha
 /// [color model]: trait.ColorModel.html
 /// [linear]: chan/struct.Linear.html
 /// [sRGB]: chan/struct.Srgb.html
+/// [value]: #method.value
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Gray {}
 
@@ -25,9 +27,10 @@ impl Gray {
     ///
     /// # Example: Gray Value
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Gray;
+    /// use pix::Gray16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Gray;
+    ///
     /// let p = Gray16::new(0x4000);
     /// assert_eq!(Gray::value(p), Ch16::new(0x4000));
     /// ```
@@ -42,9 +45,10 @@ impl Gray {
     ///
     /// # Example: Gray Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Gray;
+    /// use pix::Graya8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Gray;
+    ///
     /// let p = Graya8::new(0x58, 0xC0);
     /// assert_eq!(Gray::alpha(p), Ch8::new(0xC0));
     /// ```

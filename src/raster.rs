@@ -65,13 +65,15 @@ pub struct RowsMut<'a, P: Pixel> {
 ///
 /// ### Create directly
 /// ```
-/// # use pix::*;
+/// use pix::Region;
+///
 /// let r0 = Region::new(80, 20, 120, 280);
 /// let r1 = r0.intersection((50, 40, 360, 240));
 /// ```
 /// ### Create from Raster
 /// ```
-/// # use pix::*;
+/// use pix::{Raster, SRgb8};
+///
 /// let r = Raster::<SRgb8>::with_clear(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
 /// ```
@@ -124,7 +126,8 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ## Example
     /// ```
-    /// # use pix::*;
+    /// use pix::{Raster, SRgb8};
+    ///
     /// let clr = SRgb8::new(0x40, 0xAA, 0xBB);
     /// let r = Raster::<SRgb8>::with_color(15, 15, clr);
     /// ```
@@ -146,12 +149,13 @@ impl<P: Pixel> Raster<P> {
     ///
     /// * `S` `Pixel` format of source `Raster`.
     ///
-    /// ### Convert from Rgb8 to Rgba16
+    /// ### Convert from SRgb8 to Rgba16
     /// ```
-    /// # use pix::*;
+    /// use pix::{Raster, Rgba16, SRgb8};
+    ///
     /// let mut r0 = Raster::<SRgb8>::with_clear(50, 50);
     /// // load pixels into raster
-    /// let r1 = Raster::<SRgba16>::with_raster(&r0);
+    /// let r1 = Raster::<Rgba16>::with_raster(&r0);
     /// ```
     pub fn with_raster<S>(src: &Raster<S>) -> Self
     where

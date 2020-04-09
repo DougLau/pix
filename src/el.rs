@@ -262,7 +262,8 @@ where
     ///
     /// ## Example
     /// ```
-    /// # use pix::*;
+    /// use pix::Gray8;
+    ///
     /// let opaque_gray = Gray8::new(128);
     /// ```
     pub fn new<H>(one: H) -> Self
@@ -352,7 +353,8 @@ where
     ///
     /// ## Example
     /// ```
-    /// # use pix::*;
+    /// use pix::Graya8;
+    ///
     /// let translucent_gray = Graya8::new(128, 200);
     /// ```
     pub fn new<H>(one: H, two: H) -> Self
@@ -450,7 +452,8 @@ where
     ///
     /// ## Example
     /// ```
-    /// # use pix::*;
+    /// use pix::Rgb8;
+    ///
     /// let rgb = Rgb8::new(128, 200, 255);
     /// ```
     pub fn new<H>(one: H, two: H, three: H) -> Self
@@ -555,7 +558,8 @@ where
     ///
     /// ## Example
     /// ```
-    /// # use pix::*;
+    /// use pix::Rgba8;
+    ///
     /// let rgba = Rgba8::new(128, 200, 255, 128);
     /// ```
     pub fn new<H>(one: H, two: H, three: H, four: H) -> Self

@@ -13,8 +13,9 @@ use std::ops::Range;
 /// [HWB] [color model].
 ///
 /// The components are *[hue]*, *[whiteness]*, *[blackness]* and optional
-/// *alpha*.
+/// *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [blackness]: #method.blackness
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
@@ -40,9 +41,10 @@ impl Hwb {
     ///
     /// # Example: HWB Hue
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::Hwb;
+    /// use pix::Hwb32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Hwb;
+    ///
     /// let p = Hwb32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Hwb::hue(p), Ch32::new(0.25));
     /// ```
@@ -61,9 +63,10 @@ impl Hwb {
     ///
     /// # Example: HWB Whiteness
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Hwb;
+    /// use pix::Hwb16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hwb;
+    ///
     /// let p = Hwb16::new(0x2000, 0x2345, 0x5432);
     /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x2345));
     /// ```
@@ -80,9 +83,10 @@ impl Hwb {
     ///
     /// # Example: HWB Blackness
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hwb;
+    /// use pix::Hwb8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hwb;
+    ///
     /// let p = Hwb8::new(0x43, 0x22, 0x19);
     /// assert_eq!(Hwb::blackness(p), Ch8::new(0x19));
     /// ```
@@ -97,9 +101,10 @@ impl Hwb {
     ///
     /// # Example: HWB Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Hwb;
+    /// use pix::Hwba8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Hwb;
+    ///
     /// let p = Hwba8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Hwb::alpha(p), Ch8::new(0xB0));
     /// ```

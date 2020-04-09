@@ -135,7 +135,8 @@ impl Palette {
 
 #[cfg(test)]
 mod test {
-    use super::super::*;
+    use crate::*;
+
     #[test]
     fn fill_16() {
         let mut p = Palette::new(16);

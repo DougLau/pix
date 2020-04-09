@@ -147,7 +147,8 @@ pub trait Channel:
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::chan::*;
+/// use pix::chan::{Ch16, Ch32, Ch8, Channel};
+///
 /// let c: Ch8 = std::u8::MIN.into();
 /// assert_eq!(c, Ch8::MIN);
 /// let c: Ch16 = c.into();
@@ -166,7 +167,8 @@ pub struct Ch8(u8);
 /// treat values as though they range between 0 and 1.
 ///
 /// ```
-/// # use pix::chan::*;
+/// use pix::chan::{Ch16, Ch32, Ch8, Channel};
+///
 /// let c: Ch16 = std::u16::MIN.into();
 /// assert_eq!(c, Ch16::MIN);
 /// let c: Ch8 = c.into();
@@ -185,7 +187,8 @@ pub struct Ch16(u16);
 /// between 0 and 1, inclusive.
 ///
 /// ```
-/// # use pix::chan::*;
+/// use pix::chan::{Ch16, Ch32, Ch8, Channel};
+///
 /// let c: Ch32 = 0.0.into();
 /// assert_eq!(c, Ch32::MIN);
 /// let c: Ch8 = c.into();
@@ -613,7 +616,7 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::chan::*;
 
     #[test]
     fn lut_encode_u8() {

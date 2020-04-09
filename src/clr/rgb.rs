@@ -10,8 +10,9 @@ use std::ops::Range;
 
 /// [RGB] additive [color model].
 ///
-/// The components are *[red]*, *[green]*, *[blue]* and optional *alpha*.
+/// The components are *[red]*, *[green]*, *[blue]* and optional *[alpha]*.
 ///
+/// [alpha]: #method.alpha
 /// [blue]: #method.blue
 /// [color model]: trait.ColorModel.html
 /// [green]: #method.green
@@ -25,9 +26,10 @@ impl Rgb {
     ///
     /// # Example: RGB Red
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch32;
-    /// # use pix::clr::Rgb;
+    /// use pix::Rgb32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Rgb;
+    ///
     /// let p = Rgb32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Rgb::red(p), Ch32::new(0.25));
     /// ```
@@ -42,9 +44,10 @@ impl Rgb {
     ///
     /// # Example: RGB Green
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch16;
-    /// # use pix::clr::Rgb;
+    /// use pix::Rgb16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Rgb;
+    ///
     /// let p = Rgb16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Rgb::green(p), Ch16::new(0x1234));
     /// ```
@@ -59,9 +62,10 @@ impl Rgb {
     ///
     /// # Example: RGB Blue
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Rgb;
+    /// use pix::Rgb8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Rgb;
+    ///
     /// let p = Rgb8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Rgb::blue(p), Ch8::new(0xA0));
     /// ```
@@ -76,9 +80,10 @@ impl Rgb {
     ///
     /// # Example: RGB Alpha
     /// ```
-    /// # use pix::*;
-    /// # use pix::chan::Ch8;
-    /// # use pix::clr::Rgb;
+    /// use pix::Rgba8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Rgb;
+    ///
     /// let p = Rgba8::new(0x50, 0xA0, 0x80, 0xB0);
     /// assert_eq!(Rgb::alpha(p), Ch8::new(0xB0));
     /// ```
