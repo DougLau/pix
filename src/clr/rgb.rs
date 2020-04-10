@@ -276,3 +276,26 @@ pub type SRgba16p = Pix4<Ch16, Rgb, Premultiplied, Srgb>;
 /// [premultiplied](chan/struct.Premultiplied.html) alpha
 /// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
 pub type SRgba32p = Pix4<Ch32, Rgb, Premultiplied, Srgb>;
+
+#[cfg(test)]
+mod tests {
+    use crate::el::Pixel;
+    use crate::ops::SrcOver;
+    use crate::*;
+
+    #[test]
+    fn rgba8_transparent() {
+        let mut dst = Rgba8p::new(0, 0, 0, 0);
+        let src = Rgba8p::new(20, 40, 80, 160);
+
+        dst.composite_channels(&src, SrcOver);
+        assert_eq!(dst, src);
+
+        dst.composite_channels(&Rgba8p::new(0, 0, 0, 0), SrcOver);
+        assert_eq!(dst, src);
+
+        dst = Rgba8p::new(0xFF, 0xFF, 0xFF, 0x00);
+        dst.composite_channels(&Rgba8p::new(0, 0, 0, 0), SrcOver);
+        assert_eq!(dst, Rgba8p::new(0xFF, 0xFF, 0xFF, 0x00));
+    }
+}
