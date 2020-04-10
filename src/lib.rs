@@ -3,10 +3,18 @@
 // Copyright (c) 2019-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-//! Pixel and raster image library.
+//! Library for pixel and image compositing.
 //!
-//! A [raster] is a rectangular array of [pixel]s whose format is parameterized
-//! by [color model], [channel], [alpha] and [gamma] mode.
+//! A [raster] image is a rectangular array of [pixel]s.
+//!
+//! ## Color Models
+//! * `RGB` / `BGR` (*red*, *green*, *blue*)
+//! * `Gray` (*luma* / *relative luminance*)
+//! * `HSV` (*hue*, *saturation*, *value*)
+//! * `HSL` (*hue*, *saturation*, *lightness*)
+//! * `HWB` (*hue*, *whiteness*, *blackness*)
+//! * `YCbCr` (JPEG)
+//! * `Matte` (*alpha* only)
 //!
 //! [alpha]: chan/trait.Alpha.html
 //! [channel]: chan/trait.Channel.html
@@ -23,6 +31,9 @@
 //! // ... load pixels into raster
 //! let dst: Raster<Rgba8p> = Raster::with_raster(&src);
 //! ```
+//!
+//! ## Documentation
+//! [https://docs.rs/pix](https://docs.rs/pix)
 //!
 #![warn(missing_docs)]
 #![warn(missing_doc_code_examples)]
