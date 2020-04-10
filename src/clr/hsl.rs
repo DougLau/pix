@@ -16,7 +16,7 @@ use std::ops::Range;
 /// The components are *[hue]*, *[saturation]*, *[lightness]* and optional
 /// *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
 /// [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -40,7 +40,7 @@ impl Hsl {
     ///
     /// The degrees are mapped from [Channel::MIN] (0) to [Channel::MAX] (360)
     ///
-    /// # Example: HSL Hue
+    /// # Example: Get HSL Hue
     /// ```
     /// use pix::Hsl32;
     /// use pix::chan::Ch32;
@@ -56,6 +56,26 @@ impl Hsl {
         P: Pixel<Model = Self>,
     {
         p.one()
+    }
+
+    /// Get a mutable reference to the *hue* component.
+    ///
+    /// # Example: Modify HSL Hue
+    /// ```
+    /// use pix::Hsl32;
+    /// use pix::chan::{Ch32, Channel};
+    /// use pix::clr::Hsl;
+    ///
+    /// let mut p = Hsl32::new(0.2, 0.75, 0.5);
+    /// let mut h = Hsl::hue_mut(&mut p);
+    /// *h = h.wrapping_sub(Ch32::new(0.4));
+    /// assert_eq!(Hsl::hue(p), Ch32::new(0.8));
+    /// ```
+    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
     }
 
     /// Get the *saturation* component.
@@ -81,6 +101,25 @@ impl Hsl {
         p.two()
     }
 
+    /// Get a mutable reference to the *saturation* component.
+    ///
+    /// # Example: Modify HSL Saturation
+    /// ```
+    /// use pix::Hsl16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hsl;
+    ///
+    /// let mut p = Hsl16::new(0x2000, 0x1234, 0x8000);
+    /// *Hsl::saturation_mut(&mut p) = Ch16::new(0x4321);
+    /// assert_eq!(Hsl::saturation(p), Ch16::new(0x4321));
+    /// ```
+    pub fn saturation_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
+    }
+
     /// Get the *lightness* component.
     ///
     /// Lower values are closer to *black*, while higher values are closer to
@@ -102,22 +141,23 @@ impl Hsl {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *lightness* component.
     ///
-    /// # Example: HSL Alpha
+    /// # Example: Modify HSL Lightness
     /// ```
-    /// use pix::Hsla8;
+    /// use pix::Hsl8;
     /// use pix::chan::Ch8;
     /// use pix::clr::Hsl;
     ///
-    /// let p = Hsla8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(Hsl::alpha(p), Ch8::new(0xB0));
+    /// let mut p = Hsl8::new(0x93, 0x80, 0xA0);
+    /// *Hsl::lightness_mut(&mut p) = Ch8::new(0xBB);
+    /// assert_eq!(Hsl::lightness(p), Ch8::new(0xBB));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn lightness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 }
 
@@ -141,7 +181,7 @@ impl ColorModel for Hsl {
         let red = (red + m).into();
         let green = (green + m).into();
         let blue = (blue + m).into();
-        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
+        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

@@ -15,7 +15,7 @@ use std::ops::Range;
 /// The components are *[hue]*, *[whiteness]*, *[blackness]* and optional
 /// *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [blackness]: #method.blackness
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
@@ -57,6 +57,26 @@ impl Hwb {
         p.one()
     }
 
+    /// Get a mutable reference to the *hue* component.
+    ///
+    /// # Example: Modify HWB Hue
+    /// ```
+    /// use pix::Hwb32;
+    /// use pix::chan::{Ch32, Channel};
+    /// use pix::clr::Hwb;
+    ///
+    /// let mut p = Hwb32::new(0.75, 0.5, 0.5);
+    /// let mut h = Hwb::hue_mut(&mut p);
+    /// *h = h.wrapping_add(0.5.into());
+    /// assert_eq!(Hwb::hue(p), Ch32::new(0.25));
+    /// ```
+    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
+    }
+
     /// Get the *whiteness* component.
     ///
     /// This is the amount of *whiteness* mixed in with a "pure" hue.
@@ -75,6 +95,25 @@ impl Hwb {
         P: Pixel<Model = Self>,
     {
         p.two()
+    }
+
+    /// Get a mutable reference to the *whiteness* component.
+    ///
+    /// # Example: Modify HWB Whiteness
+    /// ```
+    /// use pix::Hwb16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hwb;
+    ///
+    /// let mut p = Hwb16::new(0x2000, 0x1234, 0x8000);
+    /// *Hwb::whiteness_mut(&mut p) = Ch16::new(0x4321);
+    /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x4321));
+    /// ```
+    pub fn whiteness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
     }
 
     /// Get the *blackness* component.
@@ -97,22 +136,23 @@ impl Hwb {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *blackness* component.
     ///
-    /// # Example: HWB Alpha
+    /// # Example: Modify HWB Blackness
     /// ```
-    /// use pix::Hwba8;
+    /// use pix::Hwb8;
     /// use pix::chan::Ch8;
     /// use pix::clr::Hwb;
     ///
-    /// let p = Hwba8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(Hwb::alpha(p), Ch8::new(0xB0));
+    /// let mut p = Hwb8::new(0x93, 0x80, 0xA0);
+    /// *Hwb::blackness_mut(&mut p) = Ch8::new(0xBB);
+    /// assert_eq!(Hwb::blackness(p), Ch8::new(0xBB));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn blackness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
@@ -153,7 +193,7 @@ impl ColorModel for Hwb {
         let red = (red + m).into();
         let green = (green + m).into();
         let blue = (blue + m).into();
-        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
+        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

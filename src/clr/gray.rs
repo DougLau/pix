@@ -14,7 +14,7 @@ use std::ops::Range;
 /// *black* to *white*.  With [sRGB] gamma it is *luma*, but with [linear]
 /// gamma it is *relative luminance*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [color model]: trait.ColorModel.html
 /// [linear]: chan/struct.Linear.html
 /// [sRGB]: chan/struct.Srgb.html
@@ -25,7 +25,7 @@ pub struct Gray {}
 impl Gray {
     /// Get the *luma* / *relative luminance* component.
     ///
-    /// # Example: Gray Value
+    /// # Example: Get Value
     /// ```
     /// use pix::Gray16;
     /// use pix::chan::Ch16;
@@ -34,29 +34,30 @@ impl Gray {
     /// let p = Gray16::new(0x4000);
     /// assert_eq!(Gray::value(p), Ch16::new(0x4000));
     /// ```
-    pub fn value<P: Pixel>(p: P) -> P::Chan
+    pub fn value<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
         p.one()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *luma* / *relative luminance* component.
     ///
-    /// # Example: Gray Alpha
+    /// # Example: Modify Value
     /// ```
-    /// use pix::Graya8;
+    /// use pix::Gray8;
     /// use pix::chan::Ch8;
     /// use pix::clr::Gray;
     ///
-    /// let p = Graya8::new(0x58, 0xC0);
-    /// assert_eq!(Gray::alpha(p), Ch8::new(0xC0));
+    /// let mut p = Gray8::new(0x40);
+    /// *Gray::value_mut(&mut p) = 0x50.into();
+    /// assert_eq!(Gray::value(p), Ch8::new(0x50));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn value_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.one_mut()
     }
 }
 
@@ -71,7 +72,7 @@ impl ColorModel for Gray {
         P: Pixel<Model = Self>,
     {
         let value = Self::value(p).into();
-        PixRgba::<P>::new(value, value, value, Self::alpha(p).into())
+        PixRgba::<P>::new(value, value, value, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
@@ -79,9 +80,9 @@ impl ColorModel for Gray {
     where
         P: Pixel<Model = Self>,
     {
-        const RED_COEF: f32 = 0.2126;
-        const GREEN_COEF: f32 = 0.7152;
-        const BLUE_COEF: f32 = 0.0722;
+        const RED_COEF: f32 = 0.212_6;
+        const GREEN_COEF: f32 = 0.715_2;
+        const BLUE_COEF: f32 = 0.072_2;
 
         let chan = rgba.channels();
         let red = chan[0].into() * RED_COEF;

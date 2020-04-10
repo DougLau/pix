@@ -119,28 +119,79 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
 
     /// Get the first channel.
     fn one(self) -> Self::Chan {
-        Self::Chan::MAX
+        *self.channels().get(0).unwrap_or(&Self::Chan::MAX)
+    }
+
+    /// Get a mutable reference to the first channel
+    fn one_mut(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[0]
     }
 
     /// Get the second channel.
     fn two(self) -> Self::Chan {
-        Self::Chan::MAX
+        *self.channels().get(1).unwrap_or(&Self::Chan::MAX)
+    }
+
+    /// Get a mutable reference to the second channel
+    fn two_mut(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[1]
     }
 
     /// Get the third channel.
     fn three(self) -> Self::Chan {
-        Self::Chan::MAX
+        *self.channels().get(2).unwrap_or(&Self::Chan::MAX)
+    }
+
+    /// Get a mutable reference to the third channel
+    fn three_mut(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[2]
     }
 
     /// Get the fourth channel.
     fn four(self) -> Self::Chan {
-        Self::Chan::MAX
+        *self.channels().get(3).unwrap_or(&Self::Chan::MAX)
+    }
+
+    /// Get a mutable reference to the fourth channel
+    fn four_mut(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[3]
     }
 
     /// Get the *alpha* channel.
+    ///
+    /// # Example: Get Alpha
+    /// ```
+    /// use pix::Graya16;
+    /// use pix::chan::Ch16;
+    /// use pix::el::Pixel;
+    ///
+    /// let p = Graya16::new(0x7090, 0x6010);
+    /// assert_eq!(Pixel::alpha(p), Ch16::new(0x6010));
+    /// ```
     fn alpha(self) -> Self::Chan {
         let chan = self.channels();
         *chan.get(Self::Model::ALPHA).unwrap_or(&Self::Chan::MAX)
+    }
+
+    /// Get a mutable reference to the *alpha* channel.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the pixel does not contain an alpha channel.
+    ///
+    /// # Example: Set Alpha
+    /// ```
+    /// use pix::Rgba8;
+    /// use pix::chan::Ch8;
+    /// use pix::el::Pixel;
+    ///
+    /// let mut p = Rgba8::new(0xFF, 0x40, 0x80, 0xA5);
+    /// *Pixel::alpha_mut(&mut p) = Ch8::new(0x4B);
+    /// assert_eq!(Pixel::alpha(p), Ch8::new(0x4B));
+    /// ```
+    fn alpha_mut(&mut self) -> &mut Self::Chan {
+        let chan = self.channels_mut();
+        chan.get_mut(Self::Model::ALPHA).unwrap()
     }
 
     /// Convert a pixel to another format
@@ -402,10 +453,6 @@ where
     fn channels_mut(&mut self) -> &mut [Self::Chan] {
         &mut self.channels
     }
-
-    fn one(self) -> C {
-        self.channels[0]
-    }
 }
 
 /// [Pixel] with two [channel]s in its [color model].
@@ -496,14 +543,6 @@ where
 
     fn channels_mut(&mut self) -> &mut [Self::Chan] {
         &mut self.channels
-    }
-
-    fn one(self) -> C {
-        self.channels[0]
-    }
-
-    fn two(self) -> C {
-        self.channels[1]
     }
 }
 
@@ -598,18 +637,6 @@ where
 
     fn channels_mut(&mut self) -> &mut [Self::Chan] {
         &mut self.channels
-    }
-
-    fn one(self) -> C {
-        self.channels[0]
-    }
-
-    fn two(self) -> C {
-        self.channels[1]
-    }
-
-    fn three(self) -> C {
-        self.channels[2]
     }
 }
 
@@ -707,22 +734,6 @@ where
 
     fn channels_mut(&mut self) -> &mut [Self::Chan] {
         &mut self.channels
-    }
-
-    fn one(self) -> C {
-        self.channels[0]
-    }
-
-    fn two(self) -> C {
-        self.channels[1]
-    }
-
-    fn three(self) -> C {
-        self.channels[2]
-    }
-
-    fn four(self) -> C {
-        self.channels[3]
     }
 }
 

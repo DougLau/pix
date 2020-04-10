@@ -11,7 +11,7 @@ use std::ops::Range;
 ///
 /// The components are *[blue]*, *[green]*, *[red]* and optional *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [blue]: #method.blue
 /// [color model]: trait.ColorModel.html
 /// [green]: #method.green
@@ -23,7 +23,7 @@ pub struct Bgr {}
 impl Bgr {
     /// Get the *blue* component.
     ///
-    /// # Example: BGR Blue
+    /// # Example: Get BGR Blue
     /// ```
     /// use pix::Bgr8;
     /// use pix::chan::Ch8;
@@ -37,6 +37,25 @@ impl Bgr {
         P: Pixel<Model = Self>,
     {
         p.one()
+    }
+
+    /// Get a mutable reference to the *blue* component.
+    ///
+    /// # Example: Modify BGR Blue
+    /// ```
+    /// use pix::Bgr8;
+    /// use pix::chan::Ch8;
+    /// use pix::clr::Bgr;
+    ///
+    /// let mut p = Bgr8::new(0x88, 0x77, 0x66);
+    /// *Bgr::blue_mut(&mut p) = 0x55.into();
+    /// assert_eq!(Bgr::blue(p), Ch8::new(0x55));
+    /// ```
+    pub fn blue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
     }
 
     /// Get the *green* component.
@@ -57,6 +76,25 @@ impl Bgr {
         p.two()
     }
 
+    /// Get a mutable reference to the *green* component.
+    ///
+    /// # Example: Modify BGR Green
+    /// ```
+    /// use pix::Bgr16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Bgr;
+    ///
+    /// let mut p = Bgr16::new(0x2000, 0x1234, 0x8000);
+    /// *Bgr::green_mut(&mut p) = 0x4321.into();
+    /// assert_eq!(Bgr::green(p), Ch16::new(0x4321));
+    /// ```
+    pub fn green_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
+    }
+
     /// Get the *red* component.
     ///
     /// # Example: BGR Red
@@ -75,22 +113,23 @@ impl Bgr {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *red* component.
     ///
-    /// # Example: BGR Alpha
+    /// # Example: Modify BGR Red
     /// ```
-    /// use pix::Bgra8;
-    /// use pix::chan::Ch8;
+    /// use pix::Bgr32;
+    /// use pix::chan::Ch32;
     /// use pix::clr::Bgr;
     ///
-    /// let p = Bgra8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(Bgr::alpha(p), Ch8::new(0xB0));
+    /// let mut p = Bgr32::new(0.25, 0.5, 1.0);
+    /// *Bgr::red_mut(&mut p) = Ch32::new(0.75);
+    /// assert_eq!(Bgr::red(p), Ch32::new(0.75));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn red_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 }
 
@@ -107,7 +146,7 @@ impl ColorModel for Bgr {
         let red = Bgr::red(p).into();
         let green = Bgr::green(p).into();
         let blue = Bgr::blue(p).into();
-        let alpha = Bgr::alpha(p).into();
+        let alpha = Pixel::alpha(p).into();
         PixRgba::<P>::new(red, green, blue, alpha)
     }
 

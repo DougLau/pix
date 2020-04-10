@@ -12,7 +12,7 @@ use std::ops::Range;
 ///
 /// The components are *[red]*, *[green]*, *[blue]* and optional *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [blue]: #method.blue
 /// [color model]: trait.ColorModel.html
 /// [green]: #method.green
@@ -40,6 +40,25 @@ impl Rgb {
         p.one()
     }
 
+    /// Get a mutable reference to the *red* component.
+    ///
+    /// # Example: Modify RGB Red
+    /// ```
+    /// use pix::Rgb32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::Rgb;
+    ///
+    /// let mut p = Rgb32::new(0.25, 0.5, 1.0);
+    /// *Rgb::red_mut(&mut p) = Ch32::new(0.75);
+    /// assert_eq!(Rgb::red(p), Ch32::new(0.75));
+    /// ```
+    pub fn red_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
+    }
+
     /// Get the *green* component.
     ///
     /// # Example: RGB Green
@@ -56,6 +75,25 @@ impl Rgb {
         P: Pixel<Model = Self>,
     {
         p.two()
+    }
+
+    /// Get a mutable reference to the *green* component.
+    ///
+    /// # Example: Modify RGB Green
+    /// ```
+    /// use pix::Rgb16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Rgb;
+    ///
+    /// let mut p = Rgb16::new(0x2000, 0x1234, 0x8000);
+    /// *Rgb::green_mut(&mut p) = 0x4321.into();
+    /// assert_eq!(Rgb::green(p), Ch16::new(0x4321));
+    /// ```
+    pub fn green_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
     }
 
     /// Get the *blue* component.
@@ -76,22 +114,23 @@ impl Rgb {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *blue* component.
     ///
-    /// # Example: RGB Alpha
+    /// # Example: Modify RGB Blue
     /// ```
-    /// use pix::Rgba8;
+    /// use pix::Rgb8;
     /// use pix::chan::Ch8;
     /// use pix::clr::Rgb;
     ///
-    /// let p = Rgba8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(Rgb::alpha(p), Ch8::new(0xB0));
+    /// let mut p = Rgb8::new(0x88, 0x77, 0x66);
+    /// *Rgb::blue_mut(&mut p) = 0x55.into();
+    /// assert_eq!(Rgb::blue(p), Ch8::new(0x55));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn blue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 
     /// Get channel-wise difference
@@ -114,10 +153,10 @@ impl Rgb {
         } else {
             Self::blue(rhs) - Self::blue(p)
         };
-        let alpha = if Self::alpha(p) > Self::alpha(rhs) {
-            Self::alpha(p) - Self::alpha(rhs)
+        let alpha = if Pixel::alpha(p) > Pixel::alpha(rhs) {
+            Pixel::alpha(p) - Pixel::alpha(rhs)
         } else {
-            Self::alpha(rhs) - Self::alpha(p)
+            Pixel::alpha(rhs) - Pixel::alpha(p)
         };
         P::from_channels(&[red, green, blue, alpha])
     }
@@ -130,7 +169,7 @@ impl Rgb {
         Self::red(p) <= Self::red(rhs)
             && Self::green(p) <= Self::green(rhs)
             && Self::blue(p) <= Self::blue(rhs)
-            && Self::alpha(p) <= Self::alpha(rhs)
+            && Pixel::alpha(p) <= Pixel::alpha(rhs)
     }
 }
 
@@ -147,7 +186,7 @@ impl ColorModel for Rgb {
         let red = Rgb::red(p).into();
         let green = Rgb::green(p).into();
         let blue = Rgb::blue(p).into();
-        let alpha = Rgb::alpha(p).into();
+        let alpha = Pixel::alpha(p).into();
         PixRgba::<P>::new(red, green, blue, alpha)
     }
 

@@ -12,7 +12,7 @@ use std::ops::Range;
 ///
 /// The components are *[y]*, *[cb]*, *[cr]* and optional *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [cb]: #method.cb
 /// [cr]: #method.cr
 /// [color model]: trait.ColorModel.html
@@ -42,6 +42,25 @@ impl YCbCr {
         p.one()
     }
 
+    /// Get a mutable reference to the *y* component.
+    ///
+    /// # Example: Modify YCbCr Y
+    /// ```
+    /// use pix::YCbCr32;
+    /// use pix::chan::Ch32;
+    /// use pix::clr::YCbCr;
+    ///
+    /// let mut p = YCbCr32::new(0.25, 0.5, 1.0);
+    /// *YCbCr::y_mut(&mut p) = Ch32::new(0.75);
+    /// assert_eq!(YCbCr::y(p), Ch32::new(0.75));
+    /// ```
+    pub fn y_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
+    }
+
     /// Get the *Cb* component.
     ///
     /// This the blue-difference chroma.
@@ -60,6 +79,25 @@ impl YCbCr {
         P: Pixel<Model = Self>,
     {
         p.two()
+    }
+
+    /// Get a mutable reference to the *Cb* component.
+    ///
+    /// # Example: Modify YCbCr Cr
+    /// ```
+    /// use pix::YCbCr16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::YCbCr;
+    ///
+    /// let mut p = YCbCr16::new(0x2000, 0x1234, 0x8000);
+    /// *YCbCr::cb_mut(&mut p) = 0x4321.into();
+    /// assert_eq!(YCbCr::cb(p), Ch16::new(0x4321));
+    /// ```
+    pub fn cb_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
     }
 
     /// Get the *Cr* component.
@@ -82,22 +120,23 @@ impl YCbCr {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *Cr* component.
     ///
-    /// # Example: YCbCr Alpha
+    /// # Example: Modify YCbCr Cr
     /// ```
-    /// use pix::YCbCra8;
+    /// use pix::YCbCr8;
     /// use pix::chan::Ch8;
     /// use pix::clr::YCbCr;
     ///
-    /// let p = YCbCra8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(YCbCr::alpha(p), Ch8::new(0xB0));
+    /// let mut p = YCbCr8::new(0x88, 0x77, 0x66);
+    /// *YCbCr::cr_mut(&mut p) = 0x55.into();
+    /// assert_eq!(YCbCr::cr(p), Ch8::new(0x55));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn cr_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 }
 
@@ -118,7 +157,7 @@ impl ColorModel for YCbCr {
         let red = y + (cr - 0.5) * 1.402;
         let green = y - (cb - 0.5) * 0.344_136 - (cr - 0.5) * 0.714_136;
         let blue = y + (cb - 0.5) * 1.772;
-        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
+        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

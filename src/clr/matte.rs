@@ -12,30 +12,10 @@ use std::ops::Range;
 ///
 /// The component is *[alpha]* only.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [color model]: trait.ColorModel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Matte {}
-
-impl Matte {
-    /// Get the *alpha* component.
-    ///
-    /// # Example: Matte Alpha
-    /// ```
-    /// use pix::Matte8;
-    /// use pix::chan::Ch8;
-    /// use pix::clr::Matte;
-    ///
-    /// let p = Matte8::new(0x94);
-    /// assert_eq!(Matte::alpha(p), Ch8::new(0x94));
-    /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
-    where
-        P: Pixel<Model = Self>,
-    {
-        p.one()
-    }
-}
 
 impl ColorModel for Matte {
     const CIRCULAR: Range<usize> = 0..0;
@@ -48,7 +28,7 @@ impl ColorModel for Matte {
         P: Pixel<Model = Self>,
     {
         let max = P::Chan::MAX.into();
-        PixRgba::<P>::new(max, max, max, Self::alpha(p).into())
+        PixRgba::<P>::new(max, max, max, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

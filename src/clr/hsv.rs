@@ -16,7 +16,7 @@ use std::ops::Range;
 /// The components are *[hue]*, *[saturation]*, *[value]* (or *brightness*) and
 /// optional *[alpha]*.
 ///
-/// [alpha]: #method.alpha
+/// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [color model]: trait.ColorModel.html
 /// [hue]: #method.hue
 /// [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -58,6 +58,26 @@ impl Hsv {
         p.one()
     }
 
+    /// Get a mutable reference to the *hue* component.
+    ///
+    /// # Example: Modify HSV Hue
+    /// ```
+    /// use pix::Hsv32;
+    /// use pix::chan::{Ch32, Channel};
+    /// use pix::clr::Hsv;
+    ///
+    /// let mut p = Hsv32::new(0.2, 0.75, 0.5);
+    /// let mut h = Hsv::hue_mut(&mut p);
+    /// *h = h.wrapping_sub(Ch32::new(0.4));
+    /// assert_eq!(Hsv::hue(p), Ch32::new(0.8));
+    /// ```
+    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.one_mut()
+    }
+
     /// Get the *saturation* component.
     ///
     /// Lower values are more gray (desaturated), while higher values are more
@@ -81,12 +101,31 @@ impl Hsv {
         p.two()
     }
 
+    /// Get a mutable reference to the *saturation* component.
+    ///
+    /// # Example: Modify HSV Saturation
+    /// ```
+    /// use pix::Hsv16;
+    /// use pix::chan::Ch16;
+    /// use pix::clr::Hsv;
+    ///
+    /// let mut p = Hsv16::new(0x2000, 0x1234, 0x8000);
+    /// *Hsv::saturation_mut(&mut p) = Ch16::new(0x4321);
+    /// assert_eq!(Hsv::saturation(p), Ch16::new(0x4321));
+    /// ```
+    pub fn saturation_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    where
+        P: Pixel<Model = Self>,
+    {
+        p.two_mut()
+    }
+
     /// Get the *value* (or *brightness*) component.
     ///
     /// Lower values are closer to *black*, while higher values are closer to
     /// fully bright colors.
     ///
-    /// # Example: HSV Lightness
+    /// # Example: HSV Value
     /// ```
     /// use pix::Hsv8;
     /// use pix::chan::Ch8;
@@ -102,22 +141,23 @@ impl Hsv {
         p.three()
     }
 
-    /// Get the *alpha* component.
+    /// Get a mutable reference to the *value* component.
     ///
-    /// # Example: HSV Alpha
+    /// # Example: Modify HSV Value
     /// ```
-    /// use pix::Hsva8;
+    /// use pix::Hsv8;
     /// use pix::chan::Ch8;
     /// use pix::clr::Hsv;
     ///
-    /// let p = Hsva8::new(0x50, 0xA0, 0x80, 0xB0);
-    /// assert_eq!(Hsv::alpha(p), Ch8::new(0xB0));
+    /// let mut p = Hsv8::new(0x93, 0x80, 0xA0);
+    /// *Hsv::value_mut(&mut p) = Ch8::new(0xBB);
+    /// assert_eq!(Hsv::value(p), Ch8::new(0xBB));
     /// ```
-    pub fn alpha<P: Pixel>(p: P) -> P::Chan
+    pub fn value_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
-        p.four()
+        p.three_mut()
     }
 }
 
@@ -141,7 +181,7 @@ impl ColorModel for Hsv {
         let red = (red + m).into();
         let green = (green + m).into();
         let blue = (blue + m).into();
-        PixRgba::<P>::new(red, green, blue, Self::alpha(p).into())
+        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
