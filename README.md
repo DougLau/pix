@@ -2,7 +2,7 @@
 
 Library for pixel and image compositing.
 
-A [raster] image is a rectangular array of [pixel]s.
+A raster image is a rectangular array of pixels.
 
 ## Color Models
 * `RGB` / `BGR` (*red*, *green*, *blue*)
@@ -12,9 +12,6 @@ A [raster] image is a rectangular array of [pixel]s.
 * `HWB` (*hue*, *whiteness*, *blackness*)
 * `YCbCr` (JPEG)
 * `Matte` (*alpha* only)
-
-[pixel]: el/trait.Pixel.html
-[raster]: struct.Raster.html
 
 ### Example: Convert Raster Format
 ```
