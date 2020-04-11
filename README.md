@@ -13,15 +13,6 @@ A raster image is a rectangular array of pixels.
 * `YCbCr` (JPEG)
 * `Matte` (*alpha* only)
 
-### Example: Convert Raster Format
-```
-use pix::{Raster, Rgba8p, SRgb8};
-
-let mut src = Raster::<SRgb8>::with_clear(120, 120);
-// ... load pixels into raster
-let dst: Raster<Rgba8p> = Raster::with_raster(&src);
-```
-
 ### Example: Color Demo
 ```
 use pix::{Raster, SHwb8};
@@ -38,6 +29,15 @@ for (y, row) in r.rows_mut().enumerate() {
 ```
 
 ![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
+
+### Example: Convert Raster Format
+```
+use pix::{Raster, Rgba8p, SRgb8};
+
+let mut src = Raster::<SRgb8>::with_clear(120, 120);
+// ... load pixels into raster
+let dst: Raster<Rgba8p> = Raster::with_raster(&src);
+```
 
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
