@@ -62,6 +62,10 @@ pub struct DestAtop;
 #[derive(Clone, Copy)]
 pub struct Xor;
 
+/// Plus compositing (source added to destination)
+#[derive(Clone, Copy)]
+pub struct Plus;
+
 impl PorterDuff for Src {
     fn composite<C: Channel>(dst: &mut C, _da1: C, src: &C, _sa1: C) {
         *dst = *src;
@@ -129,5 +133,11 @@ impl PorterDuff for DestAtop {
 impl PorterDuff for Xor {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, sa1: C) {
         *dst = *src * da1 + *dst * sa1;
+    }
+}
+
+impl PorterDuff for Plus {
+    fn composite<C: Channel>(dst: &mut C, _da1: C, src: &C, _sa1: C) {
+        *dst = *src + *dst;
     }
 }
