@@ -375,7 +375,7 @@ impl<P: Pixel> Raster<P> {
     ///         (*x*, *y*, *width*, *height*) or the unit type `()`.  Using
     ///         `()` has the same result as `Raster::region()`.
     /// * `clr` Source `Pixel` color.
-    /// * `_op` Compositing operation.
+    /// * `op` Compositing operation.
     ///
     /// ### Set entire raster to one color
     /// ```
@@ -394,7 +394,7 @@ impl<P: Pixel> Raster<P> {
     /// let clr = SRgb8::new(0xDD, 0x96, 0x70);
     /// r.composite_color((20, 40, 25, 50), clr, Src);
     /// ```
-    pub fn composite_color<R, O>(&mut self, reg: R, clr: P, _op: O)
+    pub fn composite_color<R, O>(&mut self, reg: R, clr: P, op: O)
     where
         R: Into<Region>,
         O: PorterDuff,
@@ -408,7 +408,7 @@ impl<P: Pixel> Raster<P> {
                 let x0 = reg.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
-                O::composite_color(drow, clr);
+                P::composite_color(drow, &clr, op);
             }
         }
     }
@@ -420,16 +420,11 @@ impl<P: Pixel> Raster<P> {
         src: &Raster<M>,
         from: R1,
         clr: P,
-        _op: O,
+        op: O,
     ) where
         R0: Into<Region>,
         R1: Into<Region>,
-        M: Pixel<
-            Chan = P::Chan,
-            Model = Matte,
-           // Alpha = P::Alpha,
-            Gamma = P::Gamma,
-        >,
+        M: Pixel<Chan = P::Chan, Model = Matte, Gamma = P::Gamma>,
         O: PorterDuff,
     {
         let (to, from) = (to.into(), from.into());
@@ -451,7 +446,7 @@ impl<P: Pixel> Raster<P> {
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
                 let srow = &srow[from.x as usize..];
-                O::composite_matte(drow, srow, clr);
+                P::composite_matte(drow, srow, &clr, op);
             }
         }
     }
@@ -497,7 +492,7 @@ impl<P: Pixel> Raster<P> {
         to: R0,
         src: &Raster<P>,
         from: R1,
-        _op: O,
+        op: O,
     ) where
         R0: Into<Region>,
         R1: Into<Region>,
@@ -522,7 +517,7 @@ impl<P: Pixel> Raster<P> {
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
                 let srow = &srow[from.x as usize..];
-                O::composite_slice(drow, srow);
+                P::composite_slice(drow, srow, op);
             }
         }
     }

@@ -18,7 +18,6 @@ use crate::chan::{
 };
 use crate::clr::ColorModel;
 use crate::el::{Pix1, Pix2, Pix3, Pix4};
-use crate::ops::{Src, SrcOver};
 use std::any::Any;
 
 /// Sealed trait to prevent outside crates from implementing traits
@@ -73,7 +72,3 @@ where
     G: Gamma,
 {
 }
-
-impl Sealed for Src {}
-
-impl Sealed for SrcOver {}

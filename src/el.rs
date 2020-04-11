@@ -6,6 +6,7 @@
 //! Module for `pix::el` items
 use crate::chan::{Alpha, Channel, Gamma};
 use crate::clr::{ColorModel, Matte, Rgb};
+use crate::ops::PorterDuff;
 use crate::private::Sealed;
 use std::any::TypeId;
 use std::fmt::Debug;
@@ -224,88 +225,80 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     }
 
     /// Composite a color with a pixel slice
-    fn composite_color(
-        dst: &mut [Self],
-        clr: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
-    ) {
+    fn composite_color<O>(dst: &mut [Self], clr: &Self, op: O)
+    where
+        O: PorterDuff,
+    {
         for d in dst.iter_mut() {
-            d.composite_channels(clr, &op);
+            d.composite_channels(clr, op);
         }
     }
 
     /// Composite matte with color to destination pixel slice
-    fn composite_matte<M>(
-        dst: &mut [Self],
-        src: &[M],
-        clr: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
-    )
+    fn composite_matte<M, O>(dst: &mut [Self], src: &[M], clr: &Self, op: O)
     where
-        M: Pixel<
-            Chan = Self::Chan,
-            Model = Matte,
-            Gamma = Self::Gamma,
-        >,
+        M: Pixel<Chan = Self::Chan, Model = Matte, Gamma = Self::Gamma>,
+        O: PorterDuff,
     {
         for (d, s) in dst.iter_mut().zip(src) {
-            let alpha = Matte::alpha(*s);
-            d.composite_channels_matte(&alpha, clr, &op);
+            let alpha = Pixel::alpha(*s);
+            d.composite_channels_matte(&alpha, clr, op);
         }
     }
 
     /// Composite two slices of pixels
-    fn composite_slice(
-        dst: &mut [Self],
-        src: &[Self],
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
-    ) {
+    fn composite_slice<O>(dst: &mut [Self], src: &[Self], op: O)
+    where
+        O: PorterDuff,
+    {
         for (d, s) in dst.iter_mut().zip(src) {
-            d.composite_channels(s, &op);
+            d.composite_channels(s, op);
         }
     }
 
     /// Composite the channels of two pixels
-    fn composite_channels(
-        &mut self,
-        src: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
-    ) {
-        let a1 = Self::Chan::MAX - src.alpha();
-        let s_chan = &src.channels()[Self::Model::LINEAR];
+    fn composite_channels<O>(&mut self, src: &Self, _op: O)
+    where
+        O: PorterDuff,
+    {
+        let da1 = Self::Chan::MAX - self.alpha();
+        let sa1 = Self::Chan::MAX - src.alpha();
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
+        let s_chan = &src.channels()[Self::Model::LINEAR];
         d_chan
             .iter_mut()
             .zip(s_chan)
-            .for_each(|(d, s)| op(d, s, &a1));
+            .for_each(|(d, s)| O::composite(d, da1, s, sa1));
         // FIXME: composite circular channels
         if self.channels().len() > Self::Model::ALPHA {
-            let sa = &src.alpha();
-            let da = &mut self.channels_mut()[Self::Model::ALPHA];
-            op(da, sa, &a1);
+            let da = self.alpha_mut();
+            let sa = src.alpha();
+            O::composite(da, da1, &sa, sa1);
         }
     }
 
     /// Composite the channels of pixels with a matte and color
-    fn composite_channels_matte(
+    fn composite_channels_matte<O>(
         &mut self,
         alpha: &Self::Chan,
         src: &Self,
-        op: impl Fn(&mut Self::Chan, &Self::Chan, &Self::Chan),
-    )
+        _op: O,
+    ) where
+        O: PorterDuff,
     {
-        let a1 = Self::Chan::MAX - *alpha;
-        let s_chan = &src.channels()[Self::Model::LINEAR];
+        let da1 = Self::Chan::MAX - self.alpha();
+        let sa1 = Self::Chan::MAX - *alpha;
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
+        let s_chan = &src.channels()[Self::Model::LINEAR];
         d_chan
             .iter_mut()
             .zip(s_chan)
-            .for_each(|(d, s)| op(d, &(*s * *alpha), &a1));
+            .for_each(|(d, s)| O::composite(d, da1, &(*s * *alpha), sa1));
         // FIXME: composite circular channels
         if self.channels().len() > Self::Model::ALPHA {
-            let da = &mut self.channels_mut()[Self::Model::ALPHA];
+            let da = self.alpha_mut();
             let sa = src.alpha() * *alpha;
-            op(da, &sa, &a1);
+            O::composite(da, da1, &sa, sa1);
         }
     }
 }
