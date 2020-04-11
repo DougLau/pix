@@ -22,5 +22,22 @@ let mut src = Raster::<SRgb8>::with_clear(120, 120);
 let dst: Raster<Rgba8p> = Raster::with_raster(&src);
 ```
 
+### Example: Color Demo
+```
+use pix::{Raster, SHwb8};
+
+let mut r = Raster::<SHwb8>::with_clear(256, 256);
+for (y, row) in r.rows_mut().enumerate() {
+    for (x, p) in row.iter_mut().enumerate() {
+        let h = ((x + y) >> 1) as u8;
+        let w = y.saturating_sub(x) as u8;
+        let b = x.saturating_sub(y) as u8;
+        *p = SHwb8::new(h, w, b);
+    }
+}
+```
+
+![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
+
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
