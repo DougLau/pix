@@ -2,7 +2,9 @@
 //
 // Copyright (c) 2020  Douglas P Lau
 //
-use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
+use crate::chan::{
+    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+};
 use crate::clr::{
     hue::{rgb_to_hue_chroma_value, Hexcone},
     ColorModel,
@@ -255,6 +257,19 @@ pub type Hwba16p = Pix4<Ch16, Hwb, Premultiplied, Linear>;
 /// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
 /// format.
 pub type Hwba32p = Pix4<Ch32, Hwb, Premultiplied, Linear>;
+
+/// [Hwb](clr/struct.Hwb.html) 8-bit opaque (no *alpha* channel)
+/// [srgb](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// format.
+pub type SHwb8 = Pix3<Ch8, Hwb, Straight, Srgb>;
+/// [Hwb](clr/struct.Hwb.html) 16-bit opaque (no *alpha* channel)
+/// [srgb](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// format.
+pub type SHwb16 = Pix3<Ch16, Hwb, Straight, Srgb>;
+/// [Hwb](clr/struct.Hwb.html) 32-bit opaque (no *alpha* channel)
+/// [srgb](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// format.
+pub type SHwb32 = Pix3<Ch32, Hwb, Straight, Srgb>;
 
 #[cfg(test)]
 mod test {
