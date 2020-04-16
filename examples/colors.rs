@@ -4,7 +4,7 @@ use pix::{Raster, SHwb8};
 use std::io;
 
 fn main() -> Result<(), io::Error> {
-    let mut r = Raster::<SHwb8>::with_clear(256, 256);
+    let mut r = Raster::with_clear(256, 256);
     for (y, row) in r.rows_mut().enumerate() {
         for (x, p) in row.iter_mut().enumerate() {
             let h = ((x + y) >> 1) as u8;

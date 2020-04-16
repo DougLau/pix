@@ -1,8 +1,8 @@
-/// Minimal BMP file writer
-use pix::{Raster, SBgr8};
+//! Minimal BMP file writer
 use pix::chan::Ch8;
 use pix::clr::Bgr;
 use pix::el::Pixel;
+use pix::{Raster, SBgr8};
 use std::fs;
 use std::io;
 

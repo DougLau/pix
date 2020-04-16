@@ -17,7 +17,7 @@ A raster image is a rectangular array of pixels.
 ```
 use pix::{Raster, SHwb8};
 
-let mut r = Raster::<SHwb8>::with_clear(256, 256);
+let mut r = Raster::with_clear(256, 256);
 for (y, row) in r.rows_mut().enumerate() {
     for (x, p) in row.iter_mut().enumerate() {
         let h = ((x + y) >> 1) as u8;
