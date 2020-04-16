@@ -272,8 +272,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         // FIXME: composite circular channels
         if self.channels().len() > Self::Model::ALPHA {
             let da = self.alpha_mut();
-            let sa = src.alpha();
-            O::composite(da, da1, &sa, sa1);
+            O::composite(da, da1, &src.alpha(), sa1);
         }
     }
 
@@ -297,8 +296,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         // FIXME: composite circular channels
         if self.channels().len() > Self::Model::ALPHA {
             let da = self.alpha_mut();
-            let sa = src.alpha() * *alpha;
-            O::composite(da, da1, &sa, sa1);
+            O::composite(da, da1, &(src.alpha() * *alpha), sa1);
         }
     }
 }

@@ -142,7 +142,7 @@ impl PorterDuff for Xor {
 
 impl PorterDuff for Clear {
     fn composite<C: Channel>(dst: &mut C, _da1: C, _src: &C, _sa1: C) {
-        *dst = C::MIN;
+        *dst = C::default();
     }
 }
 
