@@ -8,26 +8,32 @@
 //! A [raster] image is a rectangular array of [pixel]s.
 //!
 //! ## Color Models
-//! * `RGB` / `BGR` (*red*, *green*, *blue*)
-//! * `Gray` (*luma* / *relative luminance*)
-//! * `HSV` (*hue*, *saturation*, *value*)
-//! * `HSL` (*hue*, *saturation*, *lightness*)
-//! * `HWB` (*hue*, *whiteness*, *blackness*)
-//! * `YCbCr` (JPEG)
+//! * [`RGB`] / `BGR` (*red*, *green*, *blue*)
+//! * [`Gray`] (*luma* / *relative luminance*)
+//! * [`HSV`] (*hue*, *saturation*, *value*)
+//! * [`HSL`] (*hue*, *saturation*, *lightness*)
+//! * [`HWB`] (*hue*, *whiteness*, *blackness*)
+//! * [`YCbCr`] (used by JPEG)
 //! * `Matte` (*alpha* only)
 //!
 //! [alpha]: chan/trait.Alpha.html
 //! [channel]: chan/trait.Channel.html
 //! [color model]: clr/trait.ColorModel.html
 //! [gamma]: chan/trait.Gamma.html
+//! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
+//! [`hsl`]: https://en.wikipedia.org/wiki/HSL_and_HSV
+//! [`hsv`]: https://en.wikipedia.org/wiki/HSL_and_HSV
+//! [`hwb`]: https://en.wikipedia.org/wiki/HWB_color_model
 //! [pixel]: el/trait.Pixel.html
 //! [raster]: struct.Raster.html
+//! [`rgb`]: https://en.wikipedia.org/wiki/RGB_color_model
+//! [`ycbcr`]: https://en.wikipedia.org/wiki/YCbCr
 //!
 //! ### Example: Color Demo
 //! ```
 //! use pix::{Raster, SHwb8};
 //!
-//! let mut r = Raster::<SHwb8>::with_clear(256, 256);
+//! let mut r = Raster::with_clear(256, 256);
 //! for (y, row) in r.rows_mut().enumerate() {
 //!     for (x, p) in row.iter_mut().enumerate() {
 //!         let h = ((x + y) >> 1) as u8;
@@ -81,7 +87,8 @@ pub use crate::clr::hsv::{
 };
 pub use crate::clr::hwb::{
     Hwb16, Hwb32, Hwb8, Hwba16, Hwba16p, Hwba32, Hwba32p, Hwba8, Hwba8p,
-    SHwb16, SHwb32, SHwb8,
+    SHwb16, SHwb32, SHwb8, SHwba16, SHwba16p, SHwba32, SHwba32p, SHwba8,
+    SHwba8p,
 };
 pub use crate::clr::matte::{Matte16, Matte32, Matte8};
 pub use crate::clr::rgb::{
