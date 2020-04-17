@@ -1,6 +1,6 @@
 //! Minimal BMP file writer
-use pix::chan::Ch8;
 use pix::bgr::{Bgr, SBgr8};
+use pix::chan::Ch8;
 use pix::el::Pixel;
 use pix::Raster;
 use std::fs;

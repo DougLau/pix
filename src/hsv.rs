@@ -7,8 +7,8 @@
 //!
 //! [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Straight};
-use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
+use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::ColorModel;
 use std::ops::Range;
 
