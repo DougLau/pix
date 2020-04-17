@@ -15,7 +15,8 @@ A raster image is a rectangular array of pixels.
 
 ### Example: Color Demo
 ```
-use pix::{Raster, SHwb8};
+use pix::hwb::SHwb8;
+use pix::Raster;
 
 let mut r = Raster::with_clear(256, 256);
 for (y, row) in r.rows_mut().enumerate() {
@@ -32,7 +33,8 @@ for (y, row) in r.rows_mut().enumerate() {
 
 ### Example: Convert Raster Format
 ```
-use pix::{Raster, Rgba8p, SRgb8};
+use pix::rgb::{Rgba8p, SRgb8};
+use pix::Raster;
 
 let mut src = Raster::<SRgb8>::with_clear(120, 120);
 // ... load pixels into raster
