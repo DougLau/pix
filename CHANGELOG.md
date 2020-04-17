@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+### Changed
+* Moved color models to their own sub-modules
+
+## [0.11.0] - 2020-04-11
 ### Added
 * Raster::pixel_mut(x, y); replaces set_pixel
 * Raster::rows and ::rows_mut

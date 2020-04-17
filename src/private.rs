@@ -16,8 +16,8 @@ use crate::chan::{
     Alpha, Ch16, Ch32, Ch8, Channel, Gamma, Linear, Premultiplied, Srgb,
     Straight,
 };
-use crate::clr::ColorModel;
 use crate::el::{Pix1, Pix2, Pix3, Pix4};
+use crate::ColorModel;
 use std::any::Any;
 
 /// Sealed trait to prevent outside crates from implementing traits

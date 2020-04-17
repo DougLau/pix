@@ -2,8 +2,7 @@
 //
 // Copyright (c) 2019-2020  Douglas P Lau
 //
-use crate::clr::Rgb;
-use crate::SRgb8;
+use crate::rgb::{Rgb, SRgb8};
 
 /// Color table for use with indexed `Raster`s.
 #[derive(Clone)]
@@ -135,7 +134,8 @@ impl Palette {
 
 #[cfg(test)]
 mod test {
-    use crate::*;
+    use crate::rgb::*;
+    use crate::Palette;
 
     #[test]
     fn fill_16() {
@@ -174,6 +174,7 @@ mod test {
         ];
         assert_eq!(p.colors(), &v[..]);
     }
+
     #[test]
     fn check_hist() {
         let mut p = Palette::new(8);
@@ -189,6 +190,7 @@ mod test {
         ];
         assert_eq!(p.histogram(&v[..]), Some(vec![18, 6, 10, 4, 8, 0, 2]));
     }
+
     #[test]
     fn matching() {
         let mut p = Palette::new(8);

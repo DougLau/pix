@@ -18,7 +18,7 @@
 //!
 //! [alpha]: chan/trait.Alpha.html
 //! [channel]: chan/trait.Channel.html
-//! [color model]: clr/trait.ColorModel.html
+//! [color model]: trait.ColorModel.html
 //! [gamma]: chan/trait.Gamma.html
 //! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
 //! [`hsl`]: https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -31,7 +31,8 @@
 //!
 //! ### Example: Color Demo
 //! ```
-//! use pix::{Raster, SHwb8};
+//! use pix::hwb::SHwb8;
+//! use pix::Raster;
 //!
 //! let mut r = Raster::with_clear(256, 256);
 //! for (y, row) in r.rows_mut().enumerate() {
@@ -48,7 +49,8 @@
 //!
 //! ### Example: Convert Raster Format
 //! ```
-//! use pix::{Raster, Rgba8p, SRgb8};
+//! use pix::rgb::{Rgba8p, SRgb8};
+//! use pix::Raster;
 //!
 //! let mut src = Raster::<SRgb8>::with_clear(120, 120);
 //! // ... load pixels into raster
@@ -61,44 +63,23 @@
 #![warn(missing_docs)]
 #![warn(missing_doc_code_examples)]
 
+pub mod bgr;
 pub mod chan;
-pub mod clr;
 pub mod el;
+pub mod gray;
+pub mod hsl;
+pub mod hsv;
+mod hue;
+pub mod hwb;
+pub mod matte;
+mod model;
 pub mod ops;
 mod palette;
 mod private;
 mod raster;
+pub mod rgb;
+pub mod ycc;
 
-pub use crate::clr::bgr::{
-    Bgr16, Bgr32, Bgr8, Bgra16, Bgra16p, Bgra32, Bgra32p, Bgra8, Bgra8p,
-    SBgr16, SBgr32, SBgr8, SBgra16, SBgra16p, SBgra32, SBgra32p, SBgra8,
-    SBgra8p,
-};
-pub use crate::clr::gray::{
-    Gray16, Gray32, Gray8, Graya16, Graya16p, Graya32, Graya32p, Graya8,
-    Graya8p, SGray16, SGray32, SGray8, SGraya16, SGraya16p, SGraya32,
-    SGraya32p, SGraya8, SGraya8p,
-};
-pub use crate::clr::hsl::{
-    Hsl16, Hsl32, Hsl8, Hsla16, Hsla16p, Hsla32, Hsla32p, Hsla8, Hsla8p,
-};
-pub use crate::clr::hsv::{
-    Hsv16, Hsv32, Hsv8, Hsva16, Hsva16p, Hsva32, Hsva32p, Hsva8, Hsva8p,
-};
-pub use crate::clr::hwb::{
-    Hwb16, Hwb32, Hwb8, Hwba16, Hwba16p, Hwba32, Hwba32p, Hwba8, Hwba8p,
-    SHwb16, SHwb32, SHwb8, SHwba16, SHwba16p, SHwba32, SHwba32p, SHwba8,
-    SHwba8p,
-};
-pub use crate::clr::matte::{Matte16, Matte32, Matte8};
-pub use crate::clr::rgb::{
-    Rgb16, Rgb32, Rgb8, Rgba16, Rgba16p, Rgba32, Rgba32p, Rgba8, Rgba8p,
-    SRgb16, SRgb32, SRgb8, SRgba16, SRgba16p, SRgba32, SRgba32p, SRgba8,
-    SRgba8p,
-};
-pub use crate::clr::ycc::{
-    YCbCr16, YCbCr32, YCbCr8, YCbCra16, YCbCra16p, YCbCra32, YCbCra32p,
-    YCbCra8, YCbCra8p,
-};
+pub use crate::model::ColorModel;
 pub use crate::palette::Palette;
 pub use crate::raster::{Raster, Region, Rows, RowsMut};

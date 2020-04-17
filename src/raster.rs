@@ -4,8 +4,8 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::chan::{Ch16, Ch8};
-use crate::clr::Matte;
 use crate::el::Pixel;
+use crate::matte::Matte;
 use crate::ops::PorterDuff;
 use std::convert::TryFrom;
 use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
@@ -22,15 +22,17 @@ use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 ///
 /// ### Create a clear `Raster`
 /// ```
-/// use pix::{Raster, SRgb8};
+/// use pix::rgb::SRgb8;
+/// use pix::Raster;
 ///
 /// let r = Raster::<SRgb8>::with_clear(100, 100);
 /// ```
 ///
 /// ### Create a `Raster` with a solid color rectangle
 /// ```
-/// use pix::{Raster, SRgb8};
 /// use pix::ops::Src;
+/// use pix::rgb::SRgb8;
+/// use pix::Raster;
 ///
 /// let mut r = Raster::<SRgb8>::with_clear(10, 10);
 /// let clr = SRgb8::new(0xFF, 0xFF, 0x00);
@@ -75,7 +77,8 @@ pub struct RowsMut<'a, P: Pixel> {
 /// ```
 /// ### Create from Raster
 /// ```
-/// use pix::{Raster, SRgb8};
+/// use pix::rgb::SRgb8;
+/// use pix::Raster;
 ///
 /// let r = Raster::<SRgb8>::with_clear(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
@@ -111,7 +114,10 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ## Examples
     /// ```
-    /// use pix::{Matte8, Raster, SGray8, SGraya32, SRgb16};
+    /// use pix::gray::{SGray8, SGraya32};
+    /// use pix::matte::Matte8;
+    /// use pix::rgb::SRgb16;
+    /// use pix::Raster;
     ///
     /// let r1 = Raster::<SGray8>::with_clear(20, 20);
     /// let r2 = Raster::<Matte8>::with_clear(64, 64);
@@ -130,7 +136,8 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ## Example
     /// ```
-    /// use pix::{Raster, SRgb8};
+    /// use pix::rgb::SRgb8;
+    /// use pix::Raster;
     ///
     /// let clr = SRgb8::new(0x40, 0xAA, 0xBB);
     /// let r = Raster::<SRgb8>::with_color(15, 15, clr);
@@ -155,7 +162,8 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ### Convert from SRgb8 to Rgba16
     /// ```
-    /// use pix::{Raster, Rgba16, SRgb8};
+    /// use pix::rgb::{Rgba16, SRgb8};
+    /// use pix::Raster;
     ///
     /// let mut r0 = Raster::<SRgb8>::with_clear(50, 50);
     /// // load pixels into raster
@@ -193,8 +201,9 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ## Example
     /// ```
-    /// use pix::{Raster, Rgb8};
     /// use pix::ops::Src;
+    /// use pix::rgb::Rgb8;
+    /// use pix::Raster;
     ///
     /// let p = vec![Rgb8::new(255, 0, 255); 16];  // vec of magenta pix
     /// let mut r = Raster::with_pixels(4, 4, p);  // convert to raster
@@ -379,18 +388,20 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ### Set entire raster to one color
     /// ```
-    /// use pix::{Raster, SRgb32};
     /// use pix::ops::Src;
+    /// use pix::rgb::SRgb32;
+    /// use pix::Raster;
     ///
-    /// let mut r = Raster::<SRgb32>::with_clear(360, 240);
+    /// let mut r = Raster::with_clear(360, 240);
     /// r.composite_color((), SRgb32::new(0.5, 0.2, 0.8), Src);
     /// ```
     /// ### Set rectangle to solid color
     /// ```
-    /// use pix::{Raster, SRgb8};
     /// use pix::ops::Src;
+    /// use pix::rgb::SRgb8;
+    /// use pix::Raster;
     ///
-    /// let mut r = Raster::<SRgb8>::with_clear(100, 100);
+    /// let mut r = Raster::with_clear(100, 100);
     /// let clr = SRgb8::new(0xDD, 0x96, 0x70);
     /// r.composite_color((20, 40, 25, 50), clr, Src);
     /// ```
@@ -479,10 +490,11 @@ impl<P: Pixel> Raster<P> {
     ///
     /// ### Copy part of one `Raster` to another, converting pixel format
     /// ```
-    /// use pix::{Raster, SRgb8};
     /// use pix::ops::Src;
+    /// use pix::rgb::SRgb8;
+    /// use pix::Raster;
     ///
-    /// let mut r0 = Raster::<SRgb8>::with_clear(100, 100);
+    /// let mut r0 = Raster::with_clear(100, 100);
     /// let r1 = Raster::with_color(5, 5, SRgb8::new(80, 0, 80));
     /// // ... load image data
     /// r0.composite_raster((40, 40, 5, 5), &r1, (), Src);
@@ -634,8 +646,12 @@ impl Region {
 #[cfg(test)]
 #[rustfmt::skip]
 mod test {
-    use crate::*;
+    use crate::gray::*;
+    use crate::hwb::*;
+    use crate::matte::*;
     use crate::ops::*;
+    use crate::rgb::*;
+    use crate::*;
 
     #[test]
     fn region_size() {
@@ -746,7 +762,7 @@ mod test {
 
     #[test]
     fn raster_with_color() {
-        let r = Raster::<Hwb8>::with_color(3, 3, Hwb8::new(0x80, 0, 0));
+        let r = Raster::with_color(3, 3, Hwb8::new(0x80, 0, 0));
         let v = vec![Hwb8::new(0x80, 0, 0); 9];
         assert_eq!(r.pixels(), &v[..]);
     }

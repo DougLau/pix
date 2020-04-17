@@ -3,9 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! [`Gray`] color model and types.
+//!
+//! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
-use crate::clr::ColorModel;
 use crate::el::{Pix1, Pix2, PixRgba, Pixel};
+use crate::ColorModel;
 use std::ops::Range;
 
 /// Gray [color model].
@@ -15,9 +18,9 @@ use std::ops::Range;
 /// gamma it is *relative luminance*.
 ///
 /// [alpha]: ../el/trait.Pixel.html#method.alpha
-/// [color model]: trait.ColorModel.html
-/// [linear]: chan/struct.Linear.html
-/// [sRGB]: chan/struct.Srgb.html
+/// [color model]: ../trait.ColorModel.html
+/// [linear]: ../chan/struct.Linear.html
+/// [sRGB]: ../chan/struct.Srgb.html
 /// [value]: #method.value
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Gray {}
@@ -27,9 +30,8 @@ impl Gray {
     ///
     /// # Example: Get Value
     /// ```
-    /// use pix::Gray16;
     /// use pix::chan::Ch16;
-    /// use pix::clr::Gray;
+    /// use pix::gray::{Gray, Gray16};
     ///
     /// let p = Gray16::new(0x4000);
     /// assert_eq!(Gray::value(p), Ch16::new(0x4000));
@@ -45,9 +47,8 @@ impl Gray {
     ///
     /// # Example: Modify Value
     /// ```
-    /// use pix::Gray8;
     /// use pix::chan::Ch8;
-    /// use pix::clr::Gray;
+    /// use pix::gray::{Gray, Gray8};
     ///
     /// let mut p = Gray8::new(0x40);
     /// *Gray::value_mut(&mut p) = 0x50.into();
@@ -94,88 +95,96 @@ impl ColorModel for Gray {
     }
 }
 
-/// [Gray](clr/struct.Gray.html) 8-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma
-/// [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 8-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Gray8 = Pix1<Ch8, Gray, Straight, Linear>;
-/// [Gray](clr/struct.Gray.html) 16-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma
-/// [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 16-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Gray16 = Pix1<Ch16, Gray, Straight, Linear>;
-/// [Gray](clr/struct.Gray.html) 32-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma
-/// [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 32-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Gray32 = Pix1<Ch32, Gray, Straight, Linear>;
 
-/// [Gray](clr/struct.Gray.html) 8-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 8-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Graya8 = Pix2<Ch8, Gray, Straight, Linear>;
-/// [Gray](clr/struct.Gray.html) 16-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 16-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Graya16 = Pix2<Ch16, Gray, Straight, Linear>;
-/// [Gray](clr/struct.Gray.html) 32-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 32-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Graya32 = Pix2<Ch32, Gray, Straight, Linear>;
 
-/// [Gray](clr/struct.Gray.html) 8-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Gray](struct.Gray.html) 8-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Graya8p = Pix2<Ch8, Gray, Premultiplied, Linear>;
-/// [Gray](clr/struct.Gray.html) 16-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Gray](struct.Gray.html) 16-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Graya16p = Pix2<Ch16, Gray, Premultiplied, Linear>;
-/// [Gray](clr/struct.Gray.html) 32-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Gray](struct.Gray.html) 32-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Graya32p = Pix2<Ch32, Gray, Premultiplied, Linear>;
 
-/// [Gray](clr/struct.Gray.html) 8-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 8-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGray8 = Pix1<Ch8, Gray, Straight, Srgb>;
-/// [Gray](clr/struct.Gray.html) 16-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 16-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGray16 = Pix1<Ch16, Gray, Straight, Srgb>;
-/// [Gray](clr/struct.Gray.html) 32-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 32-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGray32 = Pix1<Ch32, Gray, Straight, Srgb>;
 
-/// [Gray](clr/struct.Gray.html) 8-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 8-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type SGraya8 = Pix2<Ch8, Gray, Straight, Srgb>;
-/// [Gray](clr/struct.Gray.html) 16-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 16-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type SGraya16 = Pix2<Ch16, Gray, Straight, Srgb>;
-/// [Gray](clr/struct.Gray.html) 32-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Gray](struct.Gray.html) 32-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type SGraya32 = Pix2<Ch32, Gray, Straight, Srgb>;
 
-/// [Gray](clr/struct.Gray.html) 8-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 8-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGraya8p = Pix2<Ch8, Gray, Premultiplied, Srgb>;
-/// [Gray](clr/struct.Gray.html) 16-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 16-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGraya16p = Pix2<Ch16, Gray, Premultiplied, Srgb>;
-/// [Gray](clr/struct.Gray.html) 32-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Gray](struct.Gray.html) 32-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SGraya32p = Pix2<Ch32, Gray, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {
     use crate::el::Pixel;
-    use crate::*;
+    use crate::gray::*;
+    use crate::matte::*;
+    use crate::rgb::*;
 
     #[test]
     fn rgb_to_gray() {

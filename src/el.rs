@@ -5,9 +5,11 @@
 //
 //! Module for `pix::el` items
 use crate::chan::{Alpha, Channel, Gamma};
-use crate::clr::{ColorModel, Matte, Rgb};
+use crate::matte::Matte;
 use crate::ops::PorterDuff;
 use crate::private::Sealed;
+use crate::rgb::Rgb;
+use crate::ColorModel;
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -18,7 +20,7 @@ use std::marker::PhantomData;
 ///
 /// [alpha]: ../chan/trait.Alpha.html
 /// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [convert]: #method.convert
 /// [gamma]: ../chan/trait.Gamma.html
 ///
@@ -32,62 +34,62 @@ use std::marker::PhantomData;
 ///   32-bit floating-point [channels].
 /// * _Alpha mode_: `p` for [premultiplied]; [straight] if omitted.
 ///
-/// [`bgr`]: ../clr/struct.Bgr.html
+/// [`bgr`]: ../bgr/struct.Bgr.html
 /// [channels]: ../chan/trait.Channel.html
-/// [`gray`]: ../clr/struct.Gray.html
-/// [`hsl`]: ../clr/struct.Hsl.html
-/// [`hsv`]: ../clr/struct.Hsv.html
-/// [`hwb`]: ../clr/struct.Hwb.html
+/// [`gray`]: ../gray/struct.Gray.html
+/// [`hsl`]: ../hsl/struct.Hsl.html
+/// [`hsv`]: ../hsv/struct.Hsv.html
+/// [`hwb`]: ../hwb/struct.Hwb.html
 /// [linear]: ../chan/struct.Linear.html
-/// [`matte`]: ../clr/struct.Matte.html
+/// [`matte`]: ../matte/struct.Matte.html
 /// [premultiplied]: ../chan/struct.Premultiplied.html
-/// [`Rgb`]: ../clr/struct.Rgb.html
+/// [`Rgb`]: ../rgb/struct.Rgb.html
 /// [sRGB]: ../chan/struct.Srgb.html
 /// [straight]: ../chan/struct.Straight.html
-/// [`YCbCr`]: ../clr/struct.YCbCr.html
+/// [`YCbCr`]: ../ycc/struct.YCbCr.html
 ///
 /// ### Type Aliases
 ///
 /// * Opaque, linear gamma:
-///   [Rgb8](../type.Rgb8.html),
-///   [Gray8](../type.Gray8.html),
-///   [Hsv8](../type.Hsv8.html),
-///   [Hsl8](../type.Hsl8.html),
-///   [Rgb16](../type.Rgb16.html),
+///   [Rgb8](../rgb/type.Rgb8.html),
+///   [Gray8](../gray/type.Gray8.html),
+///   [Hsv8](../hsv/type.Hsv8.html),
+///   [Hsl8](../hsl/type.Hsl8.html),
+///   [Rgb16](../rgb/type.Rgb16.html),
 ///   *etc.*
 /// * Opaque, sRGB gamma:
-///   [SRgb8](../type.SRgb8.html),
-///   [SGray8](../type.SGray8.html),
-///   [SRgb16](../type.SRgb16.html),
+///   [SRgb8](../rgb/type.SRgb8.html),
+///   [SGray8](../gray/type.SGray8.html),
+///   [SRgb16](../rgb/type.SRgb16.html),
 ///   *etc.*
 /// * Translucent (straight alpha), linear gamma:
-///   [Rgba8](../type.Rgba8.html),
-///   [Graya8](../type.Graya8.html),
-///   [Hsva8](../type.Hsva8.html),
-///   [Hsla8](../type.Hsla8.html),
-///   [Rgba16](../type.Rgba16.html),
+///   [Rgba8](../rgb/type.Rgba8.html),
+///   [Graya8](../gray/type.Graya8.html),
+///   [Hsva8](../hsv/type.Hsva8.html),
+///   [Hsla8](../hsl/type.Hsla8.html),
+///   [Rgba16](../rgb/type.Rgba16.html),
 ///   *etc.*
 /// * Translucent (premultiplied alpha), linear gamma:
-///   [Rgba8p](../type.Rgba8p.html),
-///   [Graya8p](../type.Graya8p.html),
-///   [Hsva8p](../type.Hsva8p.html),
-///   [Hsla8p](../type.Hsla8p.html),
-///   [Rgba16p](../type.Rgba16p.html),
+///   [Rgba8p](../rgb/type.Rgba8p.html),
+///   [Graya8p](../gray/type.Graya8p.html),
+///   [Hsva8p](../hsv/type.Hsva8p.html),
+///   [Hsla8p](../hsl/type.Hsla8p.html),
+///   [Rgba16p](../rgb/type.Rgba16p.html),
 ///   *etc.*
 /// * Translucent (straight alpha), sRGB gamma:
-///   [SRgba8](../type.SRgba8.html),
-///   [SGraya8](../type.SGraya8.html),
-///   [SRgba16](../type.SRgba16.html),
+///   [SRgba8](../rgb/type.SRgba8.html),
+///   [SGraya8](../gray/type.SGraya8.html),
+///   [SRgba16](../rgb/type.SRgba16.html),
 ///   *etc.*
 /// * Translucent (premultiplied alpha), sRGB gamma:
-///   [SRgba8p](../type.SRgba8p.html),
-///   [SGraya8p](../type.SGraya8p.html),
-///   [SRgba16p](../type.SRgba16p.html),
+///   [SRgba8p](../rgb/type.SRgba8p.html),
+///   [SGraya8p](../gray/type.SGraya8p.html),
+///   [SRgba16p](../rgb/type.SRgba16p.html),
 ///   *etc.*
 /// * Alpha matte:
-///   [Matte8](../type.Matte8.html),
-///   [Matte16](../type.Matte16.html),
-///   [Matte32](../type.Matte32.html)
+///   [Matte8](../matte/type.Matte8.html),
+///   [Matte16](../matte/type.Matte16.html),
+///   [Matte32](../matte/type.Matte32.html)
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
@@ -162,9 +164,9 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     ///
     /// # Example: Get Alpha
     /// ```
-    /// use pix::Graya16;
     /// use pix::chan::Ch16;
     /// use pix::el::Pixel;
+    /// use pix::gray::Graya16;
     ///
     /// let p = Graya16::new(0x7090, 0x6010);
     /// assert_eq!(Pixel::alpha(p), Ch16::new(0x6010));
@@ -182,9 +184,9 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     ///
     /// # Example: Set Alpha
     /// ```
-    /// use pix::Rgba8;
     /// use pix::chan::Ch8;
     /// use pix::el::Pixel;
+    /// use pix::rgb::Rgba8;
     ///
     /// let mut p = Rgba8::new(0xFF, 0x40, 0x80, 0xA5);
     /// *Pixel::alpha_mut(&mut p) = Ch8::new(0x4B);
@@ -362,7 +364,7 @@ where
 /// [Pixel] with one [channel] in its [color model].
 ///
 /// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -390,7 +392,7 @@ where
     ///
     /// ## Example
     /// ```
-    /// use pix::Gray8;
+    /// use pix::gray::Gray8;
     ///
     /// let opaque_gray = Gray8::new(128);
     /// ```
@@ -449,7 +451,7 @@ where
 /// [Pixel] with two [channel]s in its [color model].
 ///
 /// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -477,7 +479,7 @@ where
     ///
     /// ## Example
     /// ```
-    /// use pix::Graya8;
+    /// use pix::gray::Graya8;
     ///
     /// let translucent_gray = Graya8::new(128, 200);
     /// ```
@@ -540,7 +542,7 @@ where
 /// [Pixel] with three [channel]s in its [color model].
 ///
 /// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -568,7 +570,7 @@ where
     ///
     /// ## Example
     /// ```
-    /// use pix::Rgb8;
+    /// use pix::rgb::Rgb8;
     ///
     /// let rgb = Rgb8::new(128, 200, 255);
     /// ```
@@ -634,7 +636,7 @@ where
 /// [Pixel] with four [channel]s in its [color model].
 ///
 /// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 #[repr(C)]
@@ -662,7 +664,7 @@ where
     ///
     /// ## Example
     /// ```
-    /// use pix::Rgba8;
+    /// use pix::rgb::Rgba8;
     ///
     /// let rgba = Rgba8::new(128, 200, 255, 128);
     /// ```
@@ -731,7 +733,9 @@ where
 #[cfg(test)]
 mod test {
     use crate::el::*;
-    use crate::*;
+    use crate::gray::*;
+    use crate::matte::*;
+    use crate::rgb::*;
 
     #[test]
     fn check_sizes() {
@@ -782,6 +786,7 @@ mod test {
         );
         assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert(),);
     }
+
     #[test]
     fn linear_to_srgb() {
         assert_eq!(
@@ -797,6 +802,7 @@ mod test {
             Rgb32::new(0.5, 0.25, 0.75).convert()
         );
     }
+
     #[test]
     fn srgb_to_linear() {
         assert_eq!(
@@ -812,6 +818,7 @@ mod test {
             SRgb32::new(0.5, 0.25, 0.75).convert(),
         );
     }
+
     #[test]
     fn straight_to_premultiplied() {
         assert_eq!(
@@ -827,6 +834,7 @@ mod test {
             Rgba32::new(0.5, 1.0, 0.75, 0.75).convert(),
         );
     }
+
     #[test]
     fn premultiplied_to_straight() {
         assert_eq!(
@@ -842,6 +850,7 @@ mod test {
             Rgba32p::new(0.5, 0.25, 0.75, 0.75).convert(),
         );
     }
+
     #[test]
     fn straight_to_premultiplied_srgb() {
         assert_eq!(

@@ -3,9 +3,12 @@
 // Copyright (c) 2018-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
+//! [RGB] color model and types.
+//!
+//! [rgb]: https://en.wikipedia.org/wiki/RGB_color_model
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
-use crate::clr::ColorModel;
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
+use crate::ColorModel;
 use std::ops::Range;
 
 /// [RGB] additive [color model].
@@ -14,7 +17,7 @@ use std::ops::Range;
 ///
 /// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [blue]: #method.blue
-/// [color model]: trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 /// [green]: #method.green
 /// [red]: #method.red
 /// [rgb]: https://en.wikipedia.org/wiki/RGB_color_model
@@ -26,9 +29,8 @@ impl Rgb {
     ///
     /// # Example: RGB Red
     /// ```
-    /// use pix::Rgb32;
     /// use pix::chan::Ch32;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb32};
     ///
     /// let p = Rgb32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Rgb::red(p), Ch32::new(0.25));
@@ -44,9 +46,8 @@ impl Rgb {
     ///
     /// # Example: Modify RGB Red
     /// ```
-    /// use pix::Rgb32;
     /// use pix::chan::Ch32;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb32};
     ///
     /// let mut p = Rgb32::new(0.25, 0.5, 1.0);
     /// *Rgb::red_mut(&mut p) = Ch32::new(0.75);
@@ -63,9 +64,8 @@ impl Rgb {
     ///
     /// # Example: RGB Green
     /// ```
-    /// use pix::Rgb16;
     /// use pix::chan::Ch16;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb16};
     ///
     /// let p = Rgb16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Rgb::green(p), Ch16::new(0x1234));
@@ -81,9 +81,8 @@ impl Rgb {
     ///
     /// # Example: Modify RGB Green
     /// ```
-    /// use pix::Rgb16;
     /// use pix::chan::Ch16;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb16};
     ///
     /// let mut p = Rgb16::new(0x2000, 0x1234, 0x8000);
     /// *Rgb::green_mut(&mut p) = 0x4321.into();
@@ -100,9 +99,8 @@ impl Rgb {
     ///
     /// # Example: RGB Blue
     /// ```
-    /// use pix::Rgb8;
     /// use pix::chan::Ch8;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb8};
     ///
     /// let p = Rgb8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Rgb::blue(p), Ch8::new(0xA0));
@@ -118,9 +116,8 @@ impl Rgb {
     ///
     /// # Example: Modify RGB Blue
     /// ```
-    /// use pix::Rgb8;
     /// use pix::chan::Ch8;
-    /// use pix::clr::Rgb;
+    /// use pix::rgb::{Rgb, Rgb8};
     ///
     /// let mut p = Rgb8::new(0x88, 0x77, 0x66);
     /// *Rgb::blue_mut(&mut p) = 0x55.into();
@@ -199,89 +196,95 @@ impl ColorModel for Rgb {
     }
 }
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 8-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgb8 = Pix3<Ch8, Rgb, Straight, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 16-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgb16 = Pix3<Ch16, Rgb, Straight, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit opaque (no *alpha* channel)
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 32-bit opaque (no *alpha* channel)
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgb32 = Pix3<Ch32, Rgb, Straight, Linear>;
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Rgb](struct.Rgb.html) 8-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Rgba8 = Pix4<Ch8, Rgb, Straight, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Rgb](struct.Rgb.html) 16-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Rgba16 = Pix4<Ch16, Rgb, Straight, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit [straight](chan/struct.Straight.html)
-/// alpha [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
-/// format.
+/// [Rgb](struct.Rgb.html) 32-bit [straight](../chan/struct.Straight.html)
+/// alpha [linear](../chan/struct.Linear.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
 pub type Rgba32 = Pix4<Ch32, Rgb, Straight, Linear>;
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgba8p = Pix4<Ch8, Rgb, Premultiplied, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgba16p = Pix4<Ch16, Rgb, Premultiplied, Linear>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [linear](chan/struct.Linear.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Rgba32p = Pix4<Ch32, Rgb, Premultiplied, Linear>;
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 8-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgb8 = Pix3<Ch8, Rgb, Straight, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 16-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgb16 = Pix3<Ch16, Rgb, Straight, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit opaque (no *alpha* channel)
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 32-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgb32 = Pix3<Ch32, Rgb, Straight, Srgb>;
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 8-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SRgba8 = Pix4<Ch8, Rgb, Straight, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 16-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SRgba16 = Pix4<Ch16, Rgb, Straight, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit [straight](chan/struct.Straight.html)
-/// alpha [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html)
+/// [Rgb](struct.Rgb.html) 32-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SRgba32 = Pix4<Ch32, Rgb, Straight, Srgb>;
 
-/// [Rgb](clr/struct.Rgb.html) 8-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 8-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgba8p = Pix4<Ch8, Rgb, Premultiplied, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 16-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 16-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgba16p = Pix4<Ch16, Rgb, Premultiplied, Srgb>;
-/// [Rgb](clr/struct.Rgb.html) 32-bit
-/// [premultiplied](chan/struct.Premultiplied.html) alpha
-/// [sRGB](chan/struct.Srgb.html) gamma [pixel](el/trait.Pixel.html) format.
+/// [Rgb](struct.Rgb.html) 32-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
 pub type SRgba32p = Pix4<Ch32, Rgb, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod tests {
     use crate::el::Pixel;
     use crate::ops::SrcOver;
-    use crate::*;
+    use crate::rgb::*;
 
     #[test]
     fn rgba8_transparent() {

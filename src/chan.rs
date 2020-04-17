@@ -108,7 +108,7 @@ impl Gamma for Srgb {
 /// [Ch8]: struct.Ch8.html
 /// [Ch16]: struct.Ch16.html
 /// [Ch32]: struct.Ch32.html
-/// [color model]: ../clr/trait.ColorModel.html
+/// [color model]: ../trait.ColorModel.html
 pub trait Channel:
     Copy
     + Debug

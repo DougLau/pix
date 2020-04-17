@@ -3,7 +3,6 @@
 // Copyright (c) 2020  Douglas P Lau
 //
 //! Color models
-pub use crate::clr::{Gray, Hsl, Hsv, Hwb, Matte, Rgb, YCbCr};
 use crate::el::{PixRgba, Pixel};
 use std::any::Any;
 use std::fmt::Debug;
@@ -14,15 +13,15 @@ use std::ops::Range;
 /// Existing color models are [Rgb], [Bgr], [Gray], [Hsv], [Hsl], [Hwb],
 /// [YCbCr] and [Matte].
 ///
-/// [bgr]: struct.Bgr.html
+/// [bgr]: bgr/struct.Bgr.html
 /// [convert]: el/trait.Pixel.html#method.convert
-/// [gray]: struct.Gray.html
-/// [hsl]: struct.Hsl.html
-/// [hsv]: struct.Hsv.html
-/// [hwb]: struct.Hwb.html
-/// [matte]: struct.Matte.html
-/// [rgb]: struct.Rgb.html
-/// [ycbcr]: struct.YCbCr.html
+/// [gray]: gray/struct.Gray.html
+/// [hsl]: hsl/struct.Hsl.html
+/// [hsv]: hsv/struct.Hsv.html
+/// [hwb]: hwb/struct.Hwb.html
+/// [matte]: matte/struct.Matte.html
+/// [rgb]: rgb/struct.Rgb.html
+/// [ycbcr]: ycc/struct.YCbCr.html
 pub trait ColorModel: Clone + Copy + Debug + Default + PartialEq + Any {
     /// Range of circular channel numbers
     const CIRCULAR: Range<usize>;
