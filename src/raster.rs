@@ -436,12 +436,8 @@ impl<P: Pixel> Raster<P> {
     /// // ... load image data
     /// r0.copy_raster((40, 40, 5, 5), &r1, ());
     /// ```
-    pub fn copy_raster<R0, R1>(
-        &mut self,
-        to: R0,
-        src: &Raster<P>,
-        from: R1,
-    ) where
+    pub fn copy_raster<R0, R1>(&mut self, to: R0, src: &Raster<P>, from: R1)
+    where
         R0: Into<Region>,
         R1: Into<Region>,
     {
@@ -648,9 +644,7 @@ where
 {
     /// Get view of pixels as a mutable `u8` slice.
     pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
-        unsafe {
-            self.pixels.align_to_mut::<u8>().1
-        }
+        unsafe { self.pixels.align_to_mut::<u8>().1 }
     }
 }
 
