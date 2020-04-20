@@ -1,7 +1,11 @@
 ## [Unreleased]
 
+### Added
+* Raster::copy_color and copy_raster
+
 ### Changed
 * Moved color models to their own sub-modules
+* composite methods only available for premultiplies Rasters
 
 ## [0.11.0] - 2020-04-11
 ### Added

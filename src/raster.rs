@@ -3,7 +3,7 @@
 // Copyright (c) 2017-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::chan::{Ch16, Ch8};
+use crate::chan::{Ch16, Ch8, Premultiplied};
 use crate::el::Pixel;
 use crate::matte::Matte;
 use crate::ops::PorterDuff;
@@ -26,17 +26,6 @@ use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 /// use pix::Raster;
 ///
 /// let r = Raster::<SRgb8>::with_clear(100, 100);
-/// ```
-///
-/// ### Create a `Raster` with a solid color rectangle
-/// ```
-/// use pix::ops::Src;
-/// use pix::rgb::SRgb8;
-/// use pix::Raster;
-///
-/// let mut r = Raster::<SRgb8>::with_clear(10, 10);
-/// let clr = SRgb8::new(0xFF, 0xFF, 0x00);
-/// r.composite_color((2, 4, 3, 3), clr, Src);
 /// ```
 pub struct Raster<P: Pixel> {
     width: i32,
@@ -208,7 +197,7 @@ impl<P: Pixel> Raster<P> {
     /// let p = vec![Rgb8::new(255, 0, 255); 16];  // vec of magenta pix
     /// let mut r = Raster::with_pixels(4, 4, p);  // convert to raster
     /// let clr = Rgb8::new(0x00, 0xFF, 0x00);     // green
-    /// r.composite_color((2, 0, 1, 3), clr, Src); // make stripe
+    /// r.copy_color((2, 0, 1, 3), clr);           // make stripe
     /// let p2 = Into::<Vec<Rgb8>>::into(r);       // back to vec
     /// ```
     pub fn with_pixels<B>(width: u32, height: u32, pixels: B) -> Self
@@ -363,7 +352,7 @@ impl<P: Pixel> Raster<P> {
         Region::new(0, 0, self.width(), self.height())
     }
 
-    /// Get intersection with a `Region`
+    /// Get intersection with a `Region`.
     pub fn intersection<R>(&self, reg: R) -> Region
     where
         R: Into<Region>,
@@ -378,6 +367,123 @@ impl<P: Pixel> Raster<P> {
         Region::new(x0, y0, w, h)
     }
 
+    /// Copy a color to a region of the `Raster`.
+    ///
+    /// * `reg` Region within `self`.  It can be a `Region` struct, tuple of
+    ///         (*x*, *y*, *width*, *height*) or the unit type `()`.  Using
+    ///         `()` has the same result as `Raster::region()`.
+    /// * `clr` Source `Pixel` color.
+    ///
+    /// ### Copy a color to a rectangle region
+    /// ```
+    /// use pix::rgb::SRgb8;
+    /// use pix::Raster;
+    ///
+    /// let mut r = Raster::with_clear(100, 100);
+    /// let clr = SRgb8::new(0xDD, 0x96, 0x70);
+    /// r.copy_color((20, 40, 25, 50), clr);
+    /// ```
+    pub fn copy_color<R>(&mut self, reg: R, clr: P)
+    where
+        R: Into<Region>,
+    {
+        let reg = self.intersection(reg.into());
+        let width = reg.width();
+        let height = reg.height();
+        if width > 0 && height > 0 {
+            let drows = self.rows_mut().skip(reg.y as usize);
+            for drow in drows.take(height as usize) {
+                let x0 = reg.x as usize;
+                let x1 = x0 + width as usize;
+                let drow = &mut drow[x0..x1];
+                P::copy_color(drow, &clr);
+            }
+        }
+    }
+
+    /// Copy from a source `Raster`.
+    ///
+    /// * `to` Region within `self` (destination).
+    /// * `src` Source `Raster`.
+    /// * `from` Region within source `Raster`.
+    ///
+    /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
+    /// *height*) or the unit type `()`.  Using `()` has the same result as
+    /// `Raster::region()`.
+    ///
+    /// ```bob
+    /// *------------+      *-------------+
+    /// |            |      |    *------+ |
+    /// | *------+   |      |    |      | |
+    /// | |      |   |      |    | from | |
+    /// | |  to  |   | <--- |    +------+ |
+    /// | +------+   |      |             |
+    /// |            |      |     src     |
+    /// |    self    |      +-------------+
+    /// +------------+
+    /// ```
+    /// The copied `Region` is clamped to the smaller of `to` and `from` in
+    /// both `X` and `Y` dimensions.  Also, `to` and `from` are clipped to
+    /// their respective `Raster` dimensions.
+    ///
+    /// ### Copy part of one `Raster` to another
+    /// ```
+    /// use pix::rgb::SRgb8;
+    /// use pix::Raster;
+    ///
+    /// let mut r0 = Raster::with_clear(100, 100);
+    /// let r1 = Raster::with_color(5, 5, SRgb8::new(80, 0, 80));
+    /// // ... load image data
+    /// r0.copy_raster((40, 40, 5, 5), &r1, ());
+    /// ```
+    pub fn copy_raster<R0, R1>(
+        &mut self,
+        to: R0,
+        src: &Raster<P>,
+        from: R1,
+    ) where
+        R0: Into<Region>,
+        R1: Into<Region>,
+    {
+        let (to, from) = (to.into(), from.into());
+        let tx = to.x.min(0).abs();
+        let ty = to.y.min(0).abs();
+        let fx = from.x.min(0).abs();
+        let fy = from.y.min(0).abs();
+        let to = self.intersection(to);
+        let from = src.intersection(from);
+        let width = to.width().min(from.width());
+        let height = to.height().min(from.height());
+        if width > 0 && height > 0 {
+            let to = Region::new(to.x + fx, to.y + fy, width, height);
+            let from = Region::new(from.x + tx, from.y + ty, width, height);
+            let srows = src.rows().skip(from.y as usize);
+            let drows = self.rows_mut().skip(to.y as usize);
+            for (drow, srow) in drows.take(height as usize).zip(srows) {
+                let x0 = to.x as usize;
+                let x1 = x0 + width as usize;
+                let drow = &mut drow[x0..x1];
+                let srow = &srow[from.x as usize..];
+                P::copy_slice(drow, srow);
+            }
+        }
+    }
+
+    /// Get view of pixels as a `u8` slice.
+    pub fn as_u8_slice(&self) -> &[u8] {
+        unsafe {
+            let (prefix, v, suffix) = &self.pixels.align_to::<u8>();
+            debug_assert!(prefix.is_empty());
+            debug_assert!(suffix.is_empty());
+            v
+        }
+    }
+}
+
+impl<P> Raster<P>
+where
+    P: Pixel<Alpha = Premultiplied>,
+{
     /// Composite a source color to a region of the `Raster`.
     ///
     /// * `reg` Region within `self`.  It can be a `Region` struct, tuple of
@@ -386,24 +492,15 @@ impl<P: Pixel> Raster<P> {
     /// * `clr` Source `Pixel` color.
     /// * `op` Compositing operation.
     ///
-    /// ### Set entire raster to one color
+    /// ### Example
     /// ```
-    /// use pix::ops::Src;
-    /// use pix::rgb::SRgb32;
+    /// use pix::ops::SrcOver;
+    /// use pix::rgb::Rgba8p;
     /// use pix::Raster;
     ///
-    /// let mut r = Raster::with_clear(360, 240);
-    /// r.composite_color((), SRgb32::new(0.5, 0.2, 0.8), Src);
-    /// ```
-    /// ### Set rectangle to solid color
-    /// ```
-    /// use pix::ops::Src;
-    /// use pix::rgb::SRgb8;
-    /// use pix::Raster;
-    ///
-    /// let mut r = Raster::with_clear(100, 100);
-    /// let clr = SRgb8::new(0xDD, 0x96, 0x70);
-    /// r.composite_color((20, 40, 25, 50), clr, Src);
+    /// let mut r = Raster::with_color(100, 100, Rgba8p::new(99, 0, 99, 255));
+    /// let clr = Rgba8p::new(200, 200, 0, 128);
+    /// r.composite_color((20, 40, 25, 50), clr, SrcOver);
     /// ```
     pub fn composite_color<R, O>(&mut self, reg: R, clr: P, op: O)
     where
@@ -425,6 +522,16 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Composite from a matte `Raster` and color.
+    ///
+    /// * `to` Region within `self` (destination).
+    /// * `src` Source `Raster` matte.
+    /// * `from` Region within source `Raster`.
+    /// * `clr` Color to apply to the matte.
+    /// * `_op` Compositing operation.
+    ///
+    /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
+    /// *height*) or the unit type `()`.  Using `()` has the same result as
+    /// `Raster::region()`.
     pub fn composite_matte<R0, R1, M, O>(
         &mut self,
         to: R0,
@@ -488,16 +595,16 @@ impl<P: Pixel> Raster<P> {
     /// both `X` and `Y` dimensions.  Also, `to` and `from` are clipped to
     /// their respective `Raster` dimensions.
     ///
-    /// ### Copy part of one `Raster` to another, converting pixel format
+    /// ### Blend one `Raster` onto another
     /// ```
-    /// use pix::ops::Src;
-    /// use pix::rgb::SRgb8;
+    /// use pix::ops::SrcOver;
+    /// use pix::rgb::SRgba8p;
     /// use pix::Raster;
     ///
     /// let mut r0 = Raster::with_clear(100, 100);
-    /// let r1 = Raster::with_color(5, 5, SRgb8::new(80, 0, 80));
+    /// let r1 = Raster::with_color(5, 5, SRgba8p::new(80, 0, 80, 200));
     /// // ... load image data
-    /// r0.composite_raster((40, 40, 5, 5), &r1, (), Src);
+    /// r0.composite_raster((40, 40, 5, 5), &r1, (), SrcOver);
     /// ```
     pub fn composite_raster<R0, R1, O>(
         &mut self,
@@ -533,16 +640,16 @@ impl<P: Pixel> Raster<P> {
             }
         }
     }
+}
 
-    /// Get view of pixels as a `u8` slice.
-    ///
-    /// Q: Is this UB when P::Chan is Ch32?
-    pub fn as_u8_slice(&self) -> &[u8] {
+impl<P> Raster<P>
+where
+    P: Pixel<Chan = Ch8, Model = Matte>,
+{
+    /// Get view of pixels as a mutable `u8` slice.
+    pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
         unsafe {
-            let (prefix, v, suffix) = &self.pixels.align_to::<u8>();
-            debug_assert!(prefix.is_empty());
-            debug_assert!(suffix.is_empty());
-            v
+            self.pixels.align_to_mut::<u8>().1
         }
     }
 }
@@ -768,11 +875,11 @@ mod test {
     }
 
     #[test]
-    fn composite_color_gray8() {
+    fn copy_color_gray8() {
         let mut r = Raster::<SGray8>::with_clear(3, 3);
-        r.composite_color((0, 0, 1, 1), SGray8::new(0x23), Src);
-        r.composite_color((10, 10, 1, 1), SGray8::new(0x45), Src);
-        r.composite_color((1, 1, 10, 10), SGray8::new(0xBB), Src);
+        r.copy_color((0, 0, 1, 1), SGray8::new(0x23));
+        r.copy_color((10, 10, 1, 1), SGray8::new(0x45));
+        r.copy_color((1, 1, 10, 10), SGray8::new(0xBB));
         let v = vec![
             SGray8::new(0x23), SGray8::new(0), SGray8::new(0),
             SGray8::new(0), SGray8::new(0xBB), SGray8::new(0xBB),
@@ -782,7 +889,39 @@ mod test {
     }
 
     #[test]
-    fn composite_color_gray8_over() {
+    fn copy_color_srgb8() {
+        let mut r = Raster::<SRgb8>::with_clear(3, 3);
+        r.copy_color((2, -1, 3, 4), SRgb8::new(0xCC, 0xAA, 0xBB));
+        let v = vec![
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
+            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
+            SRgb8::new(0xCC, 0xAA, 0xBB),
+        ];
+        assert_eq!(r.pixels(), &v[..]);
+    }
+
+    #[test]
+    fn copy_raster_gray() {
+        let mut g0 = Raster::<Gray8>::with_clear(3, 3);
+        let g1 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x40));
+        let g2 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x60));
+        let g3 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x80));
+        g0.copy_raster((-1, 2, 3, 3), &g1, ());
+        g0.copy_raster((2, -1, 3, 3), &g2, ());
+        g0.copy_raster((-2, -2, 3, 3), &g3, ());
+        let v = vec![
+            Gray8::new(0x80), Gray8::new(0x00), Gray8::new(0x60),
+            Gray8::new(0x00), Gray8::new(0x00), Gray8::new(0x60),
+            Gray8::new(0x40), Gray8::new(0x40), Gray8::new(0x00),
+        ];
+        assert_eq!(g0.pixels(), &v[..]);
+    }
+
+    #[test]
+    fn composite_color_graya8_over() {
         let clr = Graya8p::new(0x20, 0x40);
         let mut r = Raster::<Graya8p>::with_color(2, 2, clr);
         r.composite_color((0, 0, 3, 1), Graya8p::new(0x60, 0xA0), SrcOver);
@@ -795,45 +934,13 @@ mod test {
     }
 
     #[test]
-    fn composite_color_srgb8() {
-        let mut r = Raster::<SRgb8>::with_clear(3, 3);
-        r.composite_color((2, -1, 3, 4), SRgb8::new(0xCC, 0xAA, 0xBB), Src);
-        let v = vec![
-            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
-            SRgb8::new(0xCC, 0xAA, 0xBB),
-            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
-            SRgb8::new(0xCC, 0xAA, 0xBB),
-            SRgb8::new(0, 0, 0), SRgb8::new(0, 0, 0),
-            SRgb8::new(0xCC, 0xAA, 0xBB),
-        ];
-        assert_eq!(r.pixels(), &v[..]);
-    }
-
-    #[test]
-    fn composite_raster_gray() {
-        let mut g0 = Raster::<Gray8>::with_clear(3, 3);
-        let g1 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x40));
-        let g2 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x60));
-        let g3 = Raster::<Gray8>::with_color(3, 3, Gray8::new(0x80));
-        g0.composite_raster((-1, 2, 3, 3), &g1, (), Src);
-        g0.composite_raster((2, -1, 3, 3), &g2, (), Src);
-        g0.composite_raster((-2, -2, 3, 3), &g3, (), Src);
-        let v = vec![
-            Gray8::new(0x80), Gray8::new(0x00), Gray8::new(0x60),
-            Gray8::new(0x00), Gray8::new(0x00), Gray8::new(0x60),
-            Gray8::new(0x40), Gray8::new(0x40), Gray8::new(0x00),
-        ];
-        assert_eq!(g0.pixels(), &v[..]);
-    }
-
-    #[test]
     fn composite_raster_rgb() {
-        let mut rgb = Raster::<SRgb8>::with_clear(3, 3);
+        let mut rgb = Raster::<SRgba8p>::with_clear(3, 3);
         let gray = Raster::<SGray16>::with_color(3, 3, SGray16::new(0x8000));
         let r = Raster::with_raster(&gray);
         rgb.composite_raster((), &r, (0, 1, 3, 3), Src);
-        let mut v = vec![SRgb8::new(0x80, 0x80, 0x80); 6];
-        v.extend_from_slice(&vec![SRgb8::new(0, 0, 0); 3]);
+        let mut v = vec![SRgba8p::new(0x80, 0x80, 0x80, 0xFF); 6];
+        v.extend_from_slice(&vec![SRgba8p::new(0, 0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);
     }
 

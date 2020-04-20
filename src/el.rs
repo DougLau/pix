@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
-use crate::chan::{Alpha, Channel, Gamma};
+use crate::chan::{Alpha, Channel, Gamma, Premultiplied};
 use crate::matte::Matte;
 use crate::ops::PorterDuff;
 use crate::private::Sealed;
@@ -226,9 +226,24 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
             .for_each(|c| *c = Self::Gamma::from_linear(*c));
     }
 
+    /// Copy a color to a pixel slice
+    fn copy_color(dst: &mut [Self], clr: &Self) {
+        for d in dst.iter_mut() {
+            *d = *clr;
+        }
+    }
+
+    /// Copy a slice to another
+    fn copy_slice(dst: &mut [Self], src: &[Self]) {
+        for (d, s) in dst.iter_mut().zip(src) {
+            *d = *s;
+        }
+    }
+
     /// Composite a color with a pixel slice
     fn composite_color<O>(dst: &mut [Self], clr: &Self, op: O)
     where
+        Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
         for d in dst.iter_mut() {
@@ -239,6 +254,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite matte with color to destination pixel slice
     fn composite_matte<M, O>(dst: &mut [Self], src: &[M], clr: &Self, op: O)
     where
+        Self: Pixel<Alpha = Premultiplied>,
         M: Pixel<Chan = Self::Chan, Model = Matte, Gamma = Self::Gamma>,
         O: PorterDuff,
     {
@@ -251,6 +267,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite two slices of pixels
     fn composite_slice<O>(dst: &mut [Self], src: &[Self], op: O)
     where
+        Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
         for (d, s) in dst.iter_mut().zip(src) {
@@ -261,6 +278,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite the channels of two pixels
     fn composite_channels<O>(&mut self, src: &Self, _op: O)
     where
+        Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
         let da1 = Self::Chan::MAX - self.alpha();
@@ -285,6 +303,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         src: &Self,
         _op: O,
     ) where
+        Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
         let da1 = Self::Chan::MAX - self.alpha();
