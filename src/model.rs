@@ -10,10 +10,11 @@ use std::ops::Range;
 
 /// Model for pixel colors.
 ///
-/// Existing color models are [Rgb], [Bgr], [Gray], [Hsv], [Hsl], [Hwb],
+/// Existing color models are [Rgb], [Bgr], [Cmy], [Gray], [Hsv], [Hsl], [Hwb],
 /// [YCbCr] and [Matte].
 ///
 /// [bgr]: bgr/struct.Bgr.html
+/// [cmy]: cmy/struct.Cmy.html
 /// [convert]: el/trait.Pixel.html#method.convert
 /// [gray]: gray/struct.Gray.html
 /// [hsl]: hsl/struct.Hsl.html

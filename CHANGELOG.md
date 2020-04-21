@@ -2,6 +2,7 @@
 
 ### Added
 * Raster::copy_color and copy_raster
+* CMY color model
 
 ### Changed
 * Moved color models to their own sub-modules

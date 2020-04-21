@@ -9,6 +9,7 @@
 //!
 //! ## Color Models
 //! * [`RGB`] / `BGR` (*red*, *green*, *blue*)
+//! * [`CMY`] (*cyan*, *magenta*, *yellow*)
 //! * [`Gray`] (*luma* / *relative luminance*)
 //! * [`HSV`] (*hue*, *saturation*, *value*)
 //! * [`HSL`] (*hue*, *saturation*, *lightness*)
@@ -18,6 +19,7 @@
 //!
 //! [alpha]: chan/trait.Alpha.html
 //! [channel]: chan/trait.Channel.html
+//! [cmy]: https://en.wikipedia.org/wiki/CMY_color_model
 //! [color model]: trait.ColorModel.html
 //! [gamma]: chan/trait.Gamma.html
 //! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
@@ -65,6 +67,7 @@
 
 pub mod bgr;
 pub mod chan;
+pub mod cmy;
 pub mod el;
 pub mod gray;
 pub mod hsl;

@@ -6,6 +6,7 @@ A raster image is a rectangular array of pixels.
 
 ## Color Models
 * `RGB` / `BGR` (*red*, *green*, *blue*)
+* `CMY` (*cyan*, *magenta*, *yellow*)
 * `Gray` (*luma* / *relative luminance*)
 * `HSV` (*hue*, *saturation*, *value*)
 * `HSL` (*hue*, *saturation*, *lightness*)
