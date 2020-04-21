@@ -26,6 +26,8 @@ pub struct Straight;
 
 /// [Channel](trait.Channel.html)s are premultiplied, or associated, with
 /// *alpha*.
+///
+/// Premultiplied channels are required for compositing.
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Premultiplied;
 

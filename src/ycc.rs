@@ -11,7 +11,7 @@ use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
 use std::ops::Range;
 
-/// [YCbCr] [color model] used in JPEG format.
+/// [YCbCr] [color model] (used in JPEG and other formats).
 ///
 /// The components are *[y]*, *[cb]*, *[cr]* and optional *[alpha]*.
 ///

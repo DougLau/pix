@@ -48,49 +48,6 @@ use std::marker::PhantomData;
 /// [straight]: ../chan/struct.Straight.html
 /// [`YCbCr`]: ../ycc/struct.YCbCr.html
 ///
-/// ### Type Aliases
-///
-/// * Opaque, linear gamma:
-///   [Rgb8](../rgb/type.Rgb8.html),
-///   [Gray8](../gray/type.Gray8.html),
-///   [Hsv8](../hsv/type.Hsv8.html),
-///   [Hsl8](../hsl/type.Hsl8.html),
-///   [Rgb16](../rgb/type.Rgb16.html),
-///   *etc.*
-/// * Opaque, sRGB gamma:
-///   [SRgb8](../rgb/type.SRgb8.html),
-///   [SGray8](../gray/type.SGray8.html),
-///   [SRgb16](../rgb/type.SRgb16.html),
-///   *etc.*
-/// * Translucent (straight alpha), linear gamma:
-///   [Rgba8](../rgb/type.Rgba8.html),
-///   [Graya8](../gray/type.Graya8.html),
-///   [Hsva8](../hsv/type.Hsva8.html),
-///   [Hsla8](../hsl/type.Hsla8.html),
-///   [Rgba16](../rgb/type.Rgba16.html),
-///   *etc.*
-/// * Translucent (premultiplied alpha), linear gamma:
-///   [Rgba8p](../rgb/type.Rgba8p.html),
-///   [Graya8p](../gray/type.Graya8p.html),
-///   [Hsva8p](../hsv/type.Hsva8p.html),
-///   [Hsla8p](../hsl/type.Hsla8p.html),
-///   [Rgba16p](../rgb/type.Rgba16p.html),
-///   *etc.*
-/// * Translucent (straight alpha), sRGB gamma:
-///   [SRgba8](../rgb/type.SRgba8.html),
-///   [SGraya8](../gray/type.SGraya8.html),
-///   [SRgba16](../rgb/type.SRgba16.html),
-///   *etc.*
-/// * Translucent (premultiplied alpha), sRGB gamma:
-///   [SRgba8p](../rgb/type.SRgba8p.html),
-///   [SGraya8p](../gray/type.SGraya8p.html),
-///   [SRgba16p](../rgb/type.SRgba16p.html),
-///   *etc.*
-/// * Alpha matte:
-///   [Matte8](../matte/type.Matte8.html),
-///   [Matte16](../matte/type.Matte16.html),
-///   [Matte32](../matte/type.Matte32.html)
-///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
 pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Channel type
