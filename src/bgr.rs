@@ -138,11 +138,10 @@ impl ColorModel for Bgr {
     where
         P: Pixel<Model = Self>,
     {
-        let red = Bgr::red(p).into();
-        let green = Bgr::green(p).into();
-        let blue = Bgr::blue(p).into();
-        let alpha = Pixel::alpha(p).into();
-        PixRgba::<P>::new(red, green, blue, alpha)
+        let red = Bgr::red(p);
+        let green = Bgr::green(p);
+        let blue = Bgr::blue(p);
+        PixRgba::<P>::new::<P::Chan>(red, green, blue, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

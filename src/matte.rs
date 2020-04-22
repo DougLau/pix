@@ -28,8 +28,8 @@ impl ColorModel for Matte {
     where
         P: Pixel<Model = Self>,
     {
-        let max = P::Chan::MAX.into();
-        PixRgba::<P>::new(max, max, max, Pixel::alpha(p).into())
+        let max = P::Chan::MAX;
+        PixRgba::<P>::new::<P::Chan>(max, max, max, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

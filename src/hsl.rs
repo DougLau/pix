@@ -172,11 +172,7 @@ impl ColorModel for Hsl {
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = Self::lightness(p) - chroma * P::Chan::from(0.5);
-
-        let red = (red + m).into();
-        let green = (green + m).into();
-        let blue = (blue + m).into();
-        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
+        PixRgba::<P>::new::<P::Chan>(red + m, green + m, blue + m, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

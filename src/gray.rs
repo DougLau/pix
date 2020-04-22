@@ -72,8 +72,8 @@ impl ColorModel for Gray {
     where
         P: Pixel<Model = Self>,
     {
-        let value = Self::value(p).into();
-        PixRgba::<P>::new(value, value, value, Pixel::alpha(p).into())
+        let value = Self::value(p);
+        PixRgba::<P>::new::<P::Chan>(value, value, value, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

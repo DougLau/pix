@@ -126,7 +126,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// use pix::gray::Graya16;
     ///
     /// let p = Graya16::new(0x7090, 0x6010);
-    /// assert_eq!(Pixel::alpha(p), Ch16::new(0x6010));
+    /// assert_eq!(p.alpha(), Ch16::new(0x6010));
     /// ```
     fn alpha(self) -> Self::Chan {
         let chan = self.channels();
@@ -146,8 +146,8 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// use pix::rgb::Rgba8;
     ///
     /// let mut p = Rgba8::new(0xFF, 0x40, 0x80, 0xA5);
-    /// *Pixel::alpha_mut(&mut p) = Ch8::new(0x4B);
-    /// assert_eq!(Pixel::alpha(p), Ch8::new(0x4B));
+    /// *p.alpha_mut() = Ch8::new(0x4B);
+    /// assert_eq!(p.alpha(), Ch8::new(0x4B));
     /// ```
     fn alpha_mut(&mut self) -> &mut Self::Chan {
         let chan = self.channels_mut();
@@ -378,8 +378,8 @@ where
     type Gamma = G;
 
     fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0].into();
-        Self::new(one)
+        let one = ch[0];
+        Self::new::<C>(one)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -387,11 +387,9 @@ where
         P: Pixel,
         Self::Chan: From<P::Chan>,
     {
-        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
-            panic!("Invalid pixel conversion");
-        }
+        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
         let one = Self::Chan::from(p.one());
-        Self::new(one)
+        Self::new::<Self::Chan>(one)
     }
 
     fn channels(&self) -> &[Self::Chan] {
@@ -467,9 +465,9 @@ where
     type Gamma = G;
 
     fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0].into();
-        let two = ch[1].into();
-        Self::new(one, two)
+        let one = ch[0];
+        let two = ch[1];
+        Self::new::<C>(one, two)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -477,12 +475,10 @@ where
         P: Pixel,
         Self::Chan: From<P::Chan>,
     {
-        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
-            panic!("Invalid pixel conversion");
-        }
+        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
         let one = Self::Chan::from(p.one());
         let two = Self::Chan::from(p.two());
-        Self::new(one, two)
+        Self::new::<Self::Chan>(one, two)
     }
 
     fn channels(&self) -> &[Self::Chan] {
@@ -559,10 +555,10 @@ where
     type Gamma = G;
 
     fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0].into();
-        let two = ch[1].into();
-        let three = ch[2].into();
-        Self::new(one, two, three)
+        let one = ch[0];
+        let two = ch[1];
+        let three = ch[2];
+        Self::new::<C>(one, two, three)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -570,13 +566,11 @@ where
         P: Pixel,
         Self::Chan: From<P::Chan>,
     {
-        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
-            panic!("Invalid pixel conversion");
-        }
+        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
         let one = Self::Chan::from(p.one());
         let two = Self::Chan::from(p.two());
         let three = Self::Chan::from(p.three());
-        Self::new(one, two, three)
+        Self::new::<Self::Chan>(one, two, three)
     }
 
     fn channels(&self) -> &[Self::Chan] {
@@ -654,11 +648,11 @@ where
     type Gamma = G;
 
     fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0].into();
-        let two = ch[1].into();
-        let three = ch[2].into();
-        let four = ch[3].into();
-        Self::new(one, two, three, four)
+        let one = ch[0];
+        let two = ch[1];
+        let three = ch[2];
+        let four = ch[3];
+        Self::new::<C>(one, two, three, four)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -666,14 +660,12 @@ where
         P: Pixel,
         Self::Chan: From<P::Chan>,
     {
-        if TypeId::of::<Self::Model>() != TypeId::of::<P::Model>() {
-            panic!("Invalid pixel conversion");
-        }
+        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
         let one = Self::Chan::from(p.one());
         let two = Self::Chan::from(p.two());
         let three = Self::Chan::from(p.three());
         let four = Self::Chan::from(p.four());
-        Self::new(one, two, three, four)
+        Self::new::<Self::Chan>(one, two, three, four)
     }
 
     fn channels(&self) -> &[Self::Chan] {

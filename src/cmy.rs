@@ -143,8 +143,7 @@ impl ColorModel for Cmy {
         let red = P::Chan::MAX - Cmy::cyan(p);
         let green = P::Chan::MAX - Cmy::magenta(p);
         let blue = P::Chan::MAX - Cmy::yellow(p);
-        let alpha = Pixel::alpha(p);
-        PixRgba::<P>::new::<P::Chan>(red, green, blue, alpha)
+        PixRgba::<P>::new::<P::Chan>(red, green, blue, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

@@ -159,7 +159,7 @@ impl Hwb {
     {
         let whiteness = Hwb::whiteness(p);
         let blackness = Hwb::blackness(p);
-        if whiteness + blackness - blackness < whiteness {
+        if whiteness > P::Chan::MAX - blackness {
             let (w, b) = (whiteness.into(), blackness.into());
             let ratio = 1.0 / (w + b);
             (P::Chan::from(w * ratio), P::Chan::from(b * ratio))
@@ -186,11 +186,7 @@ impl ColorModel for Hwb {
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = v - chroma;
-
-        let red = (red + m).into();
-        let green = (green + m).into();
-        let blue = (blue + m).into();
-        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
+        PixRgba::<P>::new::<P::Chan>(red + m, green + m, blue + m, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

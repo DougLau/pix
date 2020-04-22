@@ -180,11 +180,10 @@ impl ColorModel for Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        let red = Rgb::red(p).into();
-        let green = Rgb::green(p).into();
-        let blue = Rgb::blue(p).into();
-        let alpha = Pixel::alpha(p).into();
-        PixRgba::<P>::new(red, green, blue, alpha)
+        let red = Rgb::red(p);
+        let green = Rgb::green(p);
+        let blue = Rgb::blue(p);
+        PixRgba::<P>::new::<P::Chan>(red, green, blue, p.alpha())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components

@@ -154,7 +154,7 @@ impl ColorModel for YCbCr {
         let red = y + (cr - 0.5) * 1.402;
         let green = y - (cb - 0.5) * 0.344_136 - (cr - 0.5) * 0.714_136;
         let blue = y + (cb - 0.5) * 1.772;
-        PixRgba::<P>::new(red, green, blue, Pixel::alpha(p).into())
+        PixRgba::<P>::new(red, green, blue, p.alpha().into())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
