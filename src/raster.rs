@@ -164,8 +164,8 @@ impl<P: Pixel> Raster<P> {
         P::Chan: From<S::Chan>,
     {
         let mut r = Raster::with_clear(src.width(), src.height());
-        let srows = src.rows();
-        let drows = r.rows_mut();
+        let srows = src.rows(r.region());
+        let drows = r.rows_mut(r.region());
         for (drow, srow) in drows.zip(srows) {
             for (d, s) in drow.iter_mut().zip(srow) {
                 *d = s.convert();
@@ -338,13 +338,13 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Get an `Iterator` of rows within a `Raster`.
-    pub fn rows(&self) -> Rows<P> {
-        Rows::new(self)
+    pub fn rows(&self, reg: Region) -> Rows<P> {
+        Rows::new(self, reg)
     }
 
     /// Get an `Iterator` of mutable rows within a `Raster`.
-    pub fn rows_mut(&mut self) -> RowsMut<P> {
-        RowsMut::new(self)
+    pub fn rows_mut(&mut self, reg: Region) -> RowsMut<P> {
+        RowsMut::new(self, reg)
     }
 
     /// Get `Region` of entire `Raster`.
@@ -391,8 +391,8 @@ impl<P: Pixel> Raster<P> {
         let width = reg.width();
         let height = reg.height();
         if width > 0 && height > 0 {
-            let drows = self.rows_mut().skip(reg.y as usize);
-            for drow in drows.take(height as usize) {
+            let drows = self.rows_mut(reg);
+            for drow in drows {
                 let x0 = reg.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
@@ -453,9 +453,9 @@ impl<P: Pixel> Raster<P> {
         if width > 0 && height > 0 {
             let to = Region::new(to.x + fx, to.y + fy, width, height);
             let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows().skip(from.y as usize);
-            let drows = self.rows_mut().skip(to.y as usize);
-            for (drow, srow) in drows.take(height as usize).zip(srows) {
+            let srows = src.rows(from);
+            let drows = self.rows_mut(to);
+            for (drow, srow) in drows.zip(srows) {
                 let x0 = to.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
@@ -507,8 +507,8 @@ where
         let width = reg.width();
         let height = reg.height();
         if width > 0 && height > 0 {
-            let drows = self.rows_mut().skip(reg.y as usize);
-            for drow in drows.take(height as usize) {
+            let drows = self.rows_mut(reg);
+            for drow in drows {
                 let x0 = reg.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
@@ -553,9 +553,9 @@ where
         if width > 0 && height > 0 {
             let to = Region::new(to.x + fx, to.y + fy, width, height);
             let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows().skip(from.y as usize);
-            let drows = self.rows_mut().skip(to.y as usize);
-            for (drow, srow) in drows.take(height as usize).zip(srows) {
+            let srows = src.rows(from);
+            let drows = self.rows_mut(to);
+            for (drow, srow) in drows.zip(srows) {
                 let x0 = to.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
@@ -625,9 +625,9 @@ where
         if width > 0 && height > 0 {
             let to = Region::new(to.x + fx, to.y + fy, width, height);
             let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows().skip(from.y as usize);
-            let drows = self.rows_mut().skip(to.y as usize);
-            for (drow, srow) in drows.take(height as usize).zip(srows) {
+            let srows = src.rows(from);
+            let drows = self.rows_mut(to);
+            for (drow, srow) in drows.zip(srows) {
                 let x0 = to.x as usize;
                 let x1 = x0 + width as usize;
                 let drow = &mut drow[x0..x1];
@@ -650,9 +650,12 @@ where
 
 impl<'a, P: Pixel> Rows<'a, P> {
     /// Create a new row `Iterator`.
-    fn new(raster: &'a Raster<P>) -> Self {
+    fn new(raster: &'a Raster<P>, reg: Region) -> Self {
         let width = usize::try_from(raster.width()).unwrap();
-        let chunks = raster.pixels.chunks_exact(width);
+        let start = reg.y as usize * width;
+        let end = reg.bottom() as usize * width;
+        let slice = &raster.pixels[start..end];
+        let chunks = slice.chunks_exact(width);
         Rows { chunks }
     }
 }
@@ -667,9 +670,12 @@ impl<'a, P: Pixel> Iterator for Rows<'a, P> {
 
 impl<'a, P: Pixel> RowsMut<'a, P> {
     /// Create a new mutable row `Iterator`.
-    fn new(raster: &'a mut Raster<P>) -> Self {
+    fn new(raster: &'a mut Raster<P>, reg: Region) -> Self {
         let width = usize::try_from(raster.width()).unwrap();
-        let chunks = raster.pixels.chunks_exact_mut(width);
+        let start = reg.y as usize * width;
+        let end = reg.bottom() as usize * width;
+        let slice = &mut raster.pixels[start..end];
+        let chunks = slice.chunks_exact_mut(width);
         RowsMut { chunks }
     }
 }
