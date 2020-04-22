@@ -2,7 +2,9 @@
 //
 // Copyright (c) 2020  Douglas P Lau
 //
-//! CMY color model and types.
+//! [CMY] color model and types.
+//!
+//! [cmy]: https://en.wikipedia.org/wiki/CMY_color_model
 use crate::chan::{
     Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
 };
@@ -10,15 +12,15 @@ use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
 use std::ops::Range;
 
-/// CMY arrangement of [RGB] [color model].
+/// [CMY] subtractive [color model].
 ///
 /// The components are *[cyan]*, *[magenta]*, *[yellow]* and optional *[alpha]*.
 ///
 /// [alpha]: ../el/trait.Pixel.html#method.alpha
+/// [cmy]: https://en.wikipedia.org/wiki/CMY_color_model
 /// [color model]: ../trait.ColorModel.html
 /// [cyan]: #method.cyan
 /// [magenta]: #method.magenta
-/// [rgb]: ../rgb/struct.Rgb.html
 /// [yellow]: #method.yellow
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Cmy {}

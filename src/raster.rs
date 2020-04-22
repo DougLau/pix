@@ -534,6 +534,20 @@ where
     /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
     /// *height*) or the unit type `()`.  Using `()` has the same result as
     /// `Raster::region()`.
+    ///
+    /// ### Example
+    /// ```
+    /// use pix::matte::Matte8;
+    /// use pix::ops::SrcOver;
+    /// use pix::rgb::Rgba8p;
+    /// use pix::Raster;
+    ///
+    /// let mut r0 = Raster::with_clear(100, 100);
+    /// let r1 = Raster::with_color(10, 10, Matte8::new(37));
+    /// // ... load image data
+    /// let clr = Rgba8p::new(50, 100, 150, 200);
+    /// r0.composite_matte((30, 50, 10, 10), &r1, (), clr, SrcOver);
+    /// ```
     pub fn composite_matte<R0, R1, M, O>(
         &mut self,
         to: R0,
@@ -600,11 +614,11 @@ where
     /// ### Blend one `Raster` onto another
     /// ```
     /// use pix::ops::SrcOver;
-    /// use pix::rgb::SRgba8p;
+    /// use pix::rgb::Rgba8p;
     /// use pix::Raster;
     ///
     /// let mut r0 = Raster::with_clear(100, 100);
-    /// let r1 = Raster::with_color(5, 5, SRgba8p::new(80, 0, 80, 200));
+    /// let r1 = Raster::with_color(5, 5, Rgba8p::new(80, 0, 80, 200));
     /// // ... load image data
     /// r0.composite_raster((40, 40, 5, 5), &r1, (), SrcOver);
     /// ```

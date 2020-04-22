@@ -1,22 +1,32 @@
 # pix
 
-Library for pixel and image compositing.
+Library for image conversion and compositing.
 
-A raster image is a rectangular array of pixels.
+A raster image can be cheaply converted to and from raw byte buffers,
+enabling interoperability with other crates.
 
-## Color Models
-* `RGB` / `BGR` (*red*, *green*, *blue*)
-* `CMY` (*cyan*, *magenta*, *yellow*)
-* `Gray` (*luma* / *relative luminance*)
-* `HSV` (*hue*, *saturation*, *value*)
-* `HSL` (*hue*, *saturation*, *lightness*)
-* `HWB` (*hue*, *whiteness*, *blackness*)
-* `YCbCr` (JPEG)
-* `Matte` (*alpha* only)
+Many image formats are supported:
 
-### Example: Color Demo
+* Bit depth: 8- or 16-bit integer and 32-bit float
+* Alpha: *premultiplied* or *straight*
+* Gamma: *linear* or *sRGB*
+* Color models:
+  - `RGB` / `BGR` (*red*, *green*, *blue*)
+  - `CMY` (*cyan*, *magenta*, *yellow*)
+  - `Gray` (*luma* / *relative luminance*)
+  - `HSV` (*hue*, *saturation*, *value*)
+  - `HSL` (*hue*, *saturation*, *lightness*)
+  - `HWB` (*hue*, *whiteness*, *blackness*)
+  - `YCbCr` (used by JPEG)
+  - `Matte` (*alpha* only)
+
+Compositing with blending operations is supported for *premultiplied*
+images with *linear* gamma.
+
+### HWB Color Example
 ```
 use pix::hwb::SHwb8;
+use pix::rgb::SRgb8;
 use pix::Raster;
 
 let mut r = Raster::with_clear(256, 256);
@@ -28,19 +38,11 @@ for (y, row) in r.rows_mut(()).enumerate() {
         *p = SHwb8::new(h, w, b);
     }
 }
+// Convert to SRgb8 color model
+let raster = Raster::<SRgb8>::with_raster(&r);
 ```
 
 ![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
-
-### Example: Convert Raster Format
-```
-use pix::rgb::{Rgba8p, SRgb8};
-use pix::Raster;
-
-let mut src = Raster::<SRgb8>::with_clear(120, 120);
-// ... load pixels into raster
-let dst: Raster<Rgba8p> = Raster::with_raster(&src);
-```
 
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
