@@ -44,7 +44,7 @@ fn write_info_header(buf: &mut Vec<u8>, raster: &Raster<SBgr8>) {
 }
 
 fn write_pixel_data(buf: &mut Vec<u8>, raster: &Raster<SBgr8>) {
-    let mut rows: Vec<_> = raster.rows(raster.region()).collect();
+    let mut rows: Vec<_> = raster.rows(()).collect();
     rows.reverse();
     for row in rows {
         for p in row {

@@ -164,8 +164,8 @@ impl<P: Pixel> Raster<P> {
         P::Chan: From<S::Chan>,
     {
         let mut r = Raster::with_clear(src.width(), src.height());
-        let srows = src.rows(r.region());
-        let drows = r.rows_mut(r.region());
+        let srows = src.rows(());
+        let drows = r.rows_mut(());
         for (drow, srow) in drows.zip(srows) {
             for (d, s) in drow.iter_mut().zip(srow) {
                 *d = s.convert();
@@ -338,13 +338,19 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Get an `Iterator` of rows within a `Raster`.
-    pub fn rows(&self, reg: Region) -> Rows<P> {
-        Rows::new(self, reg)
+    pub fn rows<R>(&self, reg: R) -> Rows<P>
+    where
+        R: Into<Region>,
+    {
+        Rows::new(self, self.intersection(reg.into()))
     }
 
     /// Get an `Iterator` of mutable rows within a `Raster`.
-    pub fn rows_mut(&mut self, reg: Region) -> RowsMut<P> {
-        RowsMut::new(self, reg)
+    pub fn rows_mut<R>(&mut self, reg: R) -> RowsMut<P>
+    where
+        R: Into<Region>,
+    {
+        RowsMut::new(self, self.intersection(reg.into()))
     }
 
     /// Get `Region` of entire `Raster`.
