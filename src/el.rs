@@ -169,20 +169,6 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         }
     }
 
-    /// Convert channels to linear gamma
-    fn to_linear_gamma<C: Channel>(channels: &mut [C]) {
-        channels[Self::Model::LINEAR]
-            .iter_mut()
-            .for_each(|c| *c = Self::Gamma::to_linear(*c));
-    }
-
-    /// Convert channels from linear gamma
-    fn from_linear_gamma(channels: &mut [Self::Chan]) {
-        channels[Self::Model::LINEAR]
-            .iter_mut()
-            .for_each(|c| *c = Self::Gamma::from_linear(*c));
-    }
-
     /// Copy a color to a pixel slice
     fn copy_color(dst: &mut [Self], clr: &Self) {
         for d in dst.iter_mut() {
@@ -216,8 +202,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         O: PorterDuff,
     {
         for (d, s) in dst.iter_mut().zip(src) {
-            let alpha = Pixel::alpha(*s);
-            d.composite_channels_matte(&alpha, clr, op);
+            d.composite_channels_matte(&s.alpha(), clr, op);
         }
     }
 
@@ -238,6 +223,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
+        // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
         let sa1 = Self::Chan::MAX - src.alpha();
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
@@ -246,11 +232,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
             .iter_mut()
             .zip(s_chan)
             .for_each(|(d, s)| O::composite(d, da1, s, sa1));
-        // FIXME: composite circular channels
-        if self.channels().len() > Self::Model::ALPHA {
-            let da = self.alpha_mut();
-            O::composite(da, da1, &src.alpha(), sa1);
-        }
+        O::composite(self.alpha_mut(), da1, &src.alpha(), sa1);
     }
 
     /// Composite the channels of pixels with a matte and color
@@ -263,6 +245,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         Self: Pixel<Alpha = Premultiplied>,
         O: PorterDuff,
     {
+        // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
         let sa1 = Self::Chan::MAX - *alpha;
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
@@ -271,11 +254,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
             .iter_mut()
             .zip(s_chan)
             .for_each(|(d, s)| O::composite(d, da1, &(*s * *alpha), sa1));
-        // FIXME: composite circular channels
-        if self.channels().len() > Self::Model::ALPHA {
-            let da = self.alpha_mut();
-            O::composite(da, da1, &(src.alpha() * *alpha), sa1);
-        }
+        O::composite(self.alpha_mut(), da1, &(src.alpha() * *alpha), sa1);
     }
 }
 
@@ -298,27 +277,27 @@ where
     if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>()
         || TypeId::of::<S::Gamma>() != TypeId::of::<D::Gamma>()
     {
+        let alpha = dst.alpha();
         let mut channels = dst.channels_mut();
-        convert_alpha_gamma::<D, S>(&mut channels);
+        convert_alpha_gamma::<D, S>(&mut channels, alpha);
     }
     dst
 }
 
 /// Convert *alpha* / *gamma* to another pixel format
-fn convert_alpha_gamma<D, S>(channels: &mut [D::Chan])
+fn convert_alpha_gamma<D, S>(channels: &mut [D::Chan], alpha: D::Chan)
 where
     D: Pixel,
     S: Pixel,
 {
-    S::to_linear_gamma(channels);
-    if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
-        let alpha = channels[D::Model::ALPHA];
-        for c in channels[D::Model::LINEAR].iter_mut() {
+    for c in channels[D::Model::LINEAR].iter_mut() {
+        *c = S::Gamma::to_linear(*c);
+        if TypeId::of::<S::Alpha>() != TypeId::of::<D::Alpha>() {
             *c = S::Alpha::decode(*c, alpha);
             *c = D::Alpha::encode(*c, alpha);
         }
+        *c = D::Gamma::from_linear(*c);
     }
-    D::from_linear_gamma(channels);
 }
 
 /// Convert a pixel to another format thru RGBA.

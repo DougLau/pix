@@ -313,16 +313,16 @@ impl<P: Pixel> Raster<P> {
 
     /// Get one pixel.
     pub fn pixel(&self, x: i32, y: i32) -> P {
-        debug_assert!(x >= 0 && x < self.width);
-        debug_assert!(y >= 0 && y < self.height);
+        assert!(x >= 0 && x < self.width);
+        assert!(y >= 0 && y < self.height);
         let i = (self.width * y + x) as usize;
         self.pixels[i]
     }
 
     /// Get a mutable pixel.
     pub fn pixel_mut(&mut self, x: i32, y: i32) -> &mut P {
-        debug_assert!(x >= 0 && x < self.width);
-        debug_assert!(y >= 0 && y < self.height);
+        assert!(x >= 0 && x < self.width);
+        assert!(y >= 0 && y < self.height);
         let i = (self.width * y + x) as usize;
         &mut self.pixels[i]
     }
@@ -992,11 +992,11 @@ mod test {
 
     #[test]
     fn with_raster_rgb() {
-        let r = Raster::<SRgb8>::with_clear(50, 50);
+        let r = Raster::<Rgba8p>::with_clear(50, 50);
         let _ = Raster::<SRgb16>::with_raster(&r);
         let _ = Raster::<SRgb32>::with_raster(&r);
         let _ = Raster::<SRgba8>::with_raster(&r);
-        let _ = Raster::<SRgba16>::with_raster(&r);
+        let _ = Raster::<SRgba16p>::with_raster(&r);
         let _ = Raster::<SRgba32>::with_raster(&r);
         let _ = Raster::<SGray8>::with_raster(&r);
         let _ = Raster::<SGray16>::with_raster(&r);
