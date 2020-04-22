@@ -6,7 +6,9 @@
 //! [HSL] color model and types.
 //!
 //! [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
-use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
+use crate::chan::{
+    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::ColorModel;
@@ -234,6 +236,48 @@ pub type Hsla16p = Pix4<Ch16, Hsl, Premultiplied, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsla32p = Pix4<Ch32, Hsl, Premultiplied, Linear>;
+
+/// [Hsl](struct.Hsl.html) 8-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsl8 = Pix3<Ch8, Hsl, Straight, Srgb>;
+/// [Hsl](struct.Hsl.html) 16-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsl16 = Pix3<Ch16, Hsl, Straight, Srgb>;
+/// [Hsl](struct.Hsl.html) 32-bit opaque (no *alpha* channel)
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsl32 = Pix3<Ch32, Hsl, Straight, Srgb>;
+
+/// [Hsl](struct.Hsl.html) 8-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
+pub type SHsla8 = Pix4<Ch8, Hsl, Straight, Srgb>;
+/// [Hsl](struct.Hsl.html) 16-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
+pub type SHsla16 = Pix4<Ch16, Hsl, Straight, Srgb>;
+/// [Hsl](struct.Hsl.html) 32-bit [straight](../chan/struct.Straight.html)
+/// alpha [sRGB](../chan/struct.Srgb.html) gamma
+/// [pixel](../el/trait.Pixel.html) format.
+pub type SHsla32 = Pix4<Ch32, Hsl, Straight, Srgb>;
+
+/// [Hsl](struct.Hsl.html) 8-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsla8p = Pix4<Ch8, Hsl, Premultiplied, Srgb>;
+/// [Hsl](struct.Hsl.html) 16-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsla16p = Pix4<Ch16, Hsl, Premultiplied, Srgb>;
+/// [Hsl](struct.Hsl.html) 32-bit
+/// [premultiplied](../chan/struct.Premultiplied.html) alpha
+/// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
+/// format.
+pub type SHsla32p = Pix4<Ch32, Hsl, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {
