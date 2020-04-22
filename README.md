@@ -20,7 +20,7 @@ use pix::hwb::SHwb8;
 use pix::Raster;
 
 let mut r = Raster::with_clear(256, 256);
-for (y, row) in r.rows_mut().enumerate() {
+for (y, row) in r.rows_mut(r.region()).enumerate() {
     for (x, p) in row.iter_mut().enumerate() {
         let h = ((x + y) >> 1) as u8;
         let w = y.saturating_sub(x) as u8;
