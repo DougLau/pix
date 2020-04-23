@@ -6,7 +6,7 @@
 use crate::chan::{Ch16, Ch8, Linear, Premultiplied};
 use crate::el::Pixel;
 use crate::matte::Matte;
-use crate::ops::PorterDuff;
+use crate::ops::Blend;
 use std::convert::TryFrom;
 use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 
@@ -561,7 +561,7 @@ where
     pub fn composite_color<R, O>(&mut self, reg: R, clr: P, op: O)
     where
         R: Into<Region>,
-        O: PorterDuff,
+        O: Blend,
     {
         let reg = self.intersection(reg.into());
         let width = reg.width();
@@ -613,7 +613,7 @@ where
         R0: Into<Region>,
         R1: Into<Region>,
         M: Pixel<Chan = P::Chan, Model = Matte, Gamma = P::Gamma>,
-        O: PorterDuff,
+        O: Blend,
     {
         let (to, from) = (to.into(), from.into());
         let tx = to.x.min(0).abs();
@@ -685,7 +685,7 @@ where
     ) where
         R0: Into<Region>,
         R1: Into<Region>,
-        O: PorterDuff,
+        O: Blend,
     {
         let (to, from) = (to.into(), from.into());
         let tx = to.x.min(0).abs();

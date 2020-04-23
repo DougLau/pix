@@ -2,13 +2,20 @@
 //
 // Copyright (c) 2020  Douglas P Lau
 //
-//! Porter-Duff compositing operations
+//! Compositing and blending operations.
+//!
+//! Used in `Raster` methods [composite_color], [composite_matte] and
+//! [composite_raster].
+//!
+//! [composite_color]: ../struct.Raster.html#method.composite_color
+//! [composite_matte]: ../struct.Raster.html#method.composite_matte
+//! [composite_raster]: ../struct.Raster.html#method.composite_raster
 use crate::chan::Channel;
 
-/// Porter-Duff compositing operation.
+/// Blending operation for compositing.
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait PorterDuff: Copy + Clone {
+pub trait Blend: Copy + Clone {
     /// Composite a destination and source
     ///
     /// * `dst` Destination channel
@@ -66,87 +73,87 @@ pub struct Xor;
 #[derive(Clone, Copy)]
 pub struct Clear;
 
-/// Plus compositing (source added to destination)
+/// Plus, or Lighter compositing (source added to destination)
 #[derive(Clone, Copy)]
 pub struct Plus;
 
-impl PorterDuff for Src {
+impl Blend for Src {
     fn composite<C: Channel>(dst: &mut C, _da1: C, src: &C, _sa1: C) {
         *dst = *src;
     }
 }
 
-impl PorterDuff for Dest {
+impl Blend for Dest {
     fn composite<C: Channel>(_dst: &mut C, _da1: C, _src: &C, _sa1: C) {
         // leave _dst as is
     }
 }
 
-impl PorterDuff for SrcOver {
+impl Blend for SrcOver {
     fn composite<C: Channel>(dst: &mut C, _da1: C, src: &C, sa1: C) {
         *dst = *src + *dst * sa1;
     }
 }
 
-impl PorterDuff for DestOver {
+impl Blend for DestOver {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, _sa1: C) {
         *dst = *src * da1 + *dst;
     }
 }
 
-impl PorterDuff for SrcOut {
+impl Blend for SrcOut {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, _sa1: C) {
         *dst = *src * da1;
     }
 }
 
-impl PorterDuff for DestOut {
+impl Blend for DestOut {
     fn composite<C: Channel>(dst: &mut C, _da1: C, _src: &C, sa1: C) {
         *dst = *dst * sa1;
     }
 }
 
-impl PorterDuff for SrcIn {
+impl Blend for SrcIn {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, _sa1: C) {
         let da = C::MAX - da1;
         *dst = *src * da;
     }
 }
 
-impl PorterDuff for DestIn {
+impl Blend for DestIn {
     fn composite<C: Channel>(dst: &mut C, _da1: C, _src: &C, sa1: C) {
         let sa = C::MAX - sa1;
         *dst = *dst * sa;
     }
 }
 
-impl PorterDuff for SrcAtop {
+impl Blend for SrcAtop {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, sa1: C) {
         let da = C::MAX - da1;
         *dst = *src * da + *dst * sa1;
     }
 }
 
-impl PorterDuff for DestAtop {
+impl Blend for DestAtop {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, sa1: C) {
         let sa = C::MAX - sa1;
         *dst = *src * da1 + *dst * sa;
     }
 }
 
-impl PorterDuff for Xor {
+impl Blend for Xor {
     fn composite<C: Channel>(dst: &mut C, da1: C, src: &C, sa1: C) {
         *dst = *src * da1 + *dst * sa1;
     }
 }
 
-impl PorterDuff for Clear {
+impl Blend for Clear {
     fn composite<C: Channel>(dst: &mut C, _da1: C, _src: &C, _sa1: C) {
         *dst = C::default();
     }
 }
 
-impl PorterDuff for Plus {
+impl Blend for Plus {
     fn composite<C: Channel>(dst: &mut C, _da1: C, src: &C, _sa1: C) {
         *dst = *src + *dst;
     }

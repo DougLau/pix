@@ -6,7 +6,7 @@
 //! Module for `pix::el` items
 use crate::chan::{Alpha, Channel, Gamma, Premultiplied};
 use crate::matte::Matte;
-use crate::ops::PorterDuff;
+use crate::ops::Blend;
 use crate::private::Sealed;
 use crate::rgb::Rgb;
 use crate::ColorModel;
@@ -187,7 +187,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     fn composite_color<O>(dst: &mut [Self], clr: &Self, op: O)
     where
         Self: Pixel<Alpha = Premultiplied>,
-        O: PorterDuff,
+        O: Blend,
     {
         for d in dst.iter_mut() {
             d.composite_channels(clr, op);
@@ -199,7 +199,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     where
         Self: Pixel<Alpha = Premultiplied>,
         M: Pixel<Chan = Self::Chan, Model = Matte, Gamma = Self::Gamma>,
-        O: PorterDuff,
+        O: Blend,
     {
         for (d, s) in dst.iter_mut().zip(src) {
             d.composite_channels_matte(&s.alpha(), clr, op);
@@ -210,7 +210,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     fn composite_slice<O>(dst: &mut [Self], src: &[Self], op: O)
     where
         Self: Pixel<Alpha = Premultiplied>,
-        O: PorterDuff,
+        O: Blend,
     {
         for (d, s) in dst.iter_mut().zip(src) {
             d.composite_channels(s, op);
@@ -221,7 +221,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     fn composite_channels<O>(&mut self, src: &Self, _op: O)
     where
         Self: Pixel<Alpha = Premultiplied>,
-        O: PorterDuff,
+        O: Blend,
     {
         // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
@@ -243,7 +243,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         _op: O,
     ) where
         Self: Pixel<Alpha = Premultiplied>,
-        O: PorterDuff,
+        O: Blend,
     {
         // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
