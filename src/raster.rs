@@ -3,14 +3,15 @@
 // Copyright (c) 2017-2020  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::chan::{Ch16, Ch8, Premultiplied};
+use crate::chan::{Ch16, Ch8, Linear, Premultiplied};
 use crate::el::Pixel;
 use crate::matte::Matte;
 use crate::ops::PorterDuff;
 use std::convert::TryFrom;
 use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 
-/// Image arranged as a rectangular array of pixels.
+/// Image arranged as a rectangular array of pixels.  Rows are ordered top to
+/// bottom, and pixels within rows are left to right.
 ///
 /// A `Raster` can be constructed using one of the *with_* methods:
 /// * [with_clear](#method.with_clear)
@@ -484,7 +485,7 @@ impl<P: Pixel> Raster<P> {
 
 impl<P> Raster<P>
 where
-    P: Pixel<Alpha = Premultiplied>,
+    P: Pixel<Alpha = Premultiplied, Gamma = Linear>,
 {
     /// Composite a source color to a region of the `Raster`.
     ///
@@ -955,12 +956,12 @@ mod test {
 
     #[test]
     fn composite_raster_rgb() {
-        let mut rgb = Raster::<SRgba8p>::with_clear(3, 3);
-        let gray = Raster::<SGray16>::with_color(3, 3, SGray16::new(0x8000));
+        let mut rgb = Raster::<Rgba8p>::with_clear(3, 3);
+        let gray = Raster::with_color(3, 3, Gray16::new(0x8000));
         let r = Raster::with_raster(&gray);
         rgb.composite_raster((), &r, (0, 1, 3, 3), Src);
-        let mut v = vec![SRgba8p::new(0x80, 0x80, 0x80, 0xFF); 6];
-        v.extend_from_slice(&vec![SRgba8p::new(0, 0, 0, 0); 3]);
+        let mut v = vec![Rgba8p::new(0x80, 0x80, 0x80, 0xFF); 6];
+        v.extend_from_slice(&vec![Rgba8p::new(0, 0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);
     }
 
