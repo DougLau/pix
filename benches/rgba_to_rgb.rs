@@ -2,7 +2,7 @@
 extern crate criterion;
 
 use criterion::Criterion;
-use pix::rgb::{Rgba8p, Rgb8};
+use pix::rgb::{Rgb8, Rgba8p};
 use pix::Raster;
 
 fn rgba_to_rgb(c: &mut Criterion, sz: u32) {
@@ -21,10 +21,6 @@ fn rgba_to_rgb_256(c: &mut Criterion) {
     rgba_to_rgb(c, 256);
 }
 
-criterion_group!(
-    benches,
-    rgba_to_rgb_16,
-    rgba_to_rgb_256,
-);
+criterion_group!(benches, rgba_to_rgb_16, rgba_to_rgb_256,);
 
 criterion_main!(benches);

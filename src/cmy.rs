@@ -255,26 +255,14 @@ mod test {
     #[test]
     fn cmy_to_rgb() {
         assert_eq!(Rgb8::new(255, 1, 2), Cmy8::new(0, 254, 253).convert());
-        assert_eq!(
-            Rgb8::new(255, 255, 0),
-            Cmy32::new(0.0, 0.0, 1.0).convert(),
-        );
-        assert_eq!(
-            Rgb8::new(0, 0, 255),
-            Cmy16::new(65535, 65535, 0).convert(),
-        );
+        assert_eq!(Rgb8::new(255, 255, 0), Cmy32::new(0.0, 0.0, 1.0).convert(),);
+        assert_eq!(Rgb8::new(0, 0, 255), Cmy16::new(65535, 65535, 0).convert(),);
     }
 
     #[test]
     fn rgb_to_cmy() {
         assert_eq!(Cmy8::new(0, 255, 127), Rgb8::new(255, 0, 128).convert());
-        assert_eq!(
-            Cmy32::new(1.0, 0.0, 0.0),
-            Rgb8::new(0, 255, 255).convert(),
-        );
-        assert_eq!(
-            Cmy16::new(0, 65535, 65535),
-            Rgb8::new(255, 0, 0).convert(),
-        );
+        assert_eq!(Cmy32::new(1.0, 0.0, 0.0), Rgb8::new(0, 255, 255).convert(),);
+        assert_eq!(Cmy16::new(0, 65535, 65535), Rgb8::new(255, 0, 0).convert(),);
     }
 }
