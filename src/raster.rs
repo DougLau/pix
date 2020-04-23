@@ -21,12 +21,21 @@ use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 /// * [with_u8_buffer](#method.with_u8_buffer)
 /// * [with_u16_buffer](#method.with_u16_buffer)
 ///
-/// ### Create a clear `Raster`
+/// ### Working with byte buffers
+///
+/// To allow interoperability with other crates, images can be created from
+/// byte buffers, and converted back again.
+///
 /// ```
-/// use pix::rgb::SRgb8;
+/// use pix::rgb::Rgba8;
 /// use pix::Raster;
 ///
-/// let r = Raster::<SRgb8>::with_clear(100, 100);
+/// let buf = vec![0; 200 * 200 * std::mem::size_of::<Rgba8>()];
+/// let mut raster = Raster::<Rgba8>::with_u8_buffer(200, 200, buf);
+/// // ... manipulate the image
+/// let slice: Box<[u8]> = raster.into();
+/// // A boxed slice can be turned back into Vec
+/// let v: Vec<u8> = slice.into();
 /// ```
 pub struct Raster<P: Pixel> {
     width: i32,
@@ -81,17 +90,51 @@ pub struct Region {
     height: i32,
 }
 
-impl<P: Pixel> Into<Box<[P]>> for Raster<P> {
+impl<P: Pixel> From<Raster<P>> for Box<[P]> {
     /// Get internal pixel data as boxed slice.
-    fn into(self) -> Box<[P]> {
-        self.pixels
+    fn from(raster: Raster<P>) -> Self {
+        raster.pixels
     }
 }
 
-impl<P: Pixel> Into<Vec<P>> for Raster<P> {
+impl<P: Pixel> From<Raster<P>> for Vec<P> {
     /// Get internal pixel data as `Vec` of pixels.
-    fn into(self) -> Vec<P> {
-        self.pixels.into()
+    fn from(raster: Raster<P>) -> Self {
+        raster.pixels.into()
+    }
+}
+
+impl<P> From<Raster<P>> for Box<[u8]>
+where
+    P: Pixel<Chan = Ch8>,
+{
+    /// Get internal pixel data as boxed slice of *u8*.
+    fn from(raster: Raster<P>) -> Self {
+        let pixels = raster.pixels;
+        let capacity = pixels.len() * std::mem::size_of::<P>();
+        let slice = Box::<[P]>::into_raw(pixels);
+        let buffer: Box<[u8]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut u8;
+            Box::from_raw(from_raw_parts_mut(ptr, capacity))
+        };
+        buffer
+    }
+}
+
+impl<P> From<Raster<P>> for Box<[u16]>
+where
+    P: Pixel<Chan = Ch16>,
+{
+    /// Get internal pixel data as boxed slice of *u16*.
+    fn from(raster: Raster<P>) -> Self {
+        let pixels = raster.pixels;
+        let capacity = pixels.len() * std::mem::size_of::<P>() / 2;
+        let slice = Box::<[P]>::into_raw(pixels);
+        let buffer: Box<[u16]> = unsafe {
+            let ptr = (*slice).as_mut_ptr() as *mut u16;
+            Box::from_raw(from_raw_parts_mut(ptr, capacity))
+        };
+        buffer
     }
 }
 
@@ -475,7 +518,17 @@ impl<P: Pixel> Raster<P> {
     /// Get view of pixels as a `u8` slice.
     pub fn as_u8_slice(&self) -> &[u8] {
         unsafe {
-            let (prefix, v, suffix) = &self.pixels.align_to::<u8>();
+            let (prefix, v, suffix) = self.pixels.align_to::<u8>();
+            debug_assert!(prefix.is_empty());
+            debug_assert!(suffix.is_empty());
+            v
+        }
+    }
+
+    /// Get view of pixels as a mutable `u8` slice.
+    pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
+        unsafe {
+            let (prefix, v, suffix) = self.pixels.align_to_mut::<u8>();
             debug_assert!(prefix.is_empty());
             debug_assert!(suffix.is_empty());
             v
@@ -498,11 +551,11 @@ where
     /// ### Example
     /// ```
     /// use pix::ops::SrcOver;
-    /// use pix::rgb::Rgba8p;
+    /// use pix::bgr::Bgra8p;
     /// use pix::Raster;
     ///
-    /// let mut r = Raster::with_color(100, 100, Rgba8p::new(99, 0, 99, 255));
-    /// let clr = Rgba8p::new(200, 200, 0, 128);
+    /// let mut r = Raster::with_color(100, 100, Bgra8p::new(99, 0, 99, 255));
+    /// let clr = Bgra8p::new(200, 200, 0, 128);
     /// r.composite_color((20, 40, 25, 50), clr, SrcOver);
     /// ```
     pub fn composite_color<R, O>(&mut self, reg: R, clr: P, op: O)
@@ -659,16 +712,6 @@ where
     }
 }
 
-impl<P> Raster<P>
-where
-    P: Pixel<Chan = Ch8, Model = Matte>,
-{
-    /// Get view of pixels as a mutable `u8` slice.
-    pub fn as_u8_slice_mut(&mut self) -> &mut [u8] {
-        unsafe { self.pixels.align_to_mut::<u8>().1 }
-    }
-}
-
 impl<'a, P: Pixel> Rows<'a, P> {
     /// Create a new row `Iterator`.
     fn new(raster: &'a Raster<P>, reg: Region) -> Self {
@@ -784,6 +827,28 @@ mod test {
     #[test]
     fn region_size() {
         assert_eq!(std::mem::size_of::<Region>(), 16);
+    }
+
+    #[test]
+    fn buffers() {
+        let buf = vec![0x80; 64];
+        let mut raster = Raster::<Rgba8>::with_u8_buffer(4, 4, buf);
+        *raster.pixel_mut(1, 1) = Rgba8::new(0x40, 0x60, 0x80, 0xA0);
+        let slice: Box<[u8]> = raster.into();
+        let v: Vec<u8> = slice.into();
+        assert_eq!(v.len(), 64);
+        let buf = vec![0xA0; 16];
+        let mut raster = Raster::<Gray8>::with_u8_buffer(4, 4, buf);
+        *raster.pixel_mut(1, 1) = Gray8::new(0xFF);
+        let slice: Box<[u8]> = raster.into();
+        let v: Vec<u8> = slice.into();
+        let b = vec![
+            0xA0, 0xA0, 0xA0, 0xA0,
+            0xA0, 0xFF, 0xA0, 0xA0,
+            0xA0, 0xA0, 0xA0, 0xA0,
+            0xA0, 0xA0, 0xA0, 0xA0,
+        ];
+        assert_eq!(v, b);
     }
 
     #[test]
