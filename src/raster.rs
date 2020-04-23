@@ -583,7 +583,7 @@ where
     /// * `src` Source `Raster` matte.
     /// * `from` Region within source `Raster`.
     /// * `clr` Color to apply to the matte.
-    /// * `_op` Compositing operation.
+    /// * `op` Compositing operation.
     ///
     /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
     /// *height*) or the unit type `()`.  Using `()` has the same result as
@@ -644,7 +644,7 @@ where
     /// * `to` Region within `self` (destination).
     /// * `src` Source `Raster`.
     /// * `from` Region within source `Raster`.
-    /// * `_op` Compositing operation.
+    /// * `op` Compositing operation.
     ///
     /// `to` / `from` can be `Region` structs, tuples of (*x*, *y*, *width*,
     /// *height*) or the unit type `()`.  Using `()` has the same result as
