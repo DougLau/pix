@@ -6,9 +6,7 @@
 //! [YCbCr] color model and types.
 //!
 //! [ycbcr]: https://en.wikipedia.org/wiki/YCbCr
-use crate::chan::{
-    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight,
-};
+use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
 use std::ops::Range;
