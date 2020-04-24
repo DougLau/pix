@@ -78,14 +78,14 @@ pub fn rgb_to_hue_chroma_value<C: Channel>(
     let hue = if chroma > C::MIN {
         (if val == red {
             if green >= blue {
-                (green.into() - blue.into()) / chroma.into()
+                (green.to_f32() - blue.to_f32()) / chroma.to_f32()
             } else {
-                6.0 - (blue.into() - green.into()) / chroma.into()
+                6.0 - (blue.to_f32() - green.to_f32()) / chroma.to_f32()
             }
         } else if green == val {
-            2.0 + (blue.into() - red.into()) / chroma.into()
+            2.0 + (blue.to_f32() - red.to_f32()) / chroma.to_f32()
         } else {
-            4.0 + (red.into() - green.into()) / chroma.into()
+            4.0 + (red.to_f32() - green.to_f32()) / chroma.to_f32()
         }) / 6.0
     } else {
         0.0

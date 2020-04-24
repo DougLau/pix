@@ -4,7 +4,7 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
-use crate::chan::{Alpha, Channel, Gamma, Premultiplied};
+use crate::chan::{Alpha, Channel, Gamma, Linear, Premultiplied};
 use crate::matte::Matte;
 use crate::ops::Blend;
 use crate::private::Sealed;
@@ -27,8 +27,8 @@ use std::marker::PhantomData;
 /// ### Type Alias Naming Scheme
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
-/// * _Color model_: [`Rgb`] / [`Bgr`] / [`Gray`] / [`Hsv`] / [`Hsl`] /
-///                  [`Hwb`] / [`YCbCr`] / [`Matte`].
+/// * _Color model_: [`Rgb`] / [`Bgr`] / [`Gray`] / [`Cmy`] / [`Hsv`] /
+///                  [`Hsl`] / [`Hwb`] / [`YCbCr`] / [`Matte`].
 /// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].
@@ -36,6 +36,7 @@ use std::marker::PhantomData;
 ///
 /// [`bgr`]: ../bgr/struct.Bgr.html
 /// [channels]: ../chan/trait.Channel.html
+/// [`cmy`]: ../cmy/struct.Cmy.html
 /// [`gray`]: ../gray/struct.Gray.html
 /// [`hsl`]: ../hsl/struct.Hsl.html
 /// [`hsv`]: ../hsv/struct.Hsv.html
@@ -186,7 +187,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite a color with a pixel slice
     fn composite_color<O>(dst: &mut [Self], clr: &Self, op: O)
     where
-        Self: Pixel<Alpha = Premultiplied>,
+        Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
         O: Blend,
     {
         for d in dst.iter_mut() {
@@ -197,8 +198,8 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite matte with color to destination pixel slice
     fn composite_matte<M, O>(dst: &mut [Self], src: &[M], clr: &Self, op: O)
     where
-        Self: Pixel<Alpha = Premultiplied>,
-        M: Pixel<Chan = Self::Chan, Model = Matte, Gamma = Self::Gamma>,
+        Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
+        M: Pixel<Chan = Self::Chan, Model = Matte, Gamma = Linear>,
         O: Blend,
     {
         for (d, s) in dst.iter_mut().zip(src) {
@@ -209,7 +210,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Composite two slices of pixels
     fn composite_slice<O>(dst: &mut [Self], src: &[Self], op: O)
     where
-        Self: Pixel<Alpha = Premultiplied>,
+        Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
         O: Blend,
     {
         for (d, s) in dst.iter_mut().zip(src) {
@@ -218,14 +219,21 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     }
 
     /// Composite the channels of two pixels
-    fn composite_channels<O>(&mut self, src: &Self, _op: O)
+    fn composite_channels<O>(&mut self, src: &Self, op: O)
     where
-        Self: Pixel<Alpha = Premultiplied>,
+        Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
         O: Blend,
     {
-        // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
         let sa1 = Self::Chan::MAX - src.alpha();
+        // circular channels
+        let d_chan = &mut self.channels_mut()[Self::Model::CIRCULAR];
+        let s_chan = &src.channels()[Self::Model::CIRCULAR];
+        d_chan
+            .iter_mut()
+            .zip(s_chan)
+            .for_each(|(d, s)| circ_composite(d, da1, *s, sa1, op));
+        // linear channels
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
         let s_chan = &src.channels()[Self::Model::LINEAR];
         d_chan
@@ -240,14 +248,21 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         &mut self,
         alpha: &Self::Chan,
         src: &Self,
-        _op: O,
+        op: O,
     ) where
-        Self: Pixel<Alpha = Premultiplied>,
+        Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
         O: Blend,
     {
-        // FIXME: composite circular channels
         let da1 = Self::Chan::MAX - self.alpha();
         let sa1 = Self::Chan::MAX - *alpha;
+        // circular channels
+        let d_chan = &mut self.channels_mut()[Self::Model::CIRCULAR];
+        let s_chan = &src.channels()[Self::Model::CIRCULAR];
+        d_chan
+            .iter_mut()
+            .zip(s_chan)
+            .for_each(|(d, s)| circ_composite(d, da1, *s * *alpha, sa1, op));
+        // linear channels
         let d_chan = &mut self.channels_mut()[Self::Model::LINEAR];
         let s_chan = &src.channels()[Self::Model::LINEAR];
         d_chan
@@ -255,6 +270,40 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
             .zip(s_chan)
             .for_each(|(d, s)| O::composite(d, da1, &(*s * *alpha), sa1));
         O::composite(self.alpha_mut(), da1, &(src.alpha() * *alpha), sa1);
+    }
+}
+
+/// Calculate composite for a circular channel
+#[inline]
+fn circ_composite<C, O>(d: &mut C, da1: C, mut s: C, sa1: C, _op: O)
+where
+    C: Channel,
+    O: Blend,
+{
+    // Circular channels are not premultiplied, so here's the algorithm:
+    // 1. Calcualte `t`, ranging from MIN (dst) to MAX (src), using composite
+    let mut t = C::MIN;
+    O::composite(&mut t, da1, &(C::MAX - sa1), sa1);
+    // 2. If difference > 180 degrees, rotate both by 180 degrees
+    let rotate = s.max(*d) - s.min(*d) > C::MID;
+    if rotate {
+        if s > *d {
+            s = s - C::MID;
+            *d = *d + C::MID;
+        } else {
+            s = s + C::MID;
+            *d = *d - C::MID;
+        }
+    }
+    // 3. Lerp between src and dest.
+    *d = d.lerp(s, t);
+    // 4. If rotated, rotate by 180 degrees
+    if rotate {
+        if *d < C::MID {
+            *d = *d + C::MID;
+        } else {
+            *d = *d - C::MID;
+        }
     }
 }
 

@@ -6,7 +6,9 @@
 //! [`Gray`] color model and types.
 //!
 //! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
-use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
+use crate::chan::{
+    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+};
 use crate::el::{Pix1, Pix2, PixRgba, Pixel};
 use crate::ColorModel;
 use std::ops::Range;
@@ -86,9 +88,9 @@ impl ColorModel for Gray {
         const BLUE_COEF: f32 = 0.072_2;
 
         let chan = rgba.channels();
-        let red = chan[0].into() * RED_COEF;
-        let green = chan[1].into() * GREEN_COEF;
-        let blue = chan[2].into() * BLUE_COEF;
+        let red = chan[0].to_f32() * RED_COEF;
+        let green = chan[1].to_f32() * GREEN_COEF;
+        let blue = chan[2].to_f32() * BLUE_COEF;
         let value = P::Chan::from(red + green + blue);
         let alpha = chan[3];
         P::from_channels(&[value, alpha])

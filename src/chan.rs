@@ -116,7 +116,6 @@ pub trait Channel:
     + Debug
     + Default
     + From<f32>
-    + Into<f32>
     + Ord
     + Add<Output = Self>
     + Div<Output = Self>
@@ -127,8 +126,14 @@ pub trait Channel:
     /// Minimum intensity (*zero*)
     const MIN: Self;
 
+    /// Mid intensity
+    const MID: Self;
+
     /// Maximum intensity (*one*)
     const MAX: Self;
+
+    /// Convert to `f32`
+    fn to_f32(self) -> f32;
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self;
@@ -141,6 +146,9 @@ pub trait Channel:
 
     /// Decode an sRGB gamma value into linear intensity
     fn decode_srgb(self) -> Self;
+
+    /// Linear interpolation
+    fn lerp(self, rhs: Self, t: Self) -> Self;
 }
 
 /// 8-bit color [Channel](trait.Channel.html).
@@ -211,11 +219,16 @@ impl Ch8 {
 }
 
 impl Channel for Ch8 {
-    /// Minimum intensity (*zero*)
     const MIN: Ch8 = Ch8(0);
 
-    /// Maximum intensity (*one*)
+    const MID: Ch8 = Ch8(128);
+
     const MAX: Ch8 = Ch8(0xFF);
+
+    /// Convert to `f32`
+    fn to_f32(self) -> f32 {
+        Ch32::from(self).0
+    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
@@ -240,6 +253,23 @@ impl Channel for Ch8 {
         let s = DECODE_SRGB_U8[usize::from(u8::from(self))];
         Self::new(s)
     }
+
+    /// Linear interpolation
+    #[inline]
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        let v0: i32 = u8::from(self).into();
+        let v1: i32 = u8::from(rhs).into();
+        let r = v0 + scale_i32(u8::from(t), v1 - v0);
+        Self::new(r as u8)
+    }
+}
+
+/// Scale an i32 value by a u8 (for lerp)
+#[inline]
+fn scale_i32(t: u8, v: i32) -> i32 {
+    let c = v * i32::from(t);
+    // cheap alternative to divide by 255
+    ((c + 1) + (c >> 8)) >> 8
 }
 
 impl From<u8> for Ch8 {
@@ -331,11 +361,16 @@ impl Ch16 {
 }
 
 impl Channel for Ch16 {
-    /// Minimum intensity (*zero*)
     const MIN: Ch16 = Ch16(0);
 
-    /// Maximum intensity (*one*)
+    const MID: Ch16 = Ch16(0x8000);
+
     const MAX: Ch16 = Ch16(0xFFFF);
+
+    /// Convert to `f32`
+    fn to_f32(self) -> f32 {
+        Ch32::from(self).0
+    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
@@ -362,6 +397,23 @@ impl Channel for Ch16 {
         let s = (srgb_gamma_decode(s) * 65535.0).round() as u16;
         Self::new(s)
     }
+
+    /// Linear interpolation
+    #[inline]
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        let v0: i64 = u16::from(self).into();
+        let v1: i64 = u16::from(rhs).into();
+        let r = v0 + scale_i64(u16::from(t), v1 - v0);
+        Self::new(r as u16)
+    }
+}
+
+/// Scale an i64 value by a u16 (for lerp)
+#[inline]
+fn scale_i64(t: u16, v: i64) -> i64 {
+    let c = v * i64::from(t);
+    // cheap alternative to divide by 65535
+    ((c + 1) + (c >> 16)) >> 16
 }
 
 impl From<Ch8> for Ch16 {
@@ -478,11 +530,16 @@ impl Ch32 {
 }
 
 impl Channel for Ch32 {
-    /// Minimum intensity (*zero*)
     const MIN: Ch32 = Ch32(0.0);
 
-    /// Maximum intensity (*one*)
+    const MID: Ch32 = Ch32(0.5);
+
     const MAX: Ch32 = Ch32(1.0);
+
+    /// Convert to `f32`
+    fn to_f32(self) -> f32 {
+        self.0
+    }
 
     /// Wrapping addition
     fn wrapping_add(self, rhs: Self) -> Self {
@@ -514,6 +571,15 @@ impl Channel for Ch32 {
     fn decode_srgb(self) -> Self {
         let s = srgb_gamma_decode(f32::from(self));
         Self::new(s)
+    }
+
+    /// Linear interpolation
+    #[inline]
+    fn lerp(self, rhs: Self, t: Self) -> Self {
+        let v0 = f32::from(self);
+        let v1 = f32::from(rhs);
+        let r = v0 + f32::from(t) * (v1 - v0);
+        Self::new(r)
     }
 }
 

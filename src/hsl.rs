@@ -168,9 +168,9 @@ impl ColorModel for Hsl {
     where
         P: Pixel<Model = Self>,
     {
-        let vl = 1.0 - (2.0 * Self::lightness(p).into() - 1.0).abs();
+        let vl = 1.0 - (2.0 * Self::lightness(p).to_f32() - 1.0).abs();
         let chroma = P::Chan::from(vl) * Self::saturation(p);
-        let hp = Self::hue(p).into() * 6.0; // 0.0..=6.0
+        let hp = Self::hue(p).to_f32() * 6.0; // 0.0..=6.0
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = Self::lightness(p) - chroma * P::Chan::from(0.5);

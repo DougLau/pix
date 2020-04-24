@@ -6,7 +6,9 @@
 //! [YCbCr] color model and types.
 //!
 //! [ycbcr]: https://en.wikipedia.org/wiki/YCbCr
-use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Straight};
+use crate::chan::{
+    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight,
+};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
 use std::ops::Range;
@@ -147,14 +149,14 @@ impl ColorModel for YCbCr {
     where
         P: Pixel<Model = Self>,
     {
-        let y = Self::y(p).into();
-        let cb = Self::cb(p).into();
-        let cr = Self::cr(p).into();
+        let y = Self::y(p).to_f32();
+        let cb = Self::cb(p).to_f32();
+        let cr = Self::cr(p).to_f32();
 
         let red = y + (cr - 0.5) * 1.402;
         let green = y - (cb - 0.5) * 0.344_136 - (cr - 0.5) * 0.714_136;
         let blue = y + (cb - 0.5) * 1.772;
-        PixRgba::<P>::new(red, green, blue, p.alpha().into())
+        PixRgba::<P>::new(red, green, blue, p.alpha().to_f32())
     }
 
     /// Convert from *red*, *green*, *blue* and *alpha* components
@@ -163,9 +165,9 @@ impl ColorModel for YCbCr {
         P: Pixel<Model = Self>,
     {
         let chan = rgba.channels();
-        let red = chan[0].into();
-        let green = chan[1].into();
-        let blue = chan[2].into();
+        let red = chan[0].to_f32();
+        let green = chan[1].to_f32();
+        let blue = chan[2].to_f32();
         let alpha = chan[3];
 
         let y = (0.299 * red) + (0.587 * green) + (0.114 * blue);

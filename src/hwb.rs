@@ -160,7 +160,7 @@ impl Hwb {
         let whiteness = Hwb::whiteness(p);
         let blackness = Hwb::blackness(p);
         if whiteness > P::Chan::MAX - blackness {
-            let (w, b) = (whiteness.into(), blackness.into());
+            let (w, b) = (whiteness.to_f32(), blackness.to_f32());
             let ratio = 1.0 / (w + b);
             (P::Chan::from(w * ratio), P::Chan::from(b * ratio))
         } else {
@@ -182,7 +182,7 @@ impl ColorModel for Hwb {
         let (whiteness, blackness) = Self::whiteness_blackness(p);
         let v = P::Chan::MAX - blackness;
         let chroma = v - whiteness;
-        let hp = Self::hue(p).into() * 6.0; // 0.0..=6.0
+        let hp = Self::hue(p).to_f32() * 6.0; // 0.0..=6.0
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = v - chroma;

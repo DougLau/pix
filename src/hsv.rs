@@ -6,7 +6,9 @@
 //! [HSV] color model and types.
 //!
 //! [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
-use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
+use crate::chan::{
+    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+};
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::ColorModel;
@@ -168,7 +170,7 @@ impl ColorModel for Hsv {
     {
         let v = Self::value(p);
         let chroma = v * Self::saturation(p);
-        let hp = Self::hue(p).into() * 6.0; // 0.0..=6.0
+        let hp = Self::hue(p).to_f32() * 6.0; // 0.0..=6.0
         let hc = Hexcone::from_hue_prime(hp);
         let (red, green, blue) = hc.rgb(chroma);
         let m = v - chroma;
@@ -279,6 +281,7 @@ pub type SHsva32p = Pix4<Ch32, Hsv, Premultiplied, Srgb>;
 mod test {
     use crate::el::Pixel;
     use crate::hsv::*;
+    use crate::ops::*;
     use crate::rgb::*;
 
     #[test]
@@ -410,5 +413,12 @@ mod test {
             Hsv8::new(213, 127, 255),
             Rgb8::new(255, 128, 255).convert(),
         );
+    }
+
+    #[test]
+    fn composite_hsv() {
+        let mut a = Hsva8p::new(0, 64, 64, 128);
+        a.composite_channels(&Hsva8p::new(32, 128, 64, 128), SrcOver);
+        assert_eq!(a, Hsva8p::new(16, 159, 95, 191));
     }
 }

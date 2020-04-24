@@ -2,7 +2,7 @@
 extern crate criterion;
 
 use criterion::Criterion;
-use pix::chan::Premultiplied;
+use pix::chan::{Linear, Premultiplied};
 use pix::el::Pixel;
 use pix::gray::Graya8p;
 use pix::matte::Matte8;
@@ -54,7 +54,7 @@ fn matte_over_rgba_256(c: &mut Criterion) {
 
 fn raster_over<P>(c: &mut Criterion, tp: &str, sz: u32)
 where
-    P: Pixel<Alpha = Premultiplied>,
+    P: Pixel<Alpha = Premultiplied, Gamma = Linear>,
 {
     let s = format!("raster_over_{}_{}", tp, sz);
     c.bench_function(&s, move |b| {
