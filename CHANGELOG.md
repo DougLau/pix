@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.12.0] - 2020-04-23
 ### Added
 * Raster::copy_color and copy_raster
 * CMY color model
