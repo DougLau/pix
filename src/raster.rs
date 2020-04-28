@@ -10,6 +10,15 @@ use crate::ops::Blend;
 use std::convert::TryFrom;
 use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 
+/// Message for width too big
+const WIDTH_TOO_BIG: &str = "Raster width too big";
+
+/// Message for height too big
+const HEIGHT_TOO_BIG: &str = "Raster height too big";
+
+/// Message for raster too big
+const TOO_BIG: &str = "Raster too big";
+
 /// Image arranged as a rectangular array of pixels.  Rows are ordered top to
 /// bottom, and pixels within rows are left to right.
 ///
@@ -176,8 +185,8 @@ impl<P: Pixel> Raster<P> {
     /// let r = Raster::<SRgb8>::with_color(15, 15, clr);
     /// ```
     pub fn with_color(width: u32, height: u32, clr: P) -> Self {
-        let width = i32::try_from(width).unwrap();
-        let height = i32::try_from(height).unwrap();
+        let width = i32::try_from(width).expect(WIDTH_TOO_BIG);
+        let height = i32::try_from(height).expect(HEIGHT_TOO_BIG);
         let len = (width * height) as usize;
         let pixels = vec![clr; len].into_boxed_slice();
         Raster {
@@ -248,9 +257,10 @@ impl<P: Pixel> Raster<P> {
     where
         B: Into<Box<[P]>>,
     {
-        let width = i32::try_from(width).unwrap();
-        let height = i32::try_from(height).unwrap();
-        let len = (width * height) as usize;
+        let width = i32::try_from(width).expect(WIDTH_TOO_BIG);
+        let height = i32::try_from(height).expect(HEIGHT_TOO_BIG);
+        let len = usize::try_from(width.checked_mul(height).expect(TOO_BIG))
+            .expect(TOO_BIG);
         let pixels = pixels.into();
         assert_eq!(len, pixels.len());
         Raster {
@@ -277,9 +287,10 @@ impl<P: Pixel> Raster<P> {
         B: Into<Box<[u8]>>,
         P: Pixel<Chan = Ch8>,
     {
-        let width = i32::try_from(width).unwrap();
-        let height = i32::try_from(height).unwrap();
-        let len = (width * height) as usize;
+        let width = i32::try_from(width).expect(WIDTH_TOO_BIG);
+        let height = i32::try_from(height).expect(HEIGHT_TOO_BIG);
+        let len = usize::try_from(width.checked_mul(height).expect(TOO_BIG))
+            .expect(TOO_BIG);
         assert!(len > 0);
         let buffer: Box<[u8]> = buffer.into();
         let capacity = buffer.len();
@@ -316,9 +327,10 @@ impl<P: Pixel> Raster<P> {
         B: Into<Box<[u16]>>,
         P: Pixel<Chan = Ch16>,
     {
-        let width = i32::try_from(width).unwrap();
-        let height = i32::try_from(height).unwrap();
-        let len = (width * height) as usize;
+        let width = i32::try_from(width).expect(WIDTH_TOO_BIG);
+        let height = i32::try_from(height).expect(HEIGHT_TOO_BIG);
+        let len = usize::try_from(width.checked_mul(height).expect(TOO_BIG))
+            .expect(TOO_BIG);
         assert!(len > 0);
         let buffer: Box<[u16]> = buffer.into();
         let capacity = buffer.len();
@@ -715,7 +727,7 @@ where
 impl<'a, P: Pixel> Rows<'a, P> {
     /// Create a new row `Iterator`.
     fn new(raster: &'a Raster<P>, reg: Region) -> Self {
-        let width = usize::try_from(raster.width()).unwrap();
+        let width = raster.width() as usize;
         let start = reg.y as usize * width;
         let end = reg.bottom() as usize * width;
         let slice = &raster.pixels[start..end];
@@ -735,7 +747,7 @@ impl<'a, P: Pixel> Iterator for Rows<'a, P> {
 impl<'a, P: Pixel> RowsMut<'a, P> {
     /// Create a new mutable row `Iterator`.
     fn new(raster: &'a mut Raster<P>, reg: Region) -> Self {
-        let width = usize::try_from(raster.width()).unwrap();
+        let width = raster.width() as usize;
         let start = reg.y as usize * width;
         let end = reg.bottom() as usize * width;
         let slice = &mut raster.pixels[start..end];
@@ -768,8 +780,8 @@ impl From<()> for Region {
 impl Region {
     /// Create a new `Region`
     pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
-        let width = i32::try_from(width).unwrap_or(0);
-        let height = i32::try_from(height).unwrap_or(0);
+        let width = i32::try_from(width).expect(WIDTH_TOO_BIG);
+        let height = i32::try_from(height).expect(HEIGHT_TOO_BIG);
         Region {
             x,
             y,
