@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Changed
+* Raster::rows() / rows_mut() sliced to span of region
+
 ## [0.12.0] - 2020-04-23
 ### Added
 * Raster::copy_color and copy_raster

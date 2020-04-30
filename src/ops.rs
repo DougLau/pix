@@ -11,11 +11,12 @@
 //! [composite_matte]: ../struct.Raster.html#method.composite_matte
 //! [composite_raster]: ../struct.Raster.html#method.composite_raster
 use crate::chan::Channel;
+use std::any::Any;
 
 /// Blending operation for compositing.
 ///
 /// This trait is *sealed*, and cannot be implemented outside of this crate.
-pub trait Blend: Copy + Clone {
+pub trait Blend: Any + Copy + Clone {
     /// Composite a destination and source
     ///
     /// * `dst` Destination channel

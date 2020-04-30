@@ -8,6 +8,7 @@ use crate::el::Pixel;
 use crate::matte::Matte;
 use crate::ops::Blend;
 use std::convert::TryFrom;
+use std::ops::Range;
 use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
 
 /// Message for width too big
@@ -60,7 +61,10 @@ pub struct Raster<P: Pixel> {
 /// [raster]: struct.Raster.html
 /// [rows]: struct.Raster.html#method.rows
 pub struct Rows<'a, P: Pixel> {
+    /// Chunks iterator of full rows
     chunks: ChunksExact<'a, P>,
+    /// Range of requested columns
+    columns: Range<usize>,
 }
 
 /// `Iterator` of *rows* in a [raster], as mutable slices of [pixel]s.
@@ -71,7 +75,10 @@ pub struct Rows<'a, P: Pixel> {
 /// [raster]: struct.Raster.html
 /// [rows_mut]: struct.Raster.html#method.rows_mut
 pub struct RowsMut<'a, P: Pixel> {
+    /// Chunks iterator of full rows
     chunks: ChunksExactMut<'a, P>,
+    /// Range of requested columns
+    columns: Range<usize>,
 }
 
 /// Location / dimensions of pixels relative to a [Raster](struct.Raster.html).
@@ -394,6 +401,8 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Get an `Iterator` of rows within a `Raster`.
+    ///
+    /// * `reg` Region of the Raster to iterate.
     pub fn rows<R>(&self, reg: R) -> Rows<P>
     where
         R: Into<Region>,
@@ -402,6 +411,8 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Get an `Iterator` of mutable rows within a `Raster`.
+    ///
+    /// * `reg` Region of the Raster to iterate.
     pub fn rows_mut<R>(&mut self, reg: R) -> RowsMut<P>
     where
         R: Into<Region>,
@@ -455,9 +466,6 @@ impl<P: Pixel> Raster<P> {
         if width > 0 && height > 0 {
             let drows = self.rows_mut(reg);
             for drow in drows {
-                let x0 = reg.x as usize;
-                let x1 = x0 + width as usize;
-                let drow = &mut drow[x0..x1];
                 P::copy_color(drow, &clr);
             }
         }
@@ -503,28 +511,32 @@ impl<P: Pixel> Raster<P> {
         R0: Into<Region>,
         R1: Into<Region>,
     {
+        let (to, from) = self.clip_regions(to, src, from);
+        let srows = src.rows(from);
+        let drows = self.rows_mut(to);
+        for (drow, srow) in drows.zip(srows) {
+            P::copy_slice(drow, srow);
+        }
+    }
+
+    /// Clip `to` / `from` regions for source / destination rasters
+    fn clip_regions<R0, R1, Q>(&self, to: R0, src: &Raster<Q>, from: R1)
+        -> (Region, Region)
+    where
+        R0: Into<Region>,
+        R1: Into<Region>,
+        Q: Pixel,
+    {
         let (to, from) = (to.into(), from.into());
-        let tx = to.x.min(0).abs();
-        let ty = to.y.min(0).abs();
-        let fx = from.x.min(0).abs();
-        let fy = from.y.min(0).abs();
+        let (tx, ty) = (to.x.min(0).abs(), to.y.min(0).abs());
+        let (fx, fy) = (from.x.min(0).abs(), from.y.min(0).abs());
         let to = self.intersection(to);
         let from = src.intersection(from);
         let width = to.width().min(from.width());
         let height = to.height().min(from.height());
-        if width > 0 && height > 0 {
-            let to = Region::new(to.x + fx, to.y + fy, width, height);
-            let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows(from);
-            let drows = self.rows_mut(to);
-            for (drow, srow) in drows.zip(srows) {
-                let x0 = to.x as usize;
-                let x1 = x0 + width as usize;
-                let drow = &mut drow[x0..x1];
-                let srow = &srow[from.x as usize..];
-                P::copy_slice(drow, srow);
-            }
-        }
+        let to = Region::new(to.x + fx, to.y + fy, width, height);
+        let from = Region::new(from.x + tx, from.y + ty, width, height);
+        (to, from)
     }
 
     /// Get view of pixels as a `u8` slice.
@@ -581,9 +593,6 @@ where
         if width > 0 && height > 0 {
             let drows = self.rows_mut(reg);
             for drow in drows {
-                let x0 = reg.x as usize;
-                let x1 = x0 + width as usize;
-                let drow = &mut drow[x0..x1];
                 P::composite_color(drow, &clr, op);
             }
         }
@@ -627,27 +636,11 @@ where
         M: Pixel<Chan = P::Chan, Model = Matte, Gamma = P::Gamma>,
         O: Blend,
     {
-        let (to, from) = (to.into(), from.into());
-        let tx = to.x.min(0).abs();
-        let ty = to.y.min(0).abs();
-        let fx = from.x.min(0).abs();
-        let fy = from.y.min(0).abs();
-        let to = self.intersection(to);
-        let from = src.intersection(from);
-        let width = to.width().min(from.width());
-        let height = to.height().min(from.height());
-        if width > 0 && height > 0 {
-            let to = Region::new(to.x + fx, to.y + fy, width, height);
-            let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows(from);
-            let drows = self.rows_mut(to);
-            for (drow, srow) in drows.zip(srows) {
-                let x0 = to.x as usize;
-                let x1 = x0 + width as usize;
-                let drow = &mut drow[x0..x1];
-                let srow = &srow[from.x as usize..];
-                P::composite_matte(drow, srow, &clr, op);
-            }
+        let (to, from) = self.clip_regions(to, src, from);
+        let srows = src.rows(from);
+        let drows = self.rows_mut(to);
+        for (drow, srow) in drows.zip(srows) {
+            P::composite_matte(drow, srow, &clr, op);
         }
     }
 
@@ -699,27 +692,11 @@ where
         R1: Into<Region>,
         O: Blend,
     {
-        let (to, from) = (to.into(), from.into());
-        let tx = to.x.min(0).abs();
-        let ty = to.y.min(0).abs();
-        let fx = from.x.min(0).abs();
-        let fy = from.y.min(0).abs();
-        let to = self.intersection(to);
-        let from = src.intersection(from);
-        let width = to.width().min(from.width());
-        let height = to.height().min(from.height());
-        if width > 0 && height > 0 {
-            let to = Region::new(to.x + fx, to.y + fy, width, height);
-            let from = Region::new(from.x + tx, from.y + ty, width, height);
-            let srows = src.rows(from);
-            let drows = self.rows_mut(to);
-            for (drow, srow) in drows.zip(srows) {
-                let x0 = to.x as usize;
-                let x1 = x0 + width as usize;
-                let drow = &mut drow[x0..x1];
-                let srow = &srow[from.x as usize..];
-                P::composite_slice(drow, srow, op);
-            }
+        let (to, from) = self.clip_regions(to, src, from);
+        let srows = src.rows(from);
+        let drows = self.rows_mut(to);
+        for (drow, srow) in drows.zip(srows) {
+            P::composite_slice(drow, srow, op);
         }
     }
 }
@@ -732,7 +709,10 @@ impl<'a, P: Pixel> Rows<'a, P> {
         let end = reg.bottom() as usize * width;
         let slice = &raster.pixels[start..end];
         let chunks = slice.chunks_exact(width);
-        Rows { chunks }
+        let x = reg.x as usize;
+        let w = reg.width as usize;
+        let columns = x..x + w;
+        Rows { chunks, columns }
     }
 }
 
@@ -740,7 +720,7 @@ impl<'a, P: Pixel> Iterator for Rows<'a, P> {
     type Item = &'a [P];
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.chunks.next()
+        self.chunks.next().map(|s| &s[self.columns.clone()])
     }
 }
 
@@ -752,7 +732,10 @@ impl<'a, P: Pixel> RowsMut<'a, P> {
         let end = reg.bottom() as usize * width;
         let slice = &mut raster.pixels[start..end];
         let chunks = slice.chunks_exact_mut(width);
-        RowsMut { chunks }
+        let x = reg.x as usize;
+        let w = reg.width as usize;
+        let columns = x..x + w;
+        RowsMut { chunks, columns }
     }
 }
 
@@ -760,7 +743,7 @@ impl<'a, P: Pixel> Iterator for RowsMut<'a, P> {
     type Item = &'a mut [P];
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.chunks.next()
+        self.chunks.next().map(|s| &mut s[self.columns.clone()])
     }
 }
 
@@ -1086,6 +1069,23 @@ mod test {
             Rgba8p::new(0x08, 0x10, 0x0C, 0x10),
         ];
         assert_eq!(r.pixels(), &v);
+    }
+
+    #[test]
+    fn composite_matte_gray() {
+        let mut g0 = Raster::<Graya8p>::with_clear(2, 2);
+        let g1 = Raster::<Matte8>::with_color(3, 3, Matte8::new(0x40));
+        let g2 = Raster::<Matte8>::with_color(3, 3, Matte8::new(0x60));
+        let g3 = Raster::<Matte8>::with_color(3, 3, Matte8::new(0x80));
+        let clr = Graya8p::new(0xFF, 0xFF);
+        g0.composite_matte((1, 1, 3, 3), &g1, (), clr, SrcOver);
+        g0.composite_matte((1, -2, 3, 3), &g2, (), clr, SrcOver);
+        g0.composite_matte((-2, -2, 3, 3), &g3, (), clr, SrcOver);
+        let v = vec![
+            Graya8p::new(0x80, 0x80), Graya8p::new(0x60, 0x60),
+            Graya8p::new(0x00, 0x00), Graya8p::new(0x40, 0x40),
+        ];
+        assert_eq!(g0.pixels(), &v[..]);
     }
 
     #[test]
