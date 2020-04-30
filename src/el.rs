@@ -203,7 +203,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         O: Blend,
     {
         for (d, s) in dst.iter_mut().zip(src) {
-            d.composite_channels_matte(&s.alpha(), clr, op);
+            d.composite_channels_alpha(clr, op, &s.alpha());
         }
     }
 
@@ -243,12 +243,12 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
         O::composite(self.alpha_mut(), da1, &src.alpha(), sa1);
     }
 
-    /// Composite the channels of pixels with a matte and color
-    fn composite_channels_matte<O>(
+    /// Composite the channels of two pixels with alpha
+    fn composite_channels_alpha<O>(
         &mut self,
-        alpha: &Self::Chan,
         src: &Self,
         op: O,
+        alpha: &Self::Chan,
     ) where
         Self: Pixel<Alpha = Premultiplied, Gamma = Linear>,
         O: Blend,
