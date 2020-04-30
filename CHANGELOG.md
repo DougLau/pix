@@ -3,6 +3,7 @@
 ### Changed
 * `Raster::rows()` / `rows_mut()` sliced to span of region
 * Renamed `Pixel::composite_channels_matte` to `composite_channels_alpha`
+* Matte type aliases premultiplied instead of straight
 
 ## [0.12.0] - 2020-04-23
 ### Added
