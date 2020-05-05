@@ -98,7 +98,7 @@ pub struct RowsMut<'a, P: Pixel> {
 /// let r = Raster::<SRgb8>::with_clear(100, 100);
 /// let reg = r.region(); // (0, 0, 100, 100)
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Region {
     x: i32,
     y: i32,
@@ -431,13 +431,7 @@ impl<P: Pixel> Raster<P> {
         R: Into<Region>,
     {
         let reg = reg.into();
-        let x0 = reg.x.max(0);
-        let x1 = reg.right().min(self.width);
-        let w = (x1 - x0).max(0) as u32;
-        let y0 = reg.y.max(0);
-        let y1 = reg.bottom().min(self.height);
-        let h = (y1 - y0).max(0) as u32;
-        Region::new(x0, y0, w, h)
+        reg.intersection(self.region())
     }
 
     /// Copy a color to a region of the `Raster`.
@@ -781,11 +775,15 @@ impl Region {
         let rhs = rhs.into();
         let x0 = self.x.max(rhs.x);
         let x1 = self.right().min(rhs.right());
-        let w = (x1 - x0) as u32;
         let y0 = self.y.max(rhs.y);
         let y1 = self.bottom().min(rhs.bottom());
-        let h = (y1 - y0) as u32;
-        Region::new(x0, y0, w, h)
+        if x0 < x1 && y0 < y1 {
+            let w = (x1 - x0) as u32;
+            let h = (y1 - y0) as u32;
+            Region::new(x0, y0, w, h)
+        } else {
+            Region::default()
+        }
     }
 
     /// Get the width
@@ -946,6 +944,13 @@ mod test {
             Matte16::new(0x1234), Matte16::new(0x0000), Matte16::new(0x8080),
         ];
         assert_eq!(r.pixels(), &v[..]);
+    }
+
+    #[test]
+    fn invalid_rows() {
+        let r = Raster::<Matte8>::with_clear(10, 10);
+        let mut rows = r.rows((0, 20, 0, 0));
+        assert_eq!(rows.next(), None);
     }
 
     #[test]
