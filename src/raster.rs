@@ -514,8 +514,12 @@ impl<P: Pixel> Raster<P> {
     }
 
     /// Clip `to` / `from` regions for source / destination rasters
-    fn clip_regions<R0, R1, Q>(&self, to: R0, src: &Raster<Q>, from: R1)
-        -> (Region, Region)
+    fn clip_regions<R0, R1, Q>(
+        &self,
+        to: R0,
+        src: &Raster<Q>,
+        from: R1,
+    ) -> (Region, Region)
     where
         R0: Into<Region>,
         R1: Into<Region>,
