@@ -199,10 +199,12 @@ impl ColorModel for Hsl {
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsl8 = Pix3<Ch8, Hsl, Straight, Linear>;
+
 /// [Hsl](struct.Hsl.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsl16 = Pix3<Ch16, Hsl, Straight, Linear>;
+
 /// [Hsl](struct.Hsl.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -212,10 +214,12 @@ pub type Hsl32 = Pix3<Ch32, Hsl, Straight, Linear>;
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type Hsla8 = Pix4<Ch8, Hsl, Straight, Linear>;
+
 /// [Hsl](struct.Hsl.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type Hsla16 = Pix4<Ch16, Hsl, Straight, Linear>;
+
 /// [Hsl](struct.Hsl.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
@@ -226,11 +230,13 @@ pub type Hsla32 = Pix4<Ch32, Hsl, Straight, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsla8p = Pix4<Ch8, Hsl, Premultiplied, Linear>;
+
 /// [Hsl](struct.Hsl.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsla16p = Pix4<Ch16, Hsl, Premultiplied, Linear>;
+
 /// [Hsl](struct.Hsl.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
@@ -241,10 +247,12 @@ pub type Hsla32p = Pix4<Ch32, Hsl, Premultiplied, Linear>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsl8 = Pix3<Ch8, Hsl, Straight, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 16-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsl16 = Pix3<Ch16, Hsl, Straight, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 32-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -254,10 +262,12 @@ pub type SHsl32 = Pix3<Ch32, Hsl, Straight, Srgb>;
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type SHsla8 = Pix4<Ch8, Hsl, Straight, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type SHsla16 = Pix4<Ch16, Hsl, Straight, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
@@ -268,11 +278,13 @@ pub type SHsla32 = Pix4<Ch32, Hsl, Straight, Srgb>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsla8p = Pix4<Ch8, Hsl, Premultiplied, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsla16p = Pix4<Ch16, Hsl, Premultiplied, Srgb>;
+
 /// [Hsl](struct.Hsl.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)

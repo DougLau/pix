@@ -197,10 +197,12 @@ impl ColorModel for Hsv {
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsv8 = Pix3<Ch8, Hsv, Straight, Linear>;
+
 /// [Hsv](struct.Hsv.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsv16 = Pix3<Ch16, Hsv, Straight, Linear>;
+
 /// [Hsv](struct.Hsv.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -210,10 +212,12 @@ pub type Hsv32 = Pix3<Ch32, Hsv, Straight, Linear>;
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type Hsva8 = Pix4<Ch8, Hsv, Straight, Linear>;
+
 /// [Hsv](struct.Hsv.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type Hsva16 = Pix4<Ch16, Hsv, Straight, Linear>;
+
 /// [Hsv](struct.Hsv.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
@@ -224,11 +228,13 @@ pub type Hsva32 = Pix4<Ch32, Hsv, Straight, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsva8p = Pix4<Ch8, Hsv, Premultiplied, Linear>;
+
 /// [Hsv](struct.Hsv.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Hsva16p = Pix4<Ch16, Hsv, Premultiplied, Linear>;
+
 /// [Hsv](struct.Hsv.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
@@ -239,10 +245,12 @@ pub type Hsva32p = Pix4<Ch32, Hsv, Premultiplied, Linear>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsv8 = Pix3<Ch8, Hsv, Straight, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 16-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsv16 = Pix3<Ch16, Hsv, Straight, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 32-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -252,10 +260,12 @@ pub type SHsv32 = Pix3<Ch32, Hsv, Straight, Srgb>;
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type SHsva8 = Pix4<Ch8, Hsv, Straight, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type SHsva16 = Pix4<Ch16, Hsv, Straight, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
@@ -266,11 +276,13 @@ pub type SHsva32 = Pix4<Ch32, Hsv, Straight, Srgb>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsva8p = Pix4<Ch8, Hsv, Premultiplied, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SHsva16p = Pix4<Ch16, Hsv, Premultiplied, Srgb>;
+
 /// [Hsv](struct.Hsv.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)

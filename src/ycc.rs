@@ -180,10 +180,12 @@ impl ColorModel for YCbCr {
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCr8 = Pix3<Ch8, YCbCr, Straight, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCr16 = Pix3<Ch16, YCbCr, Straight, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -194,11 +196,13 @@ pub type YCbCr32 = Pix3<Ch32, YCbCr, Straight, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCra8 = Pix4<Ch8, YCbCr, Straight, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 16-bit
 /// [straight](../chan/struct.Straight.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCra16 = Pix4<Ch16, YCbCr, Straight, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 32-bit
 /// [straight](../chan/struct.Straight.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
@@ -210,11 +214,13 @@ pub type YCbCra32 = Pix4<Ch32, YCbCr, Straight, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCra8p = Pix4<Ch8, YCbCr, Premultiplied, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type YCbCra16p = Pix4<Ch16, YCbCr, Premultiplied, Linear>;
+
 /// [YCbCr](struct.YCbCr.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)

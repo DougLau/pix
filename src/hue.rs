@@ -10,14 +10,19 @@ use crate::chan::Channel;
 pub enum Hexcone {
     /// Red is at 0 degrees
     Red(f32),
+
     /// Yellow is at 60 degrees
     Yellow(f32),
+
     /// Green is at 120 degrees
     Green(f32),
+
     /// Cyan is at 180 degrees
     Cyan(f32),
+
     /// Blue is at 240 degrees
     Blue(f32),
+
     /// Magenta is at 300 degrees
     Magenta(f32),
 }

@@ -162,23 +162,27 @@ impl ColorModel for Bgr {
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Bgr8 = Pix3<Ch8, Bgr, Straight, Linear>;
+
 /// [Bgr](struct.Bgr.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Bgr16 = Pix3<Ch16, Bgr, Straight, Linear>;
+
 /// [Bgr](struct.Bgr.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Bgr32 = Pix3<Ch32, Bgr, Straight, Linear>;
 
 /// [Bgr](struct.Bgr.html) 8-bit [straight](../chan/struct.Straight.html)
-/// alpha [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
-/// format.
+/// alpha [linear](../chan/struct.Linear.html)
+/// gamma [pixel](../el/trait.Pixel.html) format.
 pub type Bgra8 = Pix4<Ch8, Bgr, Straight, Linear>;
+
 /// [Bgr](struct.Bgr.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
 pub type Bgra16 = Pix4<Ch16, Bgr, Straight, Linear>;
+
 /// [Bgr](struct.Bgr.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
@@ -189,11 +193,13 @@ pub type Bgra32 = Pix4<Ch32, Bgr, Straight, Linear>;
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Bgra8p = Pix4<Ch8, Bgr, Premultiplied, Linear>;
+
 /// [Bgr](struct.Bgr.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type Bgra16p = Pix4<Ch16, Bgr, Premultiplied, Linear>;
+
 /// [Bgr](struct.Bgr.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
@@ -204,10 +210,12 @@ pub type Bgra32p = Pix4<Ch32, Bgr, Premultiplied, Linear>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgr8 = Pix3<Ch8, Bgr, Straight, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 16-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgr16 = Pix3<Ch16, Bgr, Straight, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 32-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -217,10 +225,12 @@ pub type SBgr32 = Pix3<Ch32, Bgr, Straight, Srgb>;
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgra8 = Pix4<Ch8, Bgr, Straight, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgra16 = Pix4<Ch16, Bgr, Straight, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
@@ -231,11 +241,13 @@ pub type SBgra32 = Pix4<Ch32, Bgr, Straight, Srgb>;
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgra8p = Pix4<Ch8, Bgr, Premultiplied, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
 pub type SBgra16p = Pix4<Ch16, Bgr, Premultiplied, Srgb>;
+
 /// [Bgr](struct.Bgr.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)

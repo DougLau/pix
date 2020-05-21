@@ -23,14 +23,17 @@ impl Palette {
             threshold_fn,
         }
     }
+
     /// Get the number of entries.
     pub fn len(&self) -> usize {
         self.table.len()
     }
+
     /// Check if the palette is empty.
     pub fn is_empty(&self) -> bool {
         self.table.is_empty()
     }
+
     /// Set the threshold function for matching entries.
     ///
     /// * `threshold_fn` Called when checking whether a color matches an
@@ -40,10 +43,12 @@ impl Palette {
     pub fn set_threshold_fn(&mut self, threshold_fn: fn(usize) -> SRgb8) {
         self.threshold_fn = threshold_fn;
     }
+
     /// Get a slice of all colors.
     pub fn colors(&self) -> &[SRgb8] {
         &self.table
     }
+
     /// Get a `Palette` entry.
     ///
     /// * `i` Index of entry.
@@ -54,6 +59,7 @@ impl Palette {
             None
         }
     }
+
     /// Set a `Palette` entry.
     ///
     /// The table is searched for the best matching color within the threshold.
@@ -79,6 +85,7 @@ impl Palette {
             None
         }
     }
+
     /// Find the best match for a color.
     ///
     /// The first of equal matches will be returned.
@@ -95,6 +102,7 @@ impl Palette {
         }
         best
     }
+
     /// Replace a `Palette` entry.
     ///
     /// * `i` Index of entry.
@@ -111,6 +119,7 @@ impl Palette {
             None
         }
     }
+
     /// Create a histogram of `Palette` entries.
     ///
     /// * `ent` Slice of entry indices (pixel values).
