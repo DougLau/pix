@@ -790,23 +790,33 @@ impl Region {
         }
     }
 
+    /// Get the left side
+    pub fn left(self) -> i32 {
+        self.x
+    }
+
+    /// Get the top side
+    pub fn top(self) -> i32 {
+        self.y
+    }
+
     /// Get the width
-    fn width(self) -> u32 {
+    pub fn width(self) -> u32 {
         self.width as u32
     }
 
     /// Get the height
-    fn height(self) -> u32 {
+    pub fn height(self) -> u32 {
         self.height as u32
     }
 
     /// Get right side
-    fn right(self) -> i32 {
+    pub fn right(self) -> i32 {
         self.x.saturating_add(self.width)
     }
 
     /// Get bottom side
-    fn bottom(self) -> i32 {
+    pub fn bottom(self) -> i32 {
         self.y.saturating_add(self.height)
     }
 }

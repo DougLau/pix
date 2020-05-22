@@ -1,5 +1,10 @@
 ## [Unreleased]
 
+### Added
+* `Region::left()` and `::top()`
+### Changed
+* Made `Region::width()`, `::height()`, `::right()` and `::bottom()` pub
+
 ## [0.13.0] - 2020-05-05
 ### Changed
 * `Raster::rows()` / `rows_mut()` sliced to span of region
