@@ -63,9 +63,6 @@
 //!
 //! ![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
 //!
-//! ## Documentation
-//! [https://docs.rs/pix](https://docs.rs/pix)
-//!
 #![warn(missing_docs)]
 #![warn(missing_doc_code_examples)]
 
