@@ -24,7 +24,7 @@ Compositing with blending operations is supported for *premultiplied*
 images with *linear* gamma.
 
 ### HWB Color Example
-```
+```rust
 use pix::hwb::SHwb8;
 use pix::rgb::SRgb8;
 use pix::Raster;
