@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.13.1] - 2020-06-04
 ### Added
 * `Region::left()` and `::top()`
 ### Changed
