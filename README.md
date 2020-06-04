@@ -48,7 +48,7 @@ use pix::{ops::SrcOver, rgb::Rgba8p, Raster};
 
 let mut r0 = Raster::with_clear(100, 100);
 let r1 = Raster::with_color(5, 5, Rgba8p::new(80, 0, 80, 200));
-r0.composite_raster((40, 40, 5, 5), &r1, (), SrcOver);
+r0.composite_raster((40, 40), &r1, (), SrcOver);
 ```
 
 ## Documentation

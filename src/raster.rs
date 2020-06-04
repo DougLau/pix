@@ -677,7 +677,7 @@ where
     /// let mut r0 = Raster::with_clear(100, 100);
     /// let r1 = Raster::with_color(5, 5, Rgba8p::new(80, 0, 80, 200));
     /// // ... load image data
-    /// r0.composite_raster((40, 40, 5, 5), &r1, (), SrcOver);
+    /// r0.composite_raster((40, 40), &r1, (), SrcOver);
     /// ```
     pub fn composite_raster<R0, R1, O>(
         &mut self,
@@ -748,6 +748,13 @@ impl<'a, P: Pixel> Iterator for RowsMut<'a, P> {
 impl From<(i32, i32, u32, u32)> for Region {
     fn from(r: (i32, i32, u32, u32)) -> Self {
         Region::new(r.0, r.1, r.2, r.3)
+    }
+}
+
+impl From<(i32, i32)> for Region {
+    fn from(r: (i32, i32)) -> Self {
+        const MAX: u32 = std::i32::MAX as u32;
+        Region::new(r.0, r.1, MAX, MAX)
     }
 }
 
@@ -864,18 +871,10 @@ mod test {
         assert_eq!(r, Region::new(0, 0, 5, 5));
         assert_eq!(r, r.intersection(Region::new(0, 0, 10, 10)));
         assert_eq!(r, r.intersection(Region::new(-5, -5, 10, 10)));
-        assert_eq!(
-            Region::new(0, 0, 4, 4),
-            r.intersection(Region::new(-1, -1, 5, 5))
-        );
-        assert_eq!(
-            Region::new(1, 2, 1, 3),
-            r.intersection(Region::new(1, 2, 1, 100))
-        );
-        assert_eq!(
-            Region::new(2, 1, 3, 1),
-            r.intersection(Region::new(2, 1, 100, 1))
-        );
+        assert_eq!(Region::new(2, 2, 3, 3), r.intersection((2, 2)));
+        assert_eq!(Region::new(0, 0, 4, 4), r.intersection((-1, -1, 5, 5)));
+        assert_eq!(Region::new(1, 2, 1, 3), r.intersection((1, 2, 1, 100)));
+        assert_eq!(Region::new(2, 1, 3, 1), r.intersection((2, 1, 100, 1)));
         Ok(())
     }
 
@@ -1038,7 +1037,7 @@ mod test {
         let mut rgb = Raster::<Rgba8p>::with_clear(3, 3);
         let gray = Raster::with_color(3, 3, Gray16::new(0x8000));
         let r = Raster::with_raster(&gray);
-        rgb.composite_raster((), &r, (0, 1, 3, 3), Src);
+        rgb.composite_raster((), &r, (0, 1), Src);
         let mut v = vec![Rgba8p::new(0x80, 0x80, 0x80, 0xFF); 6];
         v.extend_from_slice(&vec![Rgba8p::new(0, 0, 0, 0); 3]);
         assert_eq!(rgb.pixels(), &v[..]);

@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Added
+* impl `From<(i32, i32)>` for `Region`
+
 ## [0.13.1] - 2020-06-04
 ### Added
 * `Region::left()` and `::top()`
