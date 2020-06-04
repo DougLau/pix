@@ -20,14 +20,9 @@ Many image formats are supported:
   - `YCbCr` (used by JPEG)
   - `Matte` (*alpha* only)
 
-Compositing with blending operations is supported for *premultiplied*
-images with *linear* gamma.
-
 ### HWB Color Example
 ```rust
-use pix::hwb::SHwb8;
-use pix::rgb::SRgb8;
-use pix::Raster;
+use pix::{hwb::SHwb8, rgb::SRgb8, Raster};
 
 let mut r = Raster::with_clear(256, 256);
 for (y, row) in r.rows_mut(()).enumerate() {
@@ -43,6 +38,18 @@ let raster = Raster::<SRgb8>::with_raster(&r);
 ```
 
 ![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
+
+### Compositing Example
+
+Compositing is supported for *premultiplied* images with *linear* gamma.
+
+```rust
+use pix::{ops::SrcOver, rgb::Rgba8p, Raster};
+
+let mut r0 = Raster::with_clear(100, 100);
+let r1 = Raster::with_color(5, 5, Rgba8p::new(80, 0, 80, 200));
+r0.composite_raster((40, 40, 5, 5), &r1, (), SrcOver);
+```
 
 ## Documentation
 [https://docs.rs/pix](https://docs.rs/pix)
