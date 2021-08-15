@@ -47,6 +47,7 @@ const TOO_BIG: &str = "Raster too big";
 /// // A boxed slice can be turned back into Vec
 /// let v: Vec<u8> = slice.into();
 /// ```
+#[derive(Clone)]
 pub struct Raster<P: Pixel> {
     width: i32,
     height: i32,

@@ -1,6 +1,6 @@
 // chan.rs      Color channels
 //
-// Copyright (c) 2019-2020  Douglas P Lau
+// Copyright (c) 2019-2021  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Component channels
@@ -604,7 +604,7 @@ impl From<Ch32> for f32 {
 impl From<Ch32> for Ch8 {
     fn from(c: Ch32) -> Self {
         let value = c.0;
-        debug_assert!(value >= 0.0 && value <= 1.0);
+        debug_assert!((0.0..=1.0).contains(&value));
         // this cast is not UB since the value is guaranteed
         // to be between 0.0 and 1.0 (see bug #10184)
         Ch8::new((value * 255.0).round() as u8)
@@ -614,7 +614,7 @@ impl From<Ch32> for Ch8 {
 impl From<Ch32> for Ch16 {
     fn from(c: Ch32) -> Self {
         let value = c.0;
-        debug_assert!(value >= 0.0 && value <= 1.0);
+        debug_assert!((0.0..=1.0).contains(&value));
         // this cast is not UB since the value is guaranteed
         // to be between 0.0 and 1.0 (see bug #10184)
         Ch16::new((value * 65535.0).round() as u16)
@@ -629,6 +629,7 @@ impl From<Ch16> for Ch32 {
 
 impl Eq for Ch32 {}
 
+#[allow(clippy::derive_ord_xor_partial_ord)]
 impl Ord for Ch32 {
     fn cmp(&self, other: &Ch32) -> Ordering {
         self.partial_cmp(other).unwrap()
