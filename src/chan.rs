@@ -19,15 +19,22 @@ pub trait Alpha: Copy + Clone + Debug + Default + PartialEq + Sealed {
     fn decode<C: Channel>(c: C, a: C) -> C;
 }
 
-/// [Channel](trait.Channel.html)s are *straight*, not premultiplied with
-/// *alpha*.
+/// [Straight] mode [channel]s are not premultiplied with *alpha*.
+///
+/// This mode is sometimes called *unassociated* alpha.  To perform compositing,
+/// images must be converted to [premultiplied] mode.
+///
+/// [channel]: trait.Channel.html
+/// [straight]: https://en.wikipedia.org/wiki/Alpha_compositing#Straight_versus_premultiplied
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Straight;
 
-/// [Channel](trait.Channel.html)s are premultiplied, or associated, with
-/// *alpha*.
+/// [Premultiplied] mode [channel]s are associated with *alpha*.
 ///
 /// Premultiplied channels are required for compositing.
+///
+/// [channel]: trait.Channel.html
+/// [premultiplied]: https://en.wikipedia.org/wiki/Alpha_compositing#Straight_versus_premultiplied
 #[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub struct Premultiplied;
 
