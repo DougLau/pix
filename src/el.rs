@@ -1,6 +1,6 @@
 // el.rs        Pixel format.
 //
-// Copyright (c) 2018-2020  Douglas P Lau
+// Copyright (c) 2018-2022  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
@@ -327,8 +327,8 @@ where
         || TypeId::of::<S::Gamma>() != TypeId::of::<D::Gamma>()
     {
         let alpha = dst.alpha();
-        let mut channels = dst.channels_mut();
-        convert_alpha_gamma::<D, S>(&mut channels, alpha);
+        let channels = dst.channels_mut();
+        convert_alpha_gamma::<D, S>(channels, alpha);
     }
     dst
 }
