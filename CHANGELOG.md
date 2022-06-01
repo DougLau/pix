@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.13.2] - 2022-06-01
 ### Added
 * impl `From<(i32, i32)>` for `Region`
 
