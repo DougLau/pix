@@ -1,7 +1,7 @@
 // hsl.rs       HSL color model
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! [HSL] color model and types.
 //!
@@ -25,7 +25,7 @@ use std::ops::Range;
 /// [hsl]: https://en.wikipedia.org/wiki/HSL_and_HSV
 /// [lightness]: #method.lightness
 /// [saturation]: #method.saturation
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Hsl {}
 
 impl Hsl {

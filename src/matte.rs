@@ -1,6 +1,6 @@
 // matte.rs     Alpha matte color model.
 //
-// Copyright (c) 2019-2020  Douglas P Lau
+// Copyright (c) 2019-2022  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Matte color model and types.
@@ -15,7 +15,7 @@ use std::ops::Range;
 ///
 /// [alpha]: ../el/trait.Pixel.html#method.alpha
 /// [color model]: ../trait.ColorModel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Matte {}
 
 impl ColorModel for Matte {

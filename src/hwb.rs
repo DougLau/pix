@@ -1,6 +1,6 @@
 // hwb.rs       HWB color model
 //
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! [HWB] color model and types.
 //!
@@ -24,7 +24,7 @@ use std::ops::Range;
 /// [hue]: #method.hue
 /// [hwb]: https://en.wikipedia.org/wiki/HWB_color_model
 /// [whiteness]: #method.whiteness
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Hwb {}
 
 impl Hwb {

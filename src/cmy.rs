@@ -1,6 +1,6 @@
 // cmy.rs       CMY color model.
 //
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! [CMY] color model and types.
 //!
@@ -22,7 +22,7 @@ use std::ops::Range;
 /// [cyan]: #method.cyan
 /// [magenta]: #method.magenta
 /// [yellow]: #method.yellow
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Cmy {}
 
 impl Cmy {

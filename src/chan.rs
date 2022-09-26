@@ -1,6 +1,6 @@
 // chan.rs      Color channels
 //
-// Copyright (c) 2019-2021  Douglas P Lau
+// Copyright (c) 2019-2022  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Component channels
@@ -27,7 +27,7 @@ pub trait Alpha: Copy + Clone + Debug + Default + PartialEq + Sealed {
 /// [channel]: trait.Channel.html
 /// [Premultiplied]: struct.Premultiplied.html
 /// [straight]: https://en.wikipedia.org/wiki/Alpha_compositing#Straight_versus_premultiplied
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Straight;
 
 /// [Premultiplied] mode [channel]s are associated with *alpha*.
@@ -36,7 +36,7 @@ pub struct Straight;
 ///
 /// [channel]: trait.Channel.html
 /// [premultiplied]: https://en.wikipedia.org/wiki/Alpha_compositing#Straight_versus_premultiplied
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Premultiplied;
 
 impl Alpha for Straight {
@@ -77,14 +77,14 @@ pub trait Gamma: Copy + Clone + Debug + Default + PartialEq + Sealed {
 /// [gamma](trait.Gamma.html).
 ///
 /// This mode should be used when editing `Raster`s.
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Linear;
 
 /// [Channel](trait.Channel.html)s are corrected using the sRGB
 /// [gamma](trait.Gamma.html) formula.
 ///
 /// This mode is for displaying and storing `Raster`s.
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 pub struct Srgb;
 
 impl Gamma for Linear {

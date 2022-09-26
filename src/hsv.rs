@@ -1,7 +1,7 @@
 // hsv.rs       HSV color model
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! [HSV] color model and types.
 //!
@@ -25,7 +25,7 @@ use std::ops::Range;
 /// [hsv]: https://en.wikipedia.org/wiki/HSL_and_HSV
 /// [saturation]: #method.saturation
 /// [value]: #method.value
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Hsv {}
 
 impl Hsv {

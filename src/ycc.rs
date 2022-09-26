@@ -1,7 +1,7 @@
 // ycc.rs       YCbCr color model.
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! [YCbCr] color model and types.
 //!
@@ -21,7 +21,7 @@ use std::ops::Range;
 /// [color model]: ../trait.ColorModel.html
 /// [y]: #method.y
 /// [ycbcr]: https://en.wikipedia.org/wiki/YCbCr
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct YCbCr {}
 
 impl YCbCr {

@@ -370,7 +370,7 @@ where
 /// [channel]: ../chan/trait.Channel.html
 /// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Pix1<C, M, A, G>
 where
@@ -455,7 +455,7 @@ where
 /// [channel]: ../chan/trait.Channel.html
 /// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Pix2<C, M, A, G>
 where
@@ -544,7 +544,7 @@ where
 /// [channel]: ../chan/trait.Channel.html
 /// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Pix3<C, M, A, G>
 where
@@ -636,7 +636,7 @@ where
 /// [channel]: ../chan/trait.Channel.html
 /// [color model]: ../trait.ColorModel.html
 /// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 #[repr(C)]
 pub struct Pix4<C, M, A, G>
 where

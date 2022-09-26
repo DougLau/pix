@@ -1,6 +1,6 @@
 // rgb.rs       RGB color model.
 //
-// Copyright (c) 2018-2020  Douglas P Lau
+// Copyright (c) 2018-2022  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! [RGB] color model and types.
@@ -21,7 +21,7 @@ use std::ops::Range;
 /// [green]: #method.green
 /// [red]: #method.red
 /// [rgb]: https://en.wikipedia.org/wiki/RGB_color_model
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Rgb {}
 
 impl Rgb {

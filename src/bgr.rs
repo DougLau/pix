@@ -1,6 +1,6 @@
 // bgr.rs       BGR color model.
 //
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2022  Douglas P Lau
 //
 //! BGR color model and types.
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
@@ -18,7 +18,7 @@ use std::ops::Range;
 /// [green]: #method.green
 /// [red]: #method.red
 /// [rgb]: ../rgb/struct.Rgb.html
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Bgr {}
 
 impl Bgr {
