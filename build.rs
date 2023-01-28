@@ -1,6 +1,6 @@
 // build.rs     Create look-up tables
 //
-// Copyright (c) 2020  Douglas P Lau
+// Copyright (c) 2020-2023  Douglas P Lau
 //
 use std::env;
 use std::fs::File;
@@ -21,7 +21,7 @@ fn gamma_lut() {
         }
         let s = i as f32 / 255.0;
         let v = (srgb_gamma_encode(s) * 255.0).round() as u8;
-        write!(w, "0x{:02X?}, ", v).unwrap();
+        write!(w, "0x{v:02X?}, ").unwrap();
         if i % 8 == 7 {
             writeln!(w).unwrap();
         }
@@ -34,7 +34,7 @@ fn gamma_lut() {
         }
         let s = i as f32 / 255.0;
         let v = (srgb_gamma_decode(s) * 255.0).round() as u8;
-        write!(w, "0x{:02X?}, ", v).unwrap();
+        write!(w, "0x{v:02X?}, ").unwrap();
         if i % 8 == 7 {
             writeln!(w).unwrap();
         }
