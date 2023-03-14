@@ -1,6 +1,6 @@
 // lib.rs      Pix crate.
 //
-// Copyright (c) 2019-2020  Douglas P Lau
+// Copyright (c) 2019-2023  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Library for image conversion and compositing.
@@ -64,7 +64,6 @@
 //! ![Colors](https://raw.githubusercontent.com/DougLau/pix/master/res/colors.png)
 //!
 #![warn(missing_docs)]
-#![warn(missing_doc_code_examples)]
 
 pub mod bgr;
 pub mod chan;
