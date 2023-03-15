@@ -19,7 +19,7 @@ Many image formats are supported:
   - `HWB` (*hue*, *whiteness*, *blackness*)
   - `YCbCr` (used by JPEG)
   - `Matte` (*alpha* only)
-  - `OkLab` (future)
+  - `OkLab` (*lightness*, *green/red*, *blue/yellow*)
 
 ### HWB Color Example
 ```rust

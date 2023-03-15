@@ -22,6 +22,7 @@
 //!   - [`HWB`] (*hue*, *whiteness*, *blackness*)
 //!   - [`YCbCr`] (used by JPEG)
 //!   - [`Matte`] (*alpha* only)
+//!   - [`Oklab`] (*lightness*, *green/red*, *blue/yellow*)
 //!
 //! Compositing with blending [operations] is supported for *premultiplied*
 //! images with *linear* gamma.
@@ -37,6 +38,7 @@
 //! [`hsv`]: hsv/index.html
 //! [`hwb`]: hwb/index.html
 //! [`matte`]: matte/index.html
+//! [`oklab`]: oklab/index.html
 //! [operations]: ops/index.html
 //! [raster]: struct.Raster.html
 //! [`rgb`]: rgb/index.html
@@ -76,6 +78,7 @@ mod hue;
 pub mod hwb;
 pub mod matte;
 mod model;
+pub mod oklab;
 pub mod ops;
 mod palette;
 mod private;

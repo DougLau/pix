@@ -1,4 +1,6 @@
 ## [Unreleased]
+### Added
+* Oklab color model
 
 ## [0.13.2] - 2022-06-01
 ### Added
