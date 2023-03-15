@@ -23,6 +23,7 @@
 //!   - [`YCbCr`] (used by JPEG)
 //!   - [`Matte`] (*alpha* only)
 //!   - [`Oklab`] (*lightness*, *green/red*, *blue/yellow*)
+//!   - [`XYZ`] (CIE 1931 XYZ)
 //!
 //! Compositing with blending [operations] is supported for *premultiplied*
 //! images with *linear* gamma.
@@ -43,6 +44,7 @@
 //! [raster]: struct.Raster.html
 //! [`rgb`]: rgb/index.html
 //! [`ycbcr`]: ycc/index.html
+//! [`xyz`]: xyz/index.html
 //!
 //! ### HWB Color Example
 //! ```
@@ -84,6 +86,7 @@ mod palette;
 mod private;
 mod raster;
 pub mod rgb;
+pub mod xyz;
 pub mod ycc;
 
 pub use crate::model::ColorModel;
