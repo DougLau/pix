@@ -44,6 +44,7 @@ fn write_info_header(buf: &mut Vec<u8>, raster: &Raster<SBgr8>) {
 }
 
 fn write_pixel_data(buf: &mut Vec<u8>, raster: &Raster<SBgr8>) {
+    let padding = (4 - 3 * raster.width() % 4) % 4;
     let mut rows: Vec<_> = raster.rows(()).collect();
     rows.reverse();
     for row in rows {
@@ -51,6 +52,9 @@ fn write_pixel_data(buf: &mut Vec<u8>, raster: &Raster<SBgr8>) {
             buf.push(u8::from(Bgr::blue(*p)));
             buf.push(u8::from(Bgr::green(*p)));
             buf.push(u8::from(Bgr::red(*p)));
+        }
+        for _ in 0..padding {
+            buf.push(0);
         }
     }
 }
