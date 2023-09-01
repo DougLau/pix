@@ -2,6 +2,7 @@
 ### Added
 * Oklab color model
 * XYZ color model
+* `Palette::make_indexed`
 
 ## [0.13.2] - 2022-06-01
 ### Added
