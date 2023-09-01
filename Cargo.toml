@@ -1,6 +1,6 @@
 [package]
 name = "pix"
-version = "0.13.2"
+version = "0.13.3"
 description = "Pixel / raster image library"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/pix"

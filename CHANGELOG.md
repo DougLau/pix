@@ -1,4 +1,6 @@
 ## [Unreleased]
+
+## [0.13.3] - 2023-09-01
 ### Added
 * Oklab color model
 * XYZ color model
