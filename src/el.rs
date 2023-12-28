@@ -1,6 +1,6 @@
 // el.rs        Pixel format.
 //
-// Copyright (c) 2018-2022  Douglas P Lau
+// Copyright (c) 2018-2023  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
@@ -80,7 +80,7 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
 
     /// Get the first channel.
     fn one(self) -> Self::Chan {
-        *self.channels().get(0).unwrap_or(&Self::Chan::MAX)
+        *self.channels().first().unwrap_or(&Self::Chan::MAX)
     }
 
     /// Get a mutable reference to the first channel
