@@ -1,6 +1,6 @@
 // oklab.rs        Oklab color model.
 //
-// Copyright (c) 2023  Douglas P Lau
+// Copyright (c) 2023-2024  Douglas P Lau
 //
 //! [Oklab] color model and types.
 //!
@@ -36,7 +36,7 @@ impl Oklab {
     /// let p = Oklab32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Oklab::l(p), Ch32::new(0.25));
     /// ```
-    pub fn l<P: Pixel>(p: P) -> P::Chan
+    pub fn l<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -54,7 +54,7 @@ impl Oklab {
     /// *Oklab::l_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(Oklab::l(p), Ch32::new(0.75));
     /// ```
-    pub fn l_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn l_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -71,7 +71,7 @@ impl Oklab {
     /// let p = Oklab16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Oklab::a(p), Ch16::new(0x1234));
     /// ```
-    pub fn a<P: Pixel>(p: P) -> P::Chan
+    pub fn a<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -89,7 +89,7 @@ impl Oklab {
     /// *Oklab::a_mut(&mut p) = 0x4321.into();
     /// assert_eq!(Oklab::a(p), Ch16::new(0x4321));
     /// ```
-    pub fn a_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn a_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -106,7 +106,7 @@ impl Oklab {
     /// let p = Oklab8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Oklab::b(p), Ch8::new(0xA0));
     /// ```
-    pub fn b<P: Pixel>(p: P) -> P::Chan
+    pub fn b<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -124,7 +124,7 @@ impl Oklab {
     /// *Oklab::b_mut(&mut p) = 0x55.into();
     /// assert_eq!(Oklab::b(p), Ch8::new(0x55));
     /// ```
-    pub fn b_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn b_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

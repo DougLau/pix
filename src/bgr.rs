@@ -1,6 +1,6 @@
 // bgr.rs       BGR color model.
 //
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! BGR color model and types.
 use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
@@ -32,7 +32,7 @@ impl Bgr {
     /// let p = Bgr8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Bgr::blue(p), Ch8::new(0x93));
     /// ```
-    pub fn blue<P: Pixel>(p: P) -> P::Chan
+    pub fn blue<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -50,7 +50,7 @@ impl Bgr {
     /// *Bgr::blue_mut(&mut p) = 0x55.into();
     /// assert_eq!(Bgr::blue(p), Ch8::new(0x55));
     /// ```
-    pub fn blue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn blue_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -67,7 +67,7 @@ impl Bgr {
     /// let p = Bgr16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Bgr::green(p), Ch16::new(0x1234));
     /// ```
-    pub fn green<P: Pixel>(p: P) -> P::Chan
+    pub fn green<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -85,7 +85,7 @@ impl Bgr {
     /// *Bgr::green_mut(&mut p) = 0x4321.into();
     /// assert_eq!(Bgr::green(p), Ch16::new(0x4321));
     /// ```
-    pub fn green_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn green_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -102,7 +102,7 @@ impl Bgr {
     /// let p = Bgr32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Bgr::red(p), Ch32::new(1.0));
     /// ```
-    pub fn red<P: Pixel>(p: P) -> P::Chan
+    pub fn red<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -120,7 +120,7 @@ impl Bgr {
     /// *Bgr::red_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(Bgr::red(p), Ch32::new(0.75));
     /// ```
-    pub fn red_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn red_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

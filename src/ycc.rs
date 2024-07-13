@@ -1,7 +1,7 @@
 // ycc.rs       YCbCr color model.
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! [YCbCr] color model and types.
 //!
@@ -37,7 +37,7 @@ impl YCbCr {
     /// let p = YCbCr32::new(0.25, 0.5, 1.0);
     /// assert_eq!(YCbCr::y(p), Ch32::new(0.25));
     /// ```
-    pub fn y<P: Pixel>(p: P) -> P::Chan
+    pub fn y<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -55,7 +55,7 @@ impl YCbCr {
     /// *YCbCr::y_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(YCbCr::y(p), Ch32::new(0.75));
     /// ```
-    pub fn y_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn y_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -74,7 +74,7 @@ impl YCbCr {
     /// let p = YCbCr16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(YCbCr::cb(p), Ch16::new(0x1234));
     /// ```
-    pub fn cb<P: Pixel>(p: P) -> P::Chan
+    pub fn cb<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -92,7 +92,7 @@ impl YCbCr {
     /// *YCbCr::cb_mut(&mut p) = 0x4321.into();
     /// assert_eq!(YCbCr::cb(p), Ch16::new(0x4321));
     /// ```
-    pub fn cb_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn cb_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -111,7 +111,7 @@ impl YCbCr {
     /// let p = YCbCr8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(YCbCr::cr(p), Ch8::new(0xA0));
     /// ```
-    pub fn cr<P: Pixel>(p: P) -> P::Chan
+    pub fn cr<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -129,7 +129,7 @@ impl YCbCr {
     /// *YCbCr::cr_mut(&mut p) = 0x55.into();
     /// assert_eq!(YCbCr::cr(p), Ch8::new(0x55));
     /// ```
-    pub fn cr_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn cr_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

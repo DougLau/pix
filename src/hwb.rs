@@ -1,6 +1,6 @@
 // hwb.rs       HWB color model
 //
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! [HWB] color model and types.
 //!
@@ -71,7 +71,7 @@ impl Hwb {
     /// *h = h.wrapping_add(0.5.into());
     /// assert_eq!(Hwb::hue(p), Ch32::new(0.25));
     /// ```
-    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn hue_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -90,7 +90,7 @@ impl Hwb {
     /// let p = Hwb16::new(0x2000, 0x2345, 0x5432);
     /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x2345));
     /// ```
-    pub fn whiteness<P: Pixel>(p: P) -> P::Chan
+    pub fn whiteness<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -108,7 +108,7 @@ impl Hwb {
     /// *Hwb::whiteness_mut(&mut p) = Ch16::new(0x4321);
     /// assert_eq!(Hwb::whiteness(p), Ch16::new(0x4321));
     /// ```
-    pub fn whiteness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn whiteness_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -127,7 +127,7 @@ impl Hwb {
     /// let p = Hwb8::new(0x43, 0x22, 0x19);
     /// assert_eq!(Hwb::blackness(p), Ch8::new(0x19));
     /// ```
-    pub fn blackness<P: Pixel>(p: P) -> P::Chan
+    pub fn blackness<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -145,7 +145,7 @@ impl Hwb {
     /// *Hwb::blackness_mut(&mut p) = Ch8::new(0xBB);
     /// assert_eq!(Hwb::blackness(p), Ch8::new(0xBB));
     /// ```
-    pub fn blackness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn blackness_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -153,7 +153,7 @@ impl Hwb {
     }
 
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
-    fn whiteness_blackness<P: Pixel>(p: P) -> (P::Chan, P::Chan)
+    fn whiteness_blackness<P>(p: P) -> (P::Chan, P::Chan)
     where
         P: Pixel<Model = Self>,
     {

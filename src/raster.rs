@@ -1,6 +1,6 @@
 // raster.rs    Raster images.
 //
-// Copyright (c) 2017-2020  Douglas P Lau
+// Copyright (c) 2017-2024  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::chan::{Ch16, Ch8, Linear, Premultiplied};
@@ -754,14 +754,14 @@ impl From<(i32, i32, u32, u32)> for Region {
 
 impl From<(i32, i32)> for Region {
     fn from(r: (i32, i32)) -> Self {
-        const MAX: u32 = std::i32::MAX as u32;
+        const MAX: u32 = i32::MAX as u32;
         Region::new(r.0, r.1, MAX, MAX)
     }
 }
 
 impl From<()> for Region {
     fn from(_: ()) -> Self {
-        const MAX: u32 = std::i32::MAX as u32;
+        const MAX: u32 = i32::MAX as u32;
         Region::new(0, 0, MAX, MAX)
     }
 }

@@ -1,7 +1,7 @@
 // hsv.rs       HSV color model
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! [HSV] color model and types.
 //!
@@ -53,7 +53,7 @@ impl Hsv {
     /// ```
     /// [Channel::MIN]: ../chan/trait.Channel.html#associatedconstant.MIN
     /// [Channel::MAX]: ../chan/trait.Channel.html#associatedconstant.MAX
-    pub fn hue<P: Pixel>(p: P) -> P::Chan
+    pub fn hue<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -72,7 +72,7 @@ impl Hsv {
     /// *h = h.wrapping_sub(Ch32::new(0.4));
     /// assert_eq!(Hsv::hue(p), Ch32::new(0.8));
     /// ```
-    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn hue_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -94,7 +94,7 @@ impl Hsv {
     /// assert_eq!(Hsv::saturation(p), Ch16::new(0x1234));
     /// ```
     /// [hsl]: struct.Hsl.html
-    pub fn saturation<P: Pixel>(p: P) -> P::Chan
+    pub fn saturation<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -112,7 +112,7 @@ impl Hsv {
     /// *Hsv::saturation_mut(&mut p) = Ch16::new(0x4321);
     /// assert_eq!(Hsv::saturation(p), Ch16::new(0x4321));
     /// ```
-    pub fn saturation_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn saturation_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -132,7 +132,7 @@ impl Hsv {
     /// let p = Hsv8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsv::value(p), Ch8::new(0xA0));
     /// ```
-    pub fn value<P: Pixel>(p: P) -> P::Chan
+    pub fn value<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -150,7 +150,7 @@ impl Hsv {
     /// *Hsv::value_mut(&mut p) = Ch8::new(0xBB);
     /// assert_eq!(Hsv::value(p), Ch8::new(0xBB));
     /// ```
-    pub fn value_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn value_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

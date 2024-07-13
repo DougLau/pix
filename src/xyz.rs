@@ -1,6 +1,6 @@
 // xyz.rs        XYZ color model.
 //
-// Copyright (c) 2023  Douglas P Lau
+// Copyright (c) 2023-2024  Douglas P Lau
 //
 //! CIE 1931 [XYZ] color model and types.
 //!
@@ -36,7 +36,7 @@ impl Xyz {
     /// let p = Xyz32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Xyz::x(p), Ch32::new(0.25));
     /// ```
-    pub fn x<P: Pixel>(p: P) -> P::Chan
+    pub fn x<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -54,7 +54,7 @@ impl Xyz {
     /// *Xyz::x_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(Xyz::x(p), Ch32::new(0.75));
     /// ```
-    pub fn x_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn x_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -71,7 +71,7 @@ impl Xyz {
     /// let p = Xyz16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Xyz::y(p), Ch16::new(0x1234));
     /// ```
-    pub fn y<P: Pixel>(p: P) -> P::Chan
+    pub fn y<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -89,7 +89,7 @@ impl Xyz {
     /// *Xyz::y_mut(&mut p) = 0x4321.into();
     /// assert_eq!(Xyz::y(p), Ch16::new(0x4321));
     /// ```
-    pub fn y_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn y_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -106,7 +106,7 @@ impl Xyz {
     /// let p = Xyz8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Xyz::z(p), Ch8::new(0xA0));
     /// ```
-    pub fn z<P: Pixel>(p: P) -> P::Chan
+    pub fn z<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -124,7 +124,7 @@ impl Xyz {
     /// *Xyz::z_mut(&mut p) = 0x55.into();
     /// assert_eq!(Xyz::z(p), Ch8::new(0x55));
     /// ```
-    pub fn z_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn z_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

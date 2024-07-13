@@ -1,6 +1,6 @@
 // gray.rs      Grayscale color model.
 //
-// Copyright (c) 2018-2022  Douglas P Lau
+// Copyright (c) 2018-2024  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! [`Gray`] color model and types.
@@ -56,7 +56,7 @@ impl Gray {
     /// *Gray::value_mut(&mut p) = 0x50.into();
     /// assert_eq!(Gray::value(p), Ch8::new(0x50));
     /// ```
-    pub fn value_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn value_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

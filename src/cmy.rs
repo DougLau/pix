@@ -1,6 +1,6 @@
 // cmy.rs       CMY color model.
 //
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! [CMY] color model and types.
 //!
@@ -36,7 +36,7 @@ impl Cmy {
     /// let p = Cmy8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Cmy::cyan(p), Ch8::new(0x93));
     /// ```
-    pub fn cyan<P: Pixel>(p: P) -> P::Chan
+    pub fn cyan<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -54,7 +54,7 @@ impl Cmy {
     /// *Cmy::cyan_mut(&mut p) = 0x55.into();
     /// assert_eq!(Cmy::cyan(p), Ch8::new(0x55));
     /// ```
-    pub fn cyan_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn cyan_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -71,7 +71,7 @@ impl Cmy {
     /// let p = Cmy16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Cmy::magenta(p), Ch16::new(0x1234));
     /// ```
-    pub fn magenta<P: Pixel>(p: P) -> P::Chan
+    pub fn magenta<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -89,7 +89,7 @@ impl Cmy {
     /// *Cmy::magenta_mut(&mut p) = 0x4321.into();
     /// assert_eq!(Cmy::magenta(p), Ch16::new(0x4321));
     /// ```
-    pub fn magenta_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn magenta_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -106,7 +106,7 @@ impl Cmy {
     /// let p = Cmy32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Cmy::yellow(p), Ch32::new(1.0));
     /// ```
-    pub fn yellow<P: Pixel>(p: P) -> P::Chan
+    pub fn yellow<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -124,7 +124,7 @@ impl Cmy {
     /// *Cmy::yellow_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(Cmy::yellow(p), Ch32::new(0.75));
     /// ```
-    pub fn yellow_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn yellow_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {

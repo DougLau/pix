@@ -1,6 +1,6 @@
 // rgb.rs       RGB color model.
 //
-// Copyright (c) 2018-2022  Douglas P Lau
+// Copyright (c) 2018-2024  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! [RGB] color model and types.
@@ -35,7 +35,7 @@ impl Rgb {
     /// let p = Rgb32::new(0.25, 0.5, 1.0);
     /// assert_eq!(Rgb::red(p), Ch32::new(0.25));
     /// ```
-    pub fn red<P: Pixel>(p: P) -> P::Chan
+    pub fn red<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -53,7 +53,7 @@ impl Rgb {
     /// *Rgb::red_mut(&mut p) = Ch32::new(0.75);
     /// assert_eq!(Rgb::red(p), Ch32::new(0.75));
     /// ```
-    pub fn red_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn red_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -70,7 +70,7 @@ impl Rgb {
     /// let p = Rgb16::new(0x2000, 0x1234, 0x8000);
     /// assert_eq!(Rgb::green(p), Ch16::new(0x1234));
     /// ```
-    pub fn green<P: Pixel>(p: P) -> P::Chan
+    pub fn green<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -88,7 +88,7 @@ impl Rgb {
     /// *Rgb::green_mut(&mut p) = 0x4321.into();
     /// assert_eq!(Rgb::green(p), Ch16::new(0x4321));
     /// ```
-    pub fn green_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn green_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -105,7 +105,7 @@ impl Rgb {
     /// let p = Rgb8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Rgb::blue(p), Ch8::new(0xA0));
     /// ```
-    pub fn blue<P: Pixel>(p: P) -> P::Chan
+    pub fn blue<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -123,7 +123,7 @@ impl Rgb {
     /// *Rgb::blue_mut(&mut p) = 0x55.into();
     /// assert_eq!(Rgb::blue(p), Ch8::new(0x55));
     /// ```
-    pub fn blue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn blue_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -131,7 +131,7 @@ impl Rgb {
     }
 
     /// Get channel-wise difference
-    pub fn difference<P: Pixel>(p: P, rhs: P) -> P
+    pub fn difference<P>(p: P, rhs: P) -> P
     where
         P: Pixel<Model = Self>,
     {
@@ -159,7 +159,7 @@ impl Rgb {
     }
 
     /// Check if all `Channel`s are within threshold
-    pub fn within_threshold<P: Pixel>(p: P, rhs: P) -> bool
+    pub fn within_threshold<P>(p: P, rhs: P) -> bool
     where
         P: Pixel<Model = Self>,
     {

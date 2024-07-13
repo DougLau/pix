@@ -1,7 +1,7 @@
 // hsl.rs       HSL color model
 //
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
-// Copyright (c) 2020-2022  Douglas P Lau
+// Copyright (c) 2020-2024  Douglas P Lau
 //
 //! [HSL] color model and types.
 //!
@@ -53,7 +53,7 @@ impl Hsl {
     /// ```
     /// [Channel::MIN]: ../chan/trait.Channel.html#associatedconstant.MIN
     /// [Channel::MAX]: ../chan/trait.Channel.html#associatedconstant.MAX
-    pub fn hue<P: Pixel>(p: P) -> P::Chan
+    pub fn hue<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -72,7 +72,7 @@ impl Hsl {
     /// *h = h.wrapping_sub(Ch32::new(0.4));
     /// assert_eq!(Hsl::hue(p), Ch32::new(0.8));
     /// ```
-    pub fn hue_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn hue_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -94,7 +94,7 @@ impl Hsl {
     /// assert_eq!(Hsl::saturation(p), Ch16::new(0x1234));
     /// ```
     /// [hsv]: struct.Hsv.html
-    pub fn saturation<P: Pixel>(p: P) -> P::Chan
+    pub fn saturation<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -112,7 +112,7 @@ impl Hsl {
     /// *Hsl::saturation_mut(&mut p) = Ch16::new(0x4321);
     /// assert_eq!(Hsl::saturation(p), Ch16::new(0x4321));
     /// ```
-    pub fn saturation_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn saturation_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -132,7 +132,7 @@ impl Hsl {
     /// let p = Hsl8::new(0x93, 0x80, 0xA0);
     /// assert_eq!(Hsl::lightness(p), Ch8::new(0xA0));
     /// ```
-    pub fn lightness<P: Pixel>(p: P) -> P::Chan
+    pub fn lightness<P>(p: P) -> P::Chan
     where
         P: Pixel<Model = Self>,
     {
@@ -150,7 +150,7 @@ impl Hsl {
     /// *Hsl::lightness_mut(&mut p) = Ch8::new(0xBB);
     /// assert_eq!(Hsl::lightness(p), Ch8::new(0xBB));
     /// ```
-    pub fn lightness_mut<P: Pixel>(p: &mut P) -> &mut P::Chan
+    pub fn lightness_mut<P>(p: &mut P) -> &mut P::Chan
     where
         P: Pixel<Model = Self>,
     {
