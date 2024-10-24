@@ -1,6 +1,6 @@
 [package]
 name = "pix"
-version = "0.13.3"
+version = "0.13.4"
 description = "Pixel / raster image library"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/pix"
@@ -15,7 +15,7 @@ include = [
 ]
 
 [dev-dependencies]
-criterion = "0.4"
+criterion = "0.5"
 
 [[bench]]
 name = "src_over"
