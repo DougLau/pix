@@ -177,6 +177,7 @@ pub trait Channel:
 /// assert_eq!(c, Ch32::MAX);
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(transparent)]
 pub struct Ch8(u8);
 
 /// 16-bit color [Channel](trait.Channel.html).
@@ -197,6 +198,7 @@ pub struct Ch8(u8);
 /// assert_eq!(c, Ch32::MAX);
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(transparent)]
 pub struct Ch16(u16);
 
 /// 32-bit color [Channel](trait.Channel.html).
@@ -217,6 +219,7 @@ pub struct Ch16(u16);
 /// assert_eq!(c, Ch16::MAX);
 /// ```
 #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
+#[repr(transparent)]
 pub struct Ch32(f32);
 
 impl Ch8 {
