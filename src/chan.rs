@@ -1,6 +1,6 @@
 // chan.rs      Color channels
 //
-// Copyright (c) 2019-2022  Douglas P Lau
+// Copyright (c) 2019-2025  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Component channels
@@ -430,7 +430,7 @@ fn scale_i64(t: u16, v: i64) -> i64 {
 impl From<Ch8> for Ch16 {
     fn from(c: Ch8) -> Self {
         let value = u16::from(c.0);
-        Ch16(value << 8 | value)
+        Ch16((value << 8) | value)
     }
 }
 
