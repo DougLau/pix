@@ -1,6 +1,6 @@
 [package]
 name = "pix"
-version = "0.13.4"
+version = "0.14.0"
 description = "Pixel / raster image library"
 license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/pix"
@@ -8,7 +8,7 @@ homepage = "https://github.com/DougLau/pix"
 repository = "https://github.com/DougLau/pix"
 readme = "README.md"
 keywords = ["pixel", "image", "rgb", "color"]
-edition = "2021"
+edition = "2024"
 include = [
     "src/**/*", "Cargo.*", "LICENSE-*", "README.md", "CHANGELOG.md",
     "build.rs", "benches/**/*",
