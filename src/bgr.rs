@@ -3,9 +3,9 @@
 // Copyright (c) 2020-2024  Douglas P Lau
 //
 //! BGR color model and types.
-use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{Ch8, Ch16, Ch32, Linear, Premultiplied, Srgb, Straight};
+use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use std::ops::Range;
 
 /// BGR arrangement of [RGB] [color model].

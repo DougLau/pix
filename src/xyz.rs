@@ -7,9 +7,9 @@
 //! [XYZ]: https://en.wikipedia.org/wiki/CIE_1931_color_space#Definition_of_the_CIE_XYZ_color_space
 #![allow(clippy::excessive_precision)]
 
-use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Straight};
+use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use std::ops::Range;
 
 /// [Xyz] [color model] with D65 white point.

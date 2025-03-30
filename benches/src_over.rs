@@ -2,13 +2,13 @@
 extern crate criterion;
 
 use criterion::Criterion;
+use pix::Raster;
 use pix::chan::{Linear, Premultiplied};
 use pix::el::Pixel;
 use pix::gray::Graya8p;
 use pix::matte::Matte8;
 use pix::ops::SrcOver;
 use pix::rgb::Rgba8p;
-use pix::Raster;
 
 fn matte_over_gray(c: &mut Criterion, sz: u32) {
     let s = format!("matte_over_gray_{}", sz);

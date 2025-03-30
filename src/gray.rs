@@ -6,11 +6,11 @@
 //! [`Gray`] color model and types.
 //!
 //! [`gray`]: https://en.wikipedia.org/wiki/Grayscale
+use crate::ColorModel;
 use crate::chan::{
-    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+    Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Srgb, Straight,
 };
 use crate::el::{Pix1, Pix2, PixRgba, Pixel};
-use crate::ColorModel;
 use std::ops::Range;
 
 /// Gray [color model].

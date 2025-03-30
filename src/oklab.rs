@@ -7,9 +7,9 @@
 //! [OkLab]: https://bottosson.github.io/posts/oklab/
 #![allow(clippy::excessive_precision)]
 
-use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Straight};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Straight};
+use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use std::ops::Range;
 
 /// [Oklab] [color model]

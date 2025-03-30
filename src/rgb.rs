@@ -6,9 +6,9 @@
 //! [RGB] color model and types.
 //!
 //! [rgb]: https://en.wikipedia.org/wiki/RGB_color_model
-use crate::chan::{Ch16, Ch32, Ch8, Linear, Premultiplied, Srgb, Straight};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{Ch8, Ch16, Ch32, Linear, Premultiplied, Srgb, Straight};
+use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use std::ops::Range;
 
 /// [RGB] additive [color model].

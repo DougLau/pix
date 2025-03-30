@@ -4,12 +4,12 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
+use crate::ColorModel;
 use crate::chan::{Alpha, Channel, Gamma, Linear, Premultiplied};
 use crate::matte::Matte;
 use crate::ops::Blend;
 use crate::private::Sealed;
 use crate::rgb::Rgb;
-use crate::ColorModel;
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -363,6 +363,120 @@ where
     let rgba = S::Model::into_rgba::<S>(src);
     let rgba = convert_same_model::<PixRgba<D>, PixRgba<S>>(rgba);
     D::Model::from_rgba::<D>(rgba)
+}
+
+/// Pixel [channel], [color model], [alpha] and [gamma] mode.
+///
+/// A pixel can be converted to another format using the [convert] method.
+///
+/// [alpha]: ../chan/trait.Alpha.html
+/// [channel]: ../chan/trait.Channel.html
+/// [color model]: ../trait.ColorModel.html
+/// [convert]: #method.convert
+/// [gamma]: ../chan/trait.Gamma.html
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(C)]
+pub struct Pix<const N: usize, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    channels: [C; N],
+    _model: PhantomData<M>,
+    _alpha: PhantomData<A>,
+    _gamma: PhantomData<G>,
+}
+
+impl<const N: usize, C, M, A, G> Default for Pix<N, C, M, A, G>
+where
+    C: Channel + Default,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    fn default() -> Self {
+        Self::new([C::default(); N])
+    }
+}
+
+impl<const N: usize, C, M, A, G> Pix<N, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a new pixel from an array of [channels].
+    ///
+    /// [channels]: Channel
+    pub const fn new(channels: [C; N]) -> Self {
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+
+    /// Get a channel.
+    pub const fn channel<const CH: usize>(&self) -> C {
+        self.channels[CH]
+    }
+
+    /// Get a mutable reference to a channel.
+    pub const fn channel_mut<const CH: usize>(&mut self) -> &mut C {
+        &mut self.channels[CH]
+    }
+}
+
+impl<const N: usize, C, M, A, G> Pixel for Pix<N, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    type Chan = C;
+    type Model = M;
+    type Alpha = A;
+    type Gamma = G;
+
+    fn from_channels(ch: &[C]) -> Self {
+        let mut channels: [C; N] = [Default::default(); N];
+
+        for (i, chan) in channels.iter_mut().enumerate() {
+            *chan = ch[i];
+        }
+
+        Self::new(channels)
+    }
+
+    fn from_bit_depth<P>(p: P) -> Self
+    where
+        P: Pixel,
+        Self::Chan: From<P::Chan>,
+    {
+        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
+
+        let mut channels: [C; N] = [Default::default(); N];
+        let ch = Self::Chan::from(p.one());
+
+        for chan in channels.iter_mut() {
+            *chan = ch;
+        }
+
+        Self::new(channels)
+    }
+
+    fn channels(&self) -> &[Self::Chan] {
+        &self.channels
+    }
+
+    fn channels_mut(&mut self) -> &mut [Self::Chan] {
+        &mut self.channels
+    }
 }
 
 /// [Pixel] with one [channel] in its [color model].

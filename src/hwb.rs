@@ -5,12 +5,12 @@
 //! [HWB] color model and types.
 //!
 //! [hwb]: https://en.wikipedia.org/wiki/HWB_color_model
+use crate::ColorModel;
 use crate::chan::{
-    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
+    Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Srgb, Straight,
 };
 use crate::el::{Pix3, Pix4, PixRgba, Pixel};
-use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
-use crate::ColorModel;
+use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
 use std::ops::Range;
 
 /// [HWB] [color model].

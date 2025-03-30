@@ -4,9 +4,9 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Matte color model and types.
-use crate::chan::{Ch16, Ch32, Ch8, Channel, Linear, Premultiplied};
-use crate::el::{Pix1, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{Ch8, Ch16, Ch32, Channel, Linear, Premultiplied};
+use crate::el::{Pix1, PixRgba, Pixel};
 use std::ops::Range;
 
 /// Matte [color model].

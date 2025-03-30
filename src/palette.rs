@@ -165,8 +165,8 @@ impl Palette {
 
 #[cfg(test)]
 mod test {
-    use crate::rgb::*;
     use crate::Palette;
+    use crate::rgb::*;
 
     #[test]
     fn fill_16() {
