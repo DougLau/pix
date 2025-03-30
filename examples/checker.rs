@@ -1,5 +1,5 @@
-use pix::gray::{Gray, SGray8};
 use pix::Raster;
+use pix::gray::{Gray, SGray8};
 use std::fs::File;
 use std::io;
 use std::io::Write;

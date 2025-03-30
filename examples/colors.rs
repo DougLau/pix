@@ -1,7 +1,7 @@
 mod bmp;
 
-use pix::hwb::SHwb8;
 use pix::Raster;
+use pix::hwb::SHwb8;
 use std::io;
 
 fn main() -> Result<(), io::Error> {

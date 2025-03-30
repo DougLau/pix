@@ -4,12 +4,12 @@
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
+use crate::ColorModel;
 use crate::chan::{Alpha, Channel, Gamma, Linear, Premultiplied};
 use crate::matte::Matte;
 use crate::ops::Blend;
 use crate::private::Sealed;
 use crate::rgb::Rgb;
-use crate::ColorModel;
 use std::any::TypeId;
 use std::fmt::Debug;
 use std::marker::PhantomData;
@@ -78,44 +78,14 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Get the channels mutably.
     fn channels_mut(&mut self) -> &mut [Self::Chan];
 
-    /// Get the first channel.
-    fn one(self) -> Self::Chan {
-        *self.channels().first().unwrap_or(&Self::Chan::MAX)
+    /// Get a channel.
+    fn get<const CH: usize>(&self) -> Self::Chan {
+        *self.channels().get(CH).unwrap_or(&Self::Chan::MAX)
     }
 
-    /// Get a mutable reference to the first channel
-    fn one_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[0]
-    }
-
-    /// Get the second channel.
-    fn two(self) -> Self::Chan {
-        *self.channels().get(1).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the second channel
-    fn two_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[1]
-    }
-
-    /// Get the third channel.
-    fn three(self) -> Self::Chan {
-        *self.channels().get(2).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the third channel
-    fn three_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[2]
-    }
-
-    /// Get the fourth channel.
-    fn four(self) -> Self::Chan {
-        *self.channels().get(3).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the fourth channel
-    fn four_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[3]
+    /// Get a mutable reference to a channel.
+    fn get_mut<const CH: usize>(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[CH]
     }
 
     /// Get the *alpha* channel.
@@ -309,7 +279,7 @@ where
 
 /// Rgba pixel type for color model conversions
 pub type PixRgba<P> =
-    Pix4<<P as Pixel>::Chan, Rgb, <P as Pixel>::Alpha, <P as Pixel>::Gamma>;
+    Pix<4, <P as Pixel>::Chan, Rgb, <P as Pixel>::Alpha, <P as Pixel>::Gamma>;
 
 /// Convert a pixel to another format with the same color model.
 ///
@@ -365,27 +335,38 @@ where
     D::Model::from_rgba::<D>(rgba)
 }
 
-/// [Pixel] with one [channel] in its [color model].
+/// Pixel with a generic number of [channel]s in its [color model].
 ///
-/// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
-/// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+/// [channel]: Channel
+/// [color model]: ColorModel
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(C)]
-pub struct Pix1<C, M, A, G>
+pub struct Pix<const N: usize, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
     A: Alpha,
     G: Gamma,
 {
-    channels: [C; 1],
+    channels: [C; N],
     _model: PhantomData<M>,
     _alpha: PhantomData<A>,
     _gamma: PhantomData<G>,
 }
 
-impl<C, M, A, G> Pix1<C, M, A, G>
+impl<const N: usize, C, M, A, G> Default for Pix<N, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    fn default() -> Self {
+        Self::with_channels([C::default(); N])
+    }
+}
+
+impl<C, M, A, G> Pix<1, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
@@ -405,7 +386,7 @@ where
         C: From<H>,
     {
         let channels = [C::from(one); 1];
-        Pix1 {
+        Self {
             channels,
             _model: PhantomData,
             _alpha: PhantomData,
@@ -414,63 +395,7 @@ where
     }
 }
 
-impl<C, M, A, G> Pixel for Pix1<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    type Chan = C;
-    type Model = M;
-    type Alpha = A;
-    type Gamma = G;
-
-    fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0];
-        Self::new::<C>(one)
-    }
-
-    fn from_bit_depth<P>(p: P) -> Self
-    where
-        P: Pixel,
-        Self::Chan: From<P::Chan>,
-    {
-        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-        let one = Self::Chan::from(p.one());
-        Self::new::<Self::Chan>(one)
-    }
-
-    fn channels(&self) -> &[Self::Chan] {
-        &self.channels
-    }
-
-    fn channels_mut(&mut self) -> &mut [Self::Chan] {
-        &mut self.channels
-    }
-}
-
-/// [Pixel] with two [channel]s in its [color model].
-///
-/// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
-/// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[repr(C)]
-pub struct Pix2<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    channels: [C; 2],
-    _model: PhantomData<M>,
-    _alpha: PhantomData<A>,
-    _gamma: PhantomData<G>,
-}
-
-impl<C, M, A, G> Pix2<C, M, A, G>
+impl<C, M, A, G> Pix<2, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
@@ -492,7 +417,7 @@ where
         let one = C::from(one);
         let two = C::from(two);
         let channels = [one, two];
-        Pix2 {
+        Self {
             channels,
             _model: PhantomData,
             _alpha: PhantomData,
@@ -501,65 +426,7 @@ where
     }
 }
 
-impl<C, M, A, G> Pixel for Pix2<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    type Chan = C;
-    type Model = M;
-    type Alpha = A;
-    type Gamma = G;
-
-    fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0];
-        let two = ch[1];
-        Self::new::<C>(one, two)
-    }
-
-    fn from_bit_depth<P>(p: P) -> Self
-    where
-        P: Pixel,
-        Self::Chan: From<P::Chan>,
-    {
-        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-        let one = Self::Chan::from(p.one());
-        let two = Self::Chan::from(p.two());
-        Self::new::<Self::Chan>(one, two)
-    }
-
-    fn channels(&self) -> &[Self::Chan] {
-        &self.channels
-    }
-
-    fn channels_mut(&mut self) -> &mut [Self::Chan] {
-        &mut self.channels
-    }
-}
-
-/// [Pixel] with three [channel]s in its [color model].
-///
-/// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
-/// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[repr(C)]
-pub struct Pix3<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    channels: [C; 3],
-    _model: PhantomData<M>,
-    _alpha: PhantomData<A>,
-    _gamma: PhantomData<G>,
-}
-
-impl<C, M, A, G> Pix3<C, M, A, G>
+impl<C, M, A, G> Pix<3, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
@@ -582,7 +449,7 @@ where
         let two = C::from(two);
         let three = C::from(three);
         let channels = [one, two, three];
-        Pix3 {
+        Self {
             channels,
             _model: PhantomData,
             _alpha: PhantomData,
@@ -591,67 +458,7 @@ where
     }
 }
 
-impl<C, M, A, G> Pixel for Pix3<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    type Chan = C;
-    type Model = M;
-    type Alpha = A;
-    type Gamma = G;
-
-    fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0];
-        let two = ch[1];
-        let three = ch[2];
-        Self::new::<C>(one, two, three)
-    }
-
-    fn from_bit_depth<P>(p: P) -> Self
-    where
-        P: Pixel,
-        Self::Chan: From<P::Chan>,
-    {
-        debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-        let one = Self::Chan::from(p.one());
-        let two = Self::Chan::from(p.two());
-        let three = Self::Chan::from(p.three());
-        Self::new::<Self::Chan>(one, two, three)
-    }
-
-    fn channels(&self) -> &[Self::Chan] {
-        &self.channels
-    }
-
-    fn channels_mut(&mut self) -> &mut [Self::Chan] {
-        &mut self.channels
-    }
-}
-
-/// [Pixel] with four [channel]s in its [color model].
-///
-/// [channel]: ../chan/trait.Channel.html
-/// [color model]: ../trait.ColorModel.html
-/// [pixel]: trait.Pixel.html
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-#[repr(C)]
-pub struct Pix4<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-    channels: [C; 4],
-    _model: PhantomData<M>,
-    _alpha: PhantomData<A>,
-    _gamma: PhantomData<G>,
-}
-
-impl<C, M, A, G> Pix4<C, M, A, G>
+impl<C, M, A, G> Pix<4, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
@@ -675,7 +482,7 @@ where
         let three = C::from(three);
         let four = C::from(four);
         let channels = [one, two, three, four];
-        Pix4 {
+        Self {
             channels,
             _model: PhantomData,
             _alpha: PhantomData,
@@ -684,7 +491,27 @@ where
     }
 }
 
-impl<C, M, A, G> Pixel for Pix4<C, M, A, G>
+impl<const N: usize, C, M, A, G> Pix<N, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a new pixel from an array of [channels].
+    ///
+    /// [channels]: Channel
+    pub const fn with_channels(channels: [C; N]) -> Self {
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<const N: usize, C, M, A, G> Pixel for Pix<N, C, M, A, G>
 where
     C: Channel,
     M: ColorModel,
@@ -697,11 +524,11 @@ where
     type Gamma = G;
 
     fn from_channels(ch: &[C]) -> Self {
-        let one = ch[0];
-        let two = ch[1];
-        let three = ch[2];
-        let four = ch[3];
-        Self::new::<C>(one, two, three, four)
+        let mut channels: [C; N] = [Default::default(); N];
+        for (i, chan) in channels.iter_mut().enumerate() {
+            *chan = ch[i];
+        }
+        Self::with_channels(channels)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -710,11 +537,11 @@ where
         Self::Chan: From<P::Chan>,
     {
         debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-        let one = Self::Chan::from(p.one());
-        let two = Self::Chan::from(p.two());
-        let three = Self::Chan::from(p.three());
-        let four = Self::Chan::from(p.four());
-        Self::new::<Self::Chan>(one, two, three, four)
+        let mut channels: [C; N] = [Default::default(); N];
+        for (ch, chan) in p.channels().iter().zip(channels.iter_mut()) {
+            *chan = Self::Chan::from(*ch);
+        }
+        Self::with_channels(channels)
     }
 
     fn channels(&self) -> &[Self::Chan] {

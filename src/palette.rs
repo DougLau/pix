@@ -3,7 +3,7 @@
 // Copyright (c) 2019-2023  Douglas P Lau
 //
 use crate::chan::{Ch8, Srgb, Straight};
-use crate::el::{Pix3, Pixel};
+use crate::el::{Pix, Pixel};
 use crate::gray::Gray8;
 use crate::raster::Raster;
 use crate::rgb::{Rgb, SRgb8};
@@ -148,7 +148,7 @@ impl Palette {
     pub fn make_indexed<S>(&mut self, raster: Raster<S>) -> Raster<Gray8>
     where
         S: Pixel<Chan = Ch8>,
-        <Pix3<Ch8, Rgb, Straight, Srgb> as Pixel>::Chan: From<S::Chan>,
+        <Pix<3, Ch8, Rgb, Straight, Srgb> as Pixel>::Chan: From<S::Chan>,
     {
         let mut indexed = Raster::with_clear(raster.width(), raster.height());
         for (src, dst) in raster.pixels().iter().zip(indexed.pixels_mut()) {
@@ -165,8 +165,8 @@ impl Palette {
 
 #[cfg(test)]
 mod test {
-    use crate::rgb::*;
     use crate::Palette;
+    use crate::rgb::*;
 
     #[test]
     fn fill_16() {

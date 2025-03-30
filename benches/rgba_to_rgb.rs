@@ -2,8 +2,8 @@
 extern crate criterion;
 
 use criterion::Criterion;
-use pix::rgb::{Rgb8, Rgba8p};
 use pix::Raster;
+use pix::rgb::{Rgb8, Rgba8p};
 
 fn rgba_to_rgb(c: &mut Criterion, sz: u32) {
     let s = format!("rgba_to_rgb_{}", sz);

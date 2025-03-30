@@ -5,12 +5,12 @@
 //! [HWB] color model and types.
 //!
 //! [hwb]: https://en.wikipedia.org/wiki/HWB_color_model
-use crate::chan::{
-    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
-};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
-use crate::hue::{rgb_to_hue_chroma_value, Hexcone};
 use crate::ColorModel;
+use crate::chan::{
+    Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Srgb, Straight,
+};
+use crate::el::{Pix, PixRgba, Pixel};
+use crate::hue::{Hexcone, rgb_to_hue_chroma_value};
 use std::ops::Range;
 
 /// [HWB] [color model].
@@ -56,7 +56,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *hue* component.
@@ -75,7 +75,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 
     /// Get the *whiteness* component.
@@ -94,7 +94,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.get::<1>()
     }
 
     /// Get a mutable reference to the *whiteness* component.
@@ -112,7 +112,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two_mut()
+        p.get_mut::<1>()
     }
 
     /// Get the *blackness* component.
@@ -131,7 +131,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three()
+        p.get::<2>()
     }
 
     /// Get a mutable reference to the *blackness* component.
@@ -149,7 +149,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three_mut()
+        p.get_mut::<2>()
     }
 
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio
@@ -210,98 +210,98 @@ impl ColorModel for Hwb {
 /// [Hwb](struct.Hwb.html) 8-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwb8 = Pix3<Ch8, Hwb, Straight, Linear>;
+pub type Hwb8 = Pix<3, Ch8, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwb16 = Pix3<Ch16, Hwb, Straight, Linear>;
+pub type Hwb16 = Pix<3, Ch16, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwb32 = Pix3<Ch32, Hwb, Straight, Linear>;
+pub type Hwb32 = Pix<3, Ch32, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 8-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
-pub type Hwba8 = Pix4<Ch8, Hwb, Straight, Linear>;
+pub type Hwba8 = Pix<4, Ch8, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
-pub type Hwba16 = Pix4<Ch16, Hwb, Straight, Linear>;
+pub type Hwba16 = Pix<4, Ch16, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
-pub type Hwba32 = Pix4<Ch32, Hwb, Straight, Linear>;
+pub type Hwba32 = Pix<4, Ch32, Hwb, Straight, Linear>;
 
 /// [Hwb](struct.Hwb.html) 8-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwba8p = Pix4<Ch8, Hwb, Premultiplied, Linear>;
+pub type Hwba8p = Pix<4, Ch8, Hwb, Premultiplied, Linear>;
 
 /// [Hwb](struct.Hwb.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwba16p = Pix4<Ch16, Hwb, Premultiplied, Linear>;
+pub type Hwba16p = Pix<4, Ch16, Hwb, Premultiplied, Linear>;
 
 /// [Hwb](struct.Hwb.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Hwba32p = Pix4<Ch32, Hwb, Premultiplied, Linear>;
+pub type Hwba32p = Pix<4, Ch32, Hwb, Premultiplied, Linear>;
 
 /// [Hwb](struct.Hwb.html) 8-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwb8 = Pix3<Ch8, Hwb, Straight, Srgb>;
+pub type SHwb8 = Pix<3, Ch8, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 16-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwb16 = Pix3<Ch16, Hwb, Straight, Srgb>;
+pub type SHwb16 = Pix<3, Ch16, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 32-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwb32 = Pix3<Ch32, Hwb, Straight, Srgb>;
+pub type SHwb32 = Pix<3, Ch32, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 8-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba8 = Pix4<Ch8, Hwb, Straight, Srgb>;
+pub type SHwba8 = Pix<4, Ch8, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba16 = Pix4<Ch16, Hwb, Straight, Srgb>;
+pub type SHwba16 = Pix<4, Ch16, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba32 = Pix4<Ch32, Hwb, Straight, Srgb>;
+pub type SHwba32 = Pix<4, Ch32, Hwb, Straight, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 8-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba8p = Pix4<Ch8, Hwb, Premultiplied, Srgb>;
+pub type SHwba8p = Pix<4, Ch8, Hwb, Premultiplied, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba16p = Pix4<Ch16, Hwb, Premultiplied, Srgb>;
+pub type SHwba16p = Pix<4, Ch16, Hwb, Premultiplied, Srgb>;
 
 /// [Hwb](struct.Hwb.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SHwba32p = Pix4<Ch32, Hwb, Premultiplied, Srgb>;
+pub type SHwba32p = Pix<4, Ch32, Hwb, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {

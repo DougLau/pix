@@ -3,13 +3,13 @@
 // Copyright (c) 2017-2024  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
-use crate::chan::{Ch16, Ch8, Linear, Premultiplied};
+use crate::chan::{Ch8, Ch16, Linear, Premultiplied};
 use crate::el::Pixel;
 use crate::matte::Matte;
 use crate::ops::Blend;
 use std::convert::TryFrom;
 use std::ops::Range;
-use std::slice::{from_raw_parts_mut, ChunksExact, ChunksExactMut};
+use std::slice::{ChunksExact, ChunksExactMut, from_raw_parts_mut};
 
 /// Message for width too big
 const WIDTH_TOO_BIG: &str = "Raster width too big";

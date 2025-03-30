@@ -5,11 +5,11 @@
 //! [CMY] color model and types.
 //!
 //! [cmy]: https://en.wikipedia.org/wiki/CMY_color_model
-use crate::chan::{
-    Ch16, Ch32, Ch8, Channel, Linear, Premultiplied, Srgb, Straight,
-};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
 use crate::ColorModel;
+use crate::chan::{
+    Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Srgb, Straight,
+};
+use crate::el::{Pix, PixRgba, Pixel};
 use std::ops::Range;
 
 /// [CMY] subtractive [color model].
@@ -40,7 +40,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *cyan* component.
@@ -58,7 +58,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 
     /// Get the *magenta* component.
@@ -75,7 +75,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.get::<1>()
     }
 
     /// Get a mutable reference to the *magenta* component.
@@ -93,7 +93,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.two_mut()
+        p.get_mut::<1>()
     }
 
     /// Get the *yellow* component.
@@ -110,7 +110,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.three()
+        p.get::<2>()
     }
 
     /// Get a mutable reference to the *yellow* component.
@@ -128,7 +128,7 @@ impl Cmy {
     where
         P: Pixel<Model = Self>,
     {
-        p.three_mut()
+        p.get_mut::<2>()
     }
 }
 
@@ -165,98 +165,98 @@ impl ColorModel for Cmy {
 /// [Cmy](struct.Cmy.html) 8-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmy8 = Pix3<Ch8, Cmy, Straight, Linear>;
+pub type Cmy8 = Pix<3, Ch8, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmy16 = Pix3<Ch16, Cmy, Straight, Linear>;
+pub type Cmy16 = Pix<3, Ch16, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmy32 = Pix3<Ch32, Cmy, Straight, Linear>;
+pub type Cmy32 = Pix<3, Ch32, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 8-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html)
 /// gamma [pixel](../el/trait.Pixel.html) format.
-pub type Cmya8 = Pix4<Ch8, Cmy, Straight, Linear>;
+pub type Cmya8 = Pix<4, Ch8, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
-pub type Cmya16 = Pix4<Ch16, Cmy, Straight, Linear>;
+pub type Cmya16 = Pix<4, Ch16, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [linear](../chan/struct.Linear.html) gamma
 /// [pixel](../el/trait.Pixel.html) format.
-pub type Cmya32 = Pix4<Ch32, Cmy, Straight, Linear>;
+pub type Cmya32 = Pix<4, Ch32, Cmy, Straight, Linear>;
 
 /// [Cmy](struct.Cmy.html) 8-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmya8p = Pix4<Ch8, Cmy, Premultiplied, Linear>;
+pub type Cmya8p = Pix<4, Ch8, Cmy, Premultiplied, Linear>;
 
 /// [Cmy](struct.Cmy.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmya16p = Pix4<Ch16, Cmy, Premultiplied, Linear>;
+pub type Cmya16p = Pix<4, Ch16, Cmy, Premultiplied, Linear>;
 
 /// [Cmy](struct.Cmy.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Cmya32p = Pix4<Ch32, Cmy, Premultiplied, Linear>;
+pub type Cmya32p = Pix<4, Ch32, Cmy, Premultiplied, Linear>;
 
 /// [Cmy](struct.Cmy.html) 8-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmy8 = Pix3<Ch8, Cmy, Straight, Srgb>;
+pub type SCmy8 = Pix<3, Ch8, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 16-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmy16 = Pix3<Ch16, Cmy, Straight, Srgb>;
+pub type SCmy16 = Pix<3, Ch16, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 32-bit opaque (no *alpha* channel)
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmy32 = Pix3<Ch32, Cmy, Straight, Srgb>;
+pub type SCmy32 = Pix<3, Ch32, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 8-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya8 = Pix4<Ch8, Cmy, Straight, Srgb>;
+pub type SCmya8 = Pix<4, Ch8, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 16-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya16 = Pix4<Ch16, Cmy, Straight, Srgb>;
+pub type SCmya16 = Pix<4, Ch16, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 32-bit [straight](../chan/struct.Straight.html)
 /// alpha [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya32 = Pix4<Ch32, Cmy, Straight, Srgb>;
+pub type SCmya32 = Pix<4, Ch32, Cmy, Straight, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 8-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya8p = Pix4<Ch8, Cmy, Premultiplied, Srgb>;
+pub type SCmya8p = Pix<4, Ch8, Cmy, Premultiplied, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya16p = Pix4<Ch16, Cmy, Premultiplied, Srgb>;
+pub type SCmya16p = Pix<4, Ch16, Cmy, Premultiplied, Srgb>;
 
 /// [Cmy](struct.Cmy.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [sRGB](../chan/struct.Srgb.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type SCmya32p = Pix4<Ch32, Cmy, Premultiplied, Srgb>;
+pub type SCmya32p = Pix<4, Ch32, Cmy, Premultiplied, Srgb>;
 
 #[cfg(test)]
 mod test {
