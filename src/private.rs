@@ -17,7 +17,7 @@ use crate::chan::{
     Alpha, Ch8, Ch16, Ch32, Channel, Gamma, Linear, Premultiplied, Srgb,
     Straight,
 };
-use crate::el::{Pix, Pix1, Pix2, Pix3, Pix4};
+use crate::el::Pix;
 use std::any::Any;
 
 /// Sealed trait to prevent outside crates from implementing traits
@@ -36,42 +36,6 @@ impl Sealed for Premultiplied {}
 impl Sealed for Linear {}
 
 impl Sealed for Srgb {}
-
-impl<C, M, A, G> Sealed for Pix1<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-}
-
-impl<C, M, A, G> Sealed for Pix2<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-}
-
-impl<C, M, A, G> Sealed for Pix3<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-}
-
-impl<C, M, A, G> Sealed for Pix4<C, M, A, G>
-where
-    C: Channel,
-    M: ColorModel,
-    A: Alpha,
-    G: Gamma,
-{
-}
 
 impl<const N: usize, C, M, A, G> Sealed for Pix<N, C, M, A, G>
 where
