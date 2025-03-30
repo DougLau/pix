@@ -146,7 +146,8 @@ impl Palette {
 
     /// Make an indexed raster
     ///
-    /// Returns raster, or None on palette overflow
+    /// # Returns
+    /// New `Raster` using this palette, or `None` on palette overflow
     pub fn make_indexed<S>(
         &mut self,
         raster: Raster<S>,
