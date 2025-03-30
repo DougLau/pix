@@ -1,9 +1,9 @@
 // palette.rs   Color palette
 //
-// Copyright (c) 2019-2023  Douglas P Lau
+// Copyright (c) 2019-2025  Douglas P Lau
 //
-use crate::chan::{Ch8, Srgb, Straight};
-use crate::el::{Pix, Pixel};
+use crate::chan::Ch8;
+use crate::el::Pixel;
 use crate::gray::Gray8;
 use crate::raster::Raster;
 use crate::rgb::{Rgb, SRgb8};
@@ -145,27 +145,30 @@ impl Palette {
     }
 
     /// Make an indexed raster
-    pub fn make_indexed<S>(&mut self, raster: Raster<S>) -> Raster<Gray8>
+    ///
+    /// Returns raster, or None on palette overflow
+    pub fn make_indexed<S>(
+        &mut self,
+        raster: Raster<S>,
+    ) -> Option<Raster<Gray8>>
     where
-        S: Pixel<Chan = Ch8>,
-        <Pix<3, Ch8, Rgb, Straight, Srgb> as Pixel>::Chan: From<S::Chan>,
+        S: Pixel,
+        Ch8: From<S::Chan>,
     {
         let mut indexed = Raster::with_clear(raster.width(), raster.height());
         for (src, dst) in raster.pixels().iter().zip(indexed.pixels_mut()) {
             let clr = src.convert();
-            if let Some(e) = self.set_entry(clr) {
-                *dst = Gray8::new(e as u8);
-            } else {
-                // FIXME: handle full palette
-            }
+            let e = self.set_entry(clr)?;
+            let v = Ch8::new(e as u8);
+            *dst = Gray8::new::<Ch8>(v);
         }
-        indexed
+        Some(indexed)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::Palette;
+    use crate::{Palette, Raster};
     use crate::rgb::*;
 
     #[test]
@@ -233,5 +236,22 @@ mod test {
         assert_eq!(p.set_entry(SRgb8::new(15, 15, 15)), Some(4));
         p.set_threshold_fn(|_| SRgb8::new(5, 5, 5));
         assert_eq!(p.set_entry(SRgb8::new(35, 35, 35)), Some(2));
+    }
+
+    fn raster() -> Raster::<SRgb8> {
+        let mut r = Raster::<SRgb8>::with_clear(2, 2);
+        *r.pixel_mut(0, 0) = SRgb8::new(0, 0, 0);
+        *r.pixel_mut(1, 0) = SRgb8::new(0xFF, 0, 0);
+        *r.pixel_mut(0, 1) = SRgb8::new(0, 0xFF, 0);
+        *r.pixel_mut(1, 1) = SRgb8::new(0, 0, 0xFF);
+        r
+    }
+
+    #[test]
+    fn palette() {
+        let mut p = Palette::new(2);
+        assert!(p.make_indexed(raster()).is_none());
+        let mut p = Palette::new(4);
+        assert!(p.make_indexed(raster()).is_some());
     }
 }
