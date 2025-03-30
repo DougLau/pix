@@ -42,7 +42,7 @@ impl Gray {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *luma* / *relative luminance* component.
@@ -60,7 +60,7 @@ impl Gray {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 }
 

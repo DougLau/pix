@@ -39,7 +39,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *red* component.
@@ -57,7 +57,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 
     /// Get the *green* component.
@@ -74,7 +74,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.get::<1>()
     }
 
     /// Get a mutable reference to the *green* component.
@@ -92,7 +92,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two_mut()
+        p.get_mut::<1>()
     }
 
     /// Get the *blue* component.
@@ -109,7 +109,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three()
+        p.get::<2>()
     }
 
     /// Get a mutable reference to the *blue* component.
@@ -127,7 +127,7 @@ impl Rgb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three_mut()
+        p.get_mut::<2>()
     }
 
     /// Get channel-wise difference

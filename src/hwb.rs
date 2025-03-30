@@ -56,7 +56,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *hue* component.
@@ -75,7 +75,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 
     /// Get the *whiteness* component.
@@ -94,7 +94,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.get::<1>()
     }
 
     /// Get a mutable reference to the *whiteness* component.
@@ -112,7 +112,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.two_mut()
+        p.get_mut::<1>()
     }
 
     /// Get the *blackness* component.
@@ -131,7 +131,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three()
+        p.get::<2>()
     }
 
     /// Get a mutable reference to the *blackness* component.
@@ -149,7 +149,7 @@ impl Hwb {
     where
         P: Pixel<Model = Self>,
     {
-        p.three_mut()
+        p.get_mut::<2>()
     }
 
     /// Get *whiteness* and *blackness* clamped to 1.0 at the same ratio

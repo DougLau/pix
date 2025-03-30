@@ -40,7 +40,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.one()
+        p.get::<0>()
     }
 
     /// Get a mutable reference to the *L* component.
@@ -58,7 +58,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.one_mut()
+        p.get_mut::<0>()
     }
 
     /// Get the *a* component (green/red).
@@ -75,7 +75,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.two()
+        p.get::<1>()
     }
 
     /// Get a mutable reference to the *a* component.
@@ -93,7 +93,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.two_mut()
+        p.get_mut::<1>()
     }
 
     /// Get the *b* component (blue/yellow).
@@ -110,7 +110,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.three()
+        p.get::<2>()
     }
 
     /// Get a mutable reference to the *b* component.
@@ -128,7 +128,7 @@ impl Oklab {
     where
         P: Pixel<Model = Self>,
     {
-        p.three_mut()
+        p.get_mut::<2>()
     }
 }
 

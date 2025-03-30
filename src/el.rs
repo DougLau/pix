@@ -78,44 +78,14 @@ pub trait Pixel: Clone + Copy + Debug + Default + PartialEq + Sealed {
     /// Get the channels mutably.
     fn channels_mut(&mut self) -> &mut [Self::Chan];
 
-    /// Get the first channel.
-    fn one(self) -> Self::Chan {
-        *self.channels().first().unwrap_or(&Self::Chan::MAX)
+    /// Get a channel.
+    fn get<const CH: usize>(&self) -> Self::Chan {
+        *self.channels().get(CH).unwrap_or(&Self::Chan::MAX)
     }
 
-    /// Get a mutable reference to the first channel
-    fn one_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[0]
-    }
-
-    /// Get the second channel.
-    fn two(self) -> Self::Chan {
-        *self.channels().get(1).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the second channel
-    fn two_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[1]
-    }
-
-    /// Get the third channel.
-    fn three(self) -> Self::Chan {
-        *self.channels().get(2).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the third channel
-    fn three_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[2]
-    }
-
-    /// Get the fourth channel.
-    fn four(self) -> Self::Chan {
-        *self.channels().get(3).unwrap_or(&Self::Chan::MAX)
-    }
-
-    /// Get a mutable reference to the fourth channel
-    fn four_mut(&mut self) -> &mut Self::Chan {
-        &mut self.channels_mut()[3]
+    /// Get a mutable reference to a channel.
+    fn get_mut<const CH: usize>(&mut self) -> &mut Self::Chan {
+        &mut self.channels_mut()[CH]
     }
 
     /// Get the *alpha* channel.
@@ -538,16 +508,6 @@ where
             _alpha: PhantomData,
             _gamma: PhantomData,
         }
-    }
-
-    /// Get a channel.
-    pub const fn channel<const CH: usize>(&self) -> C {
-        self.channels[CH]
-    }
-
-    /// Get a mutable reference to a channel.
-    pub const fn channel_mut<const CH: usize>(&mut self) -> &mut C {
-        &mut self.channels[CH]
     }
 }
 
