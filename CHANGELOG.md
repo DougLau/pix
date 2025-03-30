@@ -1,5 +1,13 @@
 ## [Unreleased]
 
+### Changed
+* Replace `Pix1`, `Pix2`, etc. with `Pix`, using const-generics
+* `Palette::make_indexed` now returns Option (None on palette full)
+
+## [0.14.0] - 2025-03-15
+### Changed
+* Rust 2024 edition
+
 ## [0.13.3] - 2023-09-01
 ### Added
 * Oklab color model
