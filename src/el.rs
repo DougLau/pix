@@ -391,13 +391,138 @@ where
 
 impl<const N: usize, C, M, A, G> Default for Pix<N, C, M, A, G>
 where
-    C: Channel + Default,
+    C: Channel,
     M: ColorModel,
     A: Alpha,
     G: Gamma,
 {
     fn default() -> Self {
-        Self::new([C::default(); N])
+        Self::with_channels([C::default(); N])
+    }
+}
+
+impl<C, M, A, G> Pix<1, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a one-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// use pix::gray::Gray8;
+    ///
+    /// let opaque_gray = Gray8::new(128);
+    /// ```
+    pub fn new<H>(one: H) -> Self
+    where
+        C: From<H>,
+    {
+        let channels = [C::from(one); 1];
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pix<2, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a two-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// use pix::gray::Graya8;
+    ///
+    /// let translucent_gray = Graya8::new(128, 200);
+    /// ```
+    pub fn new<H>(one: H, two: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        let channels = [one, two];
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pix<3, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a three-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// use pix::rgb::Rgb8;
+    ///
+    /// let rgb = Rgb8::new(128, 200, 255);
+    /// ```
+    pub fn new<H>(one: H, two: H, three: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        let three = C::from(three);
+        let channels = [one, two, three];
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
+    }
+}
+
+impl<C, M, A, G> Pix<4, C, M, A, G>
+where
+    C: Channel,
+    M: ColorModel,
+    A: Alpha,
+    G: Gamma,
+{
+    /// Create a four-channel color.
+    ///
+    /// ## Example
+    /// ```
+    /// use pix::rgb::Rgba8;
+    ///
+    /// let rgba = Rgba8::new(128, 200, 255, 128);
+    /// ```
+    pub fn new<H>(one: H, two: H, three: H, four: H) -> Self
+    where
+        C: From<H>,
+    {
+        let one = C::from(one);
+        let two = C::from(two);
+        let three = C::from(three);
+        let four = C::from(four);
+        let channels = [one, two, three, four];
+        Self {
+            channels,
+            _model: PhantomData,
+            _alpha: PhantomData,
+            _gamma: PhantomData,
+        }
     }
 }
 
@@ -411,7 +536,7 @@ where
     /// Create a new pixel from an array of [channels].
     ///
     /// [channels]: Channel
-    pub const fn new(channels: [C; N]) -> Self {
+    pub const fn with_channels(channels: [C; N]) -> Self {
         Self {
             channels,
             _model: PhantomData,
@@ -445,12 +570,10 @@ where
 
     fn from_channels(ch: &[C]) -> Self {
         let mut channels: [C; N] = [Default::default(); N];
-
         for (i, chan) in channels.iter_mut().enumerate() {
             *chan = ch[i];
         }
-
-        Self::new(channels)
+        Self::with_channels(channels)
     }
 
     fn from_bit_depth<P>(p: P) -> Self
@@ -459,15 +582,11 @@ where
         Self::Chan: From<P::Chan>,
     {
         debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-
         let mut channels: [C; N] = [Default::default(); N];
-        let ch = Self::Chan::from(p.one());
-
-        for chan in channels.iter_mut() {
-            *chan = ch;
+        for (ch, chan) in p.channels().iter().zip(channels.iter_mut()) {
+            *chan = Self::Chan::from(*ch);
         }
-
-        Self::new(channels)
+        Self::with_channels(channels)
     }
 
     fn channels(&self) -> &[Self::Chan] {

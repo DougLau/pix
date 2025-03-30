@@ -9,7 +9,7 @@
 
 use crate::ColorModel;
 use crate::chan::{Ch8, Ch16, Ch32, Channel, Linear, Premultiplied, Straight};
-use crate::el::{Pix3, Pix4, PixRgba, Pixel};
+use crate::el::{Pix, PixRgba, Pixel};
 use std::ops::Range;
 
 /// [Xyz] [color model] with D65 white point.
@@ -175,53 +175,53 @@ impl ColorModel for Xyz {
 /// [Xyz](struct.Xyz.html) 8-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyz8 = Pix3<Ch8, Xyz, Straight, Linear>;
+pub type Xyz8 = Pix<3, Ch8, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 16-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyz16 = Pix3<Ch16, Xyz, Straight, Linear>;
+pub type Xyz16 = Pix<3, Ch16, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 32-bit opaque (no *alpha* channel)
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyz32 = Pix3<Ch32, Xyz, Straight, Linear>;
+pub type Xyz32 = Pix<3, Ch32, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 8-bit
 /// [straight](../chan/struct.Straight.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza8 = Pix4<Ch8, Xyz, Straight, Linear>;
+pub type Xyza8 = Pix<4, Ch8, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 16-bit
 /// [straight](../chan/struct.Straight.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza16 = Pix4<Ch16, Xyz, Straight, Linear>;
+pub type Xyza16 = Pix<4, Ch16, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 32-bit
 /// [straight](../chan/struct.Straight.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza32 = Pix4<Ch32, Xyz, Straight, Linear>;
+pub type Xyza32 = Pix<4, Ch32, Xyz, Straight, Linear>;
 
 /// [Xyz](struct.Xyz.html) 8-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza8p = Pix4<Ch8, Xyz, Premultiplied, Linear>;
+pub type Xyza8p = Pix<4, Ch8, Xyz, Premultiplied, Linear>;
 
 /// [Xyz](struct.Xyz.html) 16-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza16p = Pix4<Ch16, Xyz, Premultiplied, Linear>;
+pub type Xyza16p = Pix<4, Ch16, Xyz, Premultiplied, Linear>;
 
 /// [Xyz](struct.Xyz.html) 32-bit
 /// [premultiplied](../chan/struct.Premultiplied.html) alpha
 /// [linear](../chan/struct.Linear.html) gamma [pixel](../el/trait.Pixel.html)
 /// format.
-pub type Xyza32p = Pix4<Ch32, Xyz, Premultiplied, Linear>;
+pub type Xyza32p = Pix<4, Ch32, Xyz, Premultiplied, Linear>;
 
 #[cfg(test)]
 mod test {
