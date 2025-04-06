@@ -7,6 +7,7 @@ documentation = "https://docs.rs/pix"
 homepage = "https://github.com/DougLau/pix"
 repository = "https://github.com/DougLau/pix"
 readme = "README.md"
+categories = ["multimedia::images"]
 keywords = ["pixel", "image", "rgb", "color"]
 edition = "2024"
 include = [
