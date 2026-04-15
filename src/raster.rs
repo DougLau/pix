@@ -1,6 +1,6 @@
 // raster.rs    Raster images.
 //
-// Copyright (c) 2017-2024  Douglas P Lau
+// Copyright (c) 2017-2026  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 use crate::chan::{Ch8, Ch16, Linear, Premultiplied};
@@ -404,7 +404,7 @@ impl<P: Pixel> Raster<P> {
     /// Get an `Iterator` of rows within a `Raster`.
     ///
     /// * `reg` Region of the Raster to iterate.
-    pub fn rows<R>(&self, reg: R) -> Rows<P>
+    pub fn rows<R>(&self, reg: R) -> Rows<'_, P>
     where
         R: Into<Region>,
     {
@@ -414,7 +414,7 @@ impl<P: Pixel> Raster<P> {
     /// Get an `Iterator` of mutable rows within a `Raster`.
     ///
     /// * `reg` Region of the Raster to iterate.
-    pub fn rows_mut<R>(&mut self, reg: R) -> RowsMut<P>
+    pub fn rows_mut<R>(&mut self, reg: R) -> RowsMut<'_, P>
     where
         R: Into<Region>,
     {
