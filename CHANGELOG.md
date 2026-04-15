@@ -1,5 +1,6 @@
 ## [Unreleased]
 
+## [0.15.0] - 2026-04-15
 ### Changed
 * Replace `Pix1`, `Pix2`, etc. with `Pix`, using const-generics
 * `Palette::make_indexed` now returns Option (None on palette full)
