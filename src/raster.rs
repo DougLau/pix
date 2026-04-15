@@ -9,7 +9,8 @@ use crate::matte::Matte;
 use crate::ops::Blend;
 use std::convert::TryFrom;
 use std::ops::Range;
-use std::slice::{ChunksExact, ChunksExactMut, from_raw_parts_mut};
+use std::ptr::slice_from_raw_parts_mut;
+use std::slice::{ChunksExact, ChunksExactMut};
 
 /// Message for width too big
 const WIDTH_TOO_BIG: &str = "Raster width too big";
@@ -132,7 +133,7 @@ where
         let slice = Box::<[P]>::into_raw(pixels);
         let buffer: Box<[u8]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut u8;
-            Box::from_raw(from_raw_parts_mut(ptr, capacity))
+            Box::from_raw(slice_from_raw_parts_mut(ptr, capacity))
         };
         buffer
     }
@@ -149,7 +150,7 @@ where
         let slice = Box::<[P]>::into_raw(pixels);
         let buffer: Box<[u16]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut u16;
-            Box::from_raw(from_raw_parts_mut(ptr, capacity))
+            Box::from_raw(slice_from_raw_parts_mut(ptr, capacity))
         };
         buffer
     }
@@ -309,7 +310,7 @@ impl<P: Pixel> Raster<P> {
         let slice = Box::<[u8]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
-            Box::from_raw(from_raw_parts_mut(ptr, len))
+            Box::from_raw(slice_from_raw_parts_mut(ptr, len))
         };
         Raster {
             width,
@@ -349,7 +350,7 @@ impl<P: Pixel> Raster<P> {
         let slice = Box::<[u16]>::into_raw(buffer);
         let pixels: Box<[P]> = unsafe {
             let ptr = (*slice).as_mut_ptr() as *mut P;
-            Box::from_raw(from_raw_parts_mut(ptr, len))
+            Box::from_raw(slice_from_raw_parts_mut(ptr, len))
         };
         Raster {
             width,

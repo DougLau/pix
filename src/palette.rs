@@ -74,11 +74,10 @@ impl Palette {
     /// Index of best matching or added entry if successful.  Otherwise, when
     /// no matches are found and the table is full, `None` is returned.
     pub fn set_entry(&mut self, clr: SRgb8) -> Option<usize> {
-        if let Some((i, dif)) = self.best_match(clr) {
-            if Rgb::within_threshold(dif, (self.threshold_fn)(self.table.len()))
-            {
-                return Some(i);
-            }
+        if let Some((i, dif)) = self.best_match(clr)
+            && Rgb::within_threshold(dif, (self.threshold_fn)(self.table.len()))
+        {
+            return Some(i);
         }
         let i = self.table.len();
         if i < self.table.capacity() {
@@ -168,8 +167,8 @@ impl Palette {
 
 #[cfg(test)]
 mod test {
-    use crate::{Palette, Raster};
     use crate::rgb::*;
+    use crate::{Palette, Raster};
 
     #[test]
     fn fill_16() {
@@ -238,7 +237,7 @@ mod test {
         assert_eq!(p.set_entry(SRgb8::new(35, 35, 35)), Some(2));
     }
 
-    fn raster() -> Raster::<SRgb8> {
+    fn raster() -> Raster<SRgb8> {
         let mut r = Raster::<SRgb8>::with_clear(2, 2);
         *r.pixel_mut(0, 0) = SRgb8::new(0, 0, 0);
         *r.pixel_mut(1, 0) = SRgb8::new(0xFF, 0, 0);
