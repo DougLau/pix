@@ -1,6 +1,6 @@
 // el.rs        Pixel format.
 //
-// Copyright (c) 2018-2023  Douglas P Lau
+// Copyright (c) 2018-2026  Douglas P Lau
 // Copyright (c) 2019-2020  Jeron Aldaron Lau
 //
 //! Module for `pix::el` items
@@ -28,7 +28,7 @@ use std::marker::PhantomData;
 ///
 /// * _Gamma_: `S` for [sRGB] gamma encoding; [linear] if omitted.
 /// * _Color model_: [`Rgb`] / [`Bgr`] / [`Gray`] / [`Cmy`] / [`Hsv`] /
-///                  [`Hsl`] / [`Hwb`] / [`YCbCr`] / [`Matte`].
+///   [`Hsl`] / [`Hwb`] / [`YCbCr`] / [`Matte`].
 /// * _Alpha_: `a` to include alpha channel enabling translucent pixels.
 /// * _Bit depth_: `8` / `16` / `32` for 8-bit integer, 16-bit integer and
 ///   32-bit floating-point [channels].

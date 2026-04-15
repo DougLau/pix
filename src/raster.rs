@@ -438,8 +438,8 @@ impl<P: Pixel> Raster<P> {
     /// Copy a color to a region of the `Raster`.
     ///
     /// * `reg` Region within `self`.  It can be a `Region` struct, tuple of
-    ///         (*x*, *y*, *width*, *height*) or the unit type `()`.  Using
-    ///         `()` has the same result as `Raster::region()`.
+    ///   (*x*, *y*, *width*, *height*) or the unit type `()`.  Using `()` has
+    ///   the same result as `Raster::region()`.
     /// * `clr` Source `Pixel` color.
     ///
     /// ### Copy a color to a rectangle region
@@ -566,8 +566,8 @@ where
     /// Composite a source color to a region of the `Raster`.
     ///
     /// * `reg` Region within `self`.  It can be a `Region` struct, tuple of
-    ///         (*x*, *y*, *width*, *height*) or the unit type `()`.  Using
-    ///         `()` has the same result as `Raster::region()`.
+    ///   (*x*, *y*, *width*, *height*) or the unit type `()`.  Using `()` has
+    ///   the same result as `Raster::region()`.
     /// * `clr` Source `Pixel` color.
     /// * `op` Compositing operation.
     ///

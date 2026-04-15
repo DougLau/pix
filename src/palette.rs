@@ -1,6 +1,6 @@
 // palette.rs   Color palette
 //
-// Copyright (c) 2019-2025  Douglas P Lau
+// Copyright (c) 2019-2026  Douglas P Lau
 //
 use crate::chan::Ch8;
 use crate::el::Pixel;
@@ -41,9 +41,8 @@ impl Palette {
     /// Set the threshold function for matching entries.
     ///
     /// * `threshold_fn` Called when checking whether a color matches an
-    ///                  existing entry.  The parameter is the palette table
-    ///                  size.  Returns the maximum `Channel`-wise difference
-    ///                  to match.
+    ///   existing entry.  The parameter is the palette table size.  Returns
+    ///   the maximum `Channel`-wise difference to match.
     pub fn set_threshold_fn(&mut self, threshold_fn: fn(usize) -> SRgb8) {
         self.threshold_fn = threshold_fn;
     }
