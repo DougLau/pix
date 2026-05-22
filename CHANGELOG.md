@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-22
+### Changed
+* Nothing
+
 ## [0.15.0] - 2026-04-15
 ### Changed
 * Replace `Pix1`, `Pix2`, etc. with `Pix`, using const-generics
