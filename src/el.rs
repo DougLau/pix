@@ -581,12 +581,12 @@ mod test {
 
     #[test]
     fn gray_to_rgb() {
-        assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert(),);
+        assert_eq!(SRgb8::new(0xD9, 0xD9, 0xD9), SGray8::new(0xD9).convert());
         assert_eq!(
             SRgb8::new(0x33, 0x33, 0x33),
             SGray16::new(0x337F).convert(),
         );
-        assert_eq!(SRgb8::new(0x40, 0x40, 0x40), SGray32::new(0.25).convert(),);
+        assert_eq!(SRgb8::new(0x40, 0x40, 0x40), SGray32::new(0.25).convert());
         assert_eq!(
             SRgb16::new(0x2929, 0x2929, 0x2929),
             SGray8::new(0x29).convert(),
@@ -607,7 +607,7 @@ mod test {
             SRgb32::new(0.75001144, 0.75001144, 0.75001144),
             SGray16::new(0xC000).convert(),
         );
-        assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert(),);
+        assert_eq!(SRgb32::new(0.33, 0.33, 0.33), SGray32::new(0.33).convert());
     }
 
     #[test]
