@@ -537,7 +537,8 @@ where
         Self::Chan: From<P::Chan>,
     {
         debug_assert_eq!(TypeId::of::<Self::Model>(), TypeId::of::<P::Model>());
-        let mut channels: [C; N] = [Default::default(); N];
+        // init to MAX in case src has no alpha channel
+        let mut channels: [C; N] = [C::MAX; N];
         for (ch, chan) in p.channels().iter().zip(channels.iter_mut()) {
             *chan = Self::Chan::from(*ch);
         }
@@ -687,6 +688,14 @@ mod test {
         assert_eq!(
             SRgba8p::new(0x70, 0xE0, 0xA7, 0xBF),
             SRgba32::new(0.5, 1.0, 0.75, 0.75).convert(),
+        );
+    }
+
+    #[test]
+    fn rgb8_to_rgba8() {
+        assert_eq!(
+            Rgba8::new(0x20, 0x40, 0x80, 0xFF),
+            Rgb8::new(0x20, 0x40, 0x80).convert(),
         );
     }
 }
