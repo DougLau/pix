@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-18
+* Fixed `Pix` conversion where dst has alpha, but src does not
+
 ## [1.0.0] - 2026-05-22
 ### Changed
 * Nothing
